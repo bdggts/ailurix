@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { injected } from 'wagmi/connectors';
+import Link from 'next/link';
 
 const STATS = [
   { label: 'Warriors', value: '0', suffix: '+' },
@@ -11,10 +12,10 @@ const STATS = [
 ];
 
 const FEATURES = [
-  { icon: '⚔️', title: 'Raid & Conquer', desc: 'Attack enemy territories, steal their $DMX, and expand your empire across the Base chain map.' },
-  { icon: '🏰', title: 'Build & Fortify', desc: 'Construct walls, towers, and army barracks. The stronger your base, the harder to raid.' },
+  { icon: '⚔️', title: 'Arena Fights', desc: 'MK-style 1v1 battles. Pick your NFT General, bet $DMX, and destroy your opponent in real-time combat.' },
+  { icon: '🏰', title: 'Raid & Conquer', desc: 'Attack enemy territories, steal their $DMX, and expand your empire across the Base chain map.' },
   { icon: '⛏️', title: 'Mine $DMX', desc: 'Your territory auto-generates $DMX every block. The bigger your domain, the more you earn while offline.' },
-  { icon: '🐉', title: 'General NFTs', desc: '10,000 unique General NFTs with special war abilities. Rare Generals can turn the tide of battle.' },
+  { icon: '🐉', title: 'General NFTs', desc: '10,000 unique General NFTs — buy on OpenSea, use in-game. NFT stats directly boost your fighter.' },
   { icon: '🛡️', title: 'Clan Wars', desc: 'Form clans of up to 50 players. Coordinate attacks, share resources, and dominate weekly wars.' },
   { icon: '🏆', title: 'Tournament Mode', desc: 'Weekly 1v1 and clan PvP tournaments with $DMX prize pools. The best warriors earn real rewards.' },
 ];
@@ -61,6 +62,7 @@ export default function Home() {
               onMouseEnter={e => e.target.style.color = '#fff'}
               onMouseLeave={e => e.target.style.color = 'var(--dim)'}>{l}</a>
           ))}
+          <Link href="/arena" style={{ padding: '8px 18px', borderRadius: 10, background: 'linear-gradient(135deg,#ef4444,#7c2d12)', color: '#fff', fontWeight: 800, fontSize: 13, textDecoration: 'none', letterSpacing: 0.5 }}>⚔️ Arena</Link>
           {mounted && (
             isConnected
               ? <button onClick={disconnect} style={{ padding: '8px 18px', borderRadius: 10, background: 'var(--card)', border: '1px solid var(--border)', color: '#fff', fontWeight: 700, fontSize: 13 }}>
@@ -102,9 +104,9 @@ export default function Home() {
           </p>
 
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={connectWallet} style={{ padding: '16px 36px', borderRadius: 14, background: 'var(--grad)', border: 'none', color: '#000', fontWeight: 800, fontSize: 17, animation: 'glow 3s infinite', letterSpacing: .5 }}>
-              ⚔️ Enter Dominex
-            </button>
+            <Link href="/arena" style={{ padding: '16px 36px', borderRadius: 14, background: 'var(--grad)', border: 'none', color: '#000', fontWeight: 800, fontSize: 17, animation: 'glow 3s infinite', letterSpacing: .5, textDecoration: 'none', display: 'inline-block' }}>
+              ⚔️ Enter Arena
+            </Link>
             <button style={{ padding: '16px 36px', borderRadius: 14, border: '1px solid var(--border)', background: 'var(--card)', color: '#fff', fontWeight: 700, fontSize: 17 }}
               onClick={() => document.getElementById('tokenomics')?.scrollIntoView({ behavior: 'smooth' })}>
               📊 View $DMX
