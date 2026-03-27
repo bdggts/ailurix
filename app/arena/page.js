@@ -506,7 +506,7 @@ export default function ArenaPage() {
 
   // ── Fight Screen ──────────────────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: '#030308', display: 'flex', flexDirection: 'column', userSelect: 'none' }}>
+    <div style={{ height: '100vh', background: '#030308', display: 'flex', flexDirection: 'column', userSelect: 'none', overflow: 'hidden' }}>
       {/* Top bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', background: 'rgba(0,0,0,0.8)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <span style={{ fontFamily: 'Rajdhani,sans-serif', fontWeight: 700, fontSize: 18, color: '#f59e0b', letterSpacing: 2 }}>⚔️ DOMINEX ARENA</span>
@@ -515,7 +515,7 @@ export default function ArenaPage() {
           style={{ padding: '6px 16px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>✕ Quit</button>
       </div>
 
-      <canvas ref={canvasRef} style={{ flex: 1, display: 'block', width: '100%', minHeight: 420 }} />
+      <canvas ref={canvasRef} style={{ flex: 1, display: 'block', width: '100%', height: '100%', minHeight: 0 }} />
 
       {/* Mobile buttons */}
       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'rgba(0,0,0,0.85)', borderTop: '1px solid rgba(255,255,255,0.06)', gap: 8 }}>
