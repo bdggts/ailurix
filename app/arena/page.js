@@ -211,16 +211,26 @@ export default function ArenaPage() {
   const [p2Wins,     setP2Wins]     = useState(0);
   const [betAmount,  setBetAmount]  = useState(100);
   const [dmx,        setDmx]        = useState(1250);
+  const [rematchKey, setRematchKey] = useState(0); // increments to restart fight
 
   // ── Fight loop ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (screen !== 'fight' || !p1Char || !p2Char) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    canvas.width  = canvas.offsetWidth  || 800;
-    canvas.height = canvas.offsetHeight || 450;
-    const W = canvas.width, H = canvas.height;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (cancelled) return;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const W2 = canvas.offsetWidth  || window.innerWidth  || 800;
+      const H2 = canvas.offsetHeight > 80 ? canvas.offsetHeight : (window.innerHeight - 120) || 450;
+      canvas.width  = W2;
+      canvas.height = H2;
+      startGame(canvas, ctx, W2, H2);
+    }, 60);
+
+    function startGame(canvas, ctx, W, H) {
+    if (cancelled) return;
 
     const gs = {
       p1: { char: p1Char, hp: p1Char.hp, energy: 0, state: 'idle' },
@@ -414,8 +424,9 @@ export default function ArenaPage() {
       }
     }
     rafRef.current = requestAnimationFrame(loop);
-    return () => { cancelAnimationFrame(rafRef.current); window.removeEventListener('keydown', onKey); };
-  }, [screen, p1Char, p2Char]);
+    } // end startGame
+    return () => { cancelled = true; clearTimeout(timer); cancelAnimationFrame(rafRef.current); window.removeEventListener('keydown', onKey); };
+  }, [screen, p1Char, p2Char, rematchKey]);
 
   // ── Character Select ────────────────────────────────────────────────────────
   if (screen === 'select') return (
@@ -487,8 +498,8 @@ export default function ArenaPage() {
         {winner === 'P1' ? `+${betAmount} $DMX earned!` : winner === 'P2' ? `-${betAmount} $DMX lost` : 'No $DMX exchanged'}
       </div>
       <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
-        <button onClick={() => { setWinner(null); }} style={{ padding: '14px 36px', borderRadius: 12, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', border: 'none', color: '#000', fontWeight: 900, fontSize: 17, cursor: 'pointer' }}>⚔️ Rematch</button>
-        <button onClick={() => { setScreen('select'); setP1Char(null); setP2Char(null); setStep(1); setWinner(null); setP1Wins(0); setP2Wins(0); }} style={{ padding: '14px 36px', borderRadius: 12, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: 'white', fontWeight: 700, fontSize: 17, cursor: 'pointer' }}>🔄 New Match</button>
+        <button onClick={() => { setWinner(null); setRematchKey(k => k + 1); }} style={{ padding: '14px 36px', borderRadius: 12, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', border: 'none', color: '#000', fontWeight: 900, fontSize: 17, cursor: 'pointer' }}>⚔️ Rematch</button>
+        <button onClick={() => { setScreen('select'); setP1Char(null); setP2Char(null); setStep(1); setWinner(null); setP1Wins(0); setP2Wins(0); setRematchKey(0); }} style={{ padding: '14px 36px', borderRadius: 12, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: 'white', fontWeight: 700, fontSize: 17, cursor: 'pointer' }}>🔄 New Match</button>
       </div>
     </div>
   );
