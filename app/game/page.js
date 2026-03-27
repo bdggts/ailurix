@@ -55,9 +55,12 @@ export default function GamePage() {
 
   // ── Init Three.js ───────────────────────────────────────────────────────────
   useEffect(() => {
+    if (!isConnected) return;
     if (!canvasRef.current) return;
-    const W = canvasRef.current.clientWidth;
-    const H = canvasRef.current.clientHeight;
+    // Small delay to ensure canvas is laid out in DOM
+    const init = () => {
+    const W = canvasRef.current?.clientWidth  || window.innerWidth  * 0.72;
+    const H = canvasRef.current?.clientHeight || window.innerHeight - 120;
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias: true, alpha: true });
@@ -284,8 +287,9 @@ export default function GamePage() {
 
     // Resize
     const onResize = () => {
-      const w = canvasRef.current.clientWidth;
-      const h = canvasRef.current.clientHeight;
+      if (!canvasRef.current) return;
+      const w = canvasRef.current.clientWidth  || window.innerWidth  * 0.72;
+      const h = canvasRef.current.clientHeight || window.innerHeight - 120;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
@@ -297,7 +301,10 @@ export default function GamePage() {
       window.removeEventListener('resize', onResize);
       renderer.dispose();
     };
-  }, []);
+    }; // end init
+    const t = setTimeout(init, 50);
+    return () => clearTimeout(t);
+  }, [isConnected]);
 
   // Mine DMX every 5 sec
   useEffect(() => {
