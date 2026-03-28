@@ -208,11 +208,26 @@ export default function ArenaPage() {
       if(move==='block'){att.state='block';playSound('block');setTimeout(function(){if(att.state==='block')att.state='idle';},480);return;}
       if(move==='special'&&att.energy<80)return;
       playSound(move);
+      att.state='attack'; att.atkType=move; att.atkFrame=0;
+      // Dash forward during attack
+      var dashDir=att===gs.p1?1:-1;
+      var dashAmt=move==='special'?40:move==='kick'?30:20;
+      att.x=Math.max(40,Math.min(W-40,att.x+dashAmt*dashDir));
+      // Range check — must be close enough to land hit
+      var dist=Math.abs(att.x-def.x);
+      var range=move==='special'?220:move==='kick'?160:120;
+      if(dist>range){
+        // MISS — too far away
+        floatDmg((att.x+def.x)/2,H*0.7-60,'MISS!','#64748b');
+        att.energy=Math.min(100,att.energy+2);
+        setTimeout(function(){if(att.state==='attack')att.state='idle';},move==='special'?700:move==='kick'?420:280);
+        return;
+      }
+      // HIT — in range
       var base=att.char.moves[move]||10;
       var blocked=def.state==='block';
       var dmg=Math.round(base*(0.8+att.char.power/25)*(blocked?0.18:1));
       if(move==='special')att.energy=0;
-      att.state='attack'; att.atkType=move; att.atkFrame=0;
       def.hp=Math.max(0,def.hp-dmg);
       att.energy=Math.min(100,att.energy+(move==='punch'?8:move==='kick'?12:5));
       // Knockback
