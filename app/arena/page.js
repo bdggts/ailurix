@@ -197,10 +197,8 @@ function drawParticle(ctx, p) {
 }
 
 export default function ArenaPage() {
-  const canvasRef = useRef(null);
-  const gsRef     = useRef(null);
-  const rafRef    = useRef(null);
-  const frameRef  = useRef(0);
+  const containerRef = useRef(null);  // fight area container div
+
 
   const [screen,     setScreen]     = useState('select');
   const [p1Char,     setP1Char]     = useState(null);
@@ -217,21 +215,32 @@ export default function ArenaPage() {
   useEffect(() => {
     if (screen !== 'fight' || !p1Char || !p2Char) return;
     let cancelled = false;
+    let rafId = 0;
+    let frame = 0;
+    const gsRef = { current: null };
+
     const timer = setTimeout(() => {
-      if (cancelled) return;
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+      if (cancelled || !containerRef.current) return;
+      const container = containerRef.current;
+      // Create canvas imperatively — React never touches it
+      const canvas = document.createElement('canvas');
+      const rect = container.getBoundingClientRect();
+      const W = (rect.width  > 10 ? rect.width  : window.innerWidth)  || 800;
+      const H = (rect.height > 10 ? rect.height : window.innerHeight - 140) || 500;
+      canvas.width  = W;
+      canvas.height = H;
+      canvas.style.display = 'block';
+      canvas.style.position = 'absolute';
+      canvas.style.top  = '0'; canvas.style.left = '0';
+      container.appendChild(canvas);
       const ctx = canvas.getContext('2d');
-      // Use window dims minus fixed UI areas: header ~48px + buttons bar ~88px
-      const W2 = window.innerWidth  || 800;
-      const H2 = (window.innerHeight - 140) || 500; // 48px header + 88px buttons + buffer
-      canvas.width  = W2;
-      canvas.height = H2;
-      startGame(canvas, ctx, W2, H2);
-    }, 80);
+      console.log('[ARENA] canvas ready', W, 'x', H);
+      startGame(canvas, ctx, W, H);
+    }, 100);
 
     function startGame(canvas, ctx, W, H) {
     if (cancelled) return;
+    console.log('[ARENA] startGame', W, H);
 
     const gs = {
       p1: { char: p1Char, hp: p1Char.hp, energy: 0, state: 'idle' },
@@ -266,8 +275,6 @@ export default function ArenaPage() {
       }
     }
 
-    // CPU AI
-    let cpuT = 0;
     function runCPU() {
       if (gs.p2.state !== 'idle' || gs.over) return;
       cpuT++;
@@ -279,6 +286,9 @@ export default function ArenaPage() {
       else if (r < 0.75) { attack(gs.p2, gs.p1, 'kick', true); }
       else { gs.p2.state = 'block'; setTimeout(() => { if (gs.p2.state === 'block') gs.p2.state = 'idle'; }, 420); }
     }
+
+    // CPU AI
+    let cpuT = 0;
 
     // Key handler
     const onKey = (e) => {
@@ -329,7 +339,7 @@ export default function ArenaPage() {
         ctx.fillStyle = '#44403c'; ctx.fillRect(tx - 4, H * 0.36, 8, H * 0.18);
         const fire = ctx.createRadialGradient(tx, H * 0.33, 3, tx, H * 0.33, 20);
         fire.addColorStop(0, '#fef08a'); fire.addColorStop(0.5, '#f97316'); fire.addColorStop(1, 'rgba(239,68,68,0)');
-        ctx.fillStyle = fire; ctx.beginPath(); ctx.arc(tx, H * 0.33 + Math.sin(frameRef.current * 0.12) * 4, 20, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = fire; ctx.beginPath(); ctx.arc(tx, H * 0.33 + Math.sin(frame * 0.12) * 4, 20, 0, Math.PI * 2); ctx.fill();
       });
     }
 
@@ -376,14 +386,14 @@ export default function ArenaPage() {
 
     let lastT = 0;
     function loop(ts) {
-      rafRef.current = requestAnimationFrame(loop);
+      rafId = requestAnimationFrame(loop);
       if (ts - lastT < 1000 / 60) return;
-      lastT = ts; frameRef.current++;
+      lastT = ts; frame++;
       ctx.clearRect(0, 0, W, H);
       drawArena();
       const gY = H * 0.7;
-      drawChar(ctx, gs.p1.char, W * 0.27, gY, 1, frameRef.current, gs.p1.state);
-      drawChar(ctx, gs.p2.char, W * 0.73, gY, -1, frameRef.current, gs.p2.state);
+      drawChar(ctx, gs.p1.char, W * 0.27, gY, 1, frame, gs.p1.state);
+      drawChar(ctx, gs.p2.char, W * 0.73, gY, -1, frame, gs.p2.state);
       // Particles + floats
       gs.particles = gs.particles.filter(p => { updateParticle(p); drawParticle(ctx, p); return p.life > 0; });
       gs.floats.forEach(f => {
@@ -401,7 +411,7 @@ export default function ArenaPage() {
       if (!gs.over && (gs.p1.hp <= 0 || gs.p2.hp <= 0 || gs.time <= 0)) {
         gs.over = true;
         // STOP LOOP IMMEDIATELY — prevents canvas being cleared every frame during KO
-        cancelAnimationFrame(rafRef.current);
+        cancelAnimationFrame(rafId);
         window.removeEventListener('keydown', onKey);
 
         const w = gs.p1.hp > gs.p2.hp ? 'P1' : gs.p2.hp > gs.p1.hp ? 'P2' : 'DRAW';
@@ -410,8 +420,9 @@ export default function ArenaPage() {
 
         // Draw one clean final frame
         ctx.clearRect(0, 0, W, H); drawArena();
-        drawChar(ctx, gs.p1.char, W * 0.27, H * 0.7, 1, frameRef.current, gs.p1.hp <= 0 ? 'hurt' : 'idle');
-        drawChar(ctx, gs.p2.char, W * 0.73, H * 0.7, -1, frameRef.current, gs.p2.hp <= 0 ? 'hurt' : 'idle');
+        drawChar(ctx, gs.p1.char, W * 0.27, H * 0.7, 1, frame, gs.p1.hp <= 0 ? 'hurt' : 'idle');
+        drawChar(ctx, gs.p2.char, W * 0.73, H * 0.7, -1, frame, gs.p2.hp <= 0 ? 'hurt' : 'idle');
+
         drawHUD();
 
         // White flash
@@ -439,10 +450,21 @@ export default function ArenaPage() {
         }, 500);
       }
     }
-    rafRef.current = requestAnimationFrame(loop);
+    rafId = requestAnimationFrame(loop);
     } // end startGame
-    return () => { cancelled = true; clearTimeout(timer); cancelAnimationFrame(rafRef.current); window.removeEventListener('keydown', onKey); };
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('keydown', onKey);
+      // Remove imperatively created canvas from container
+      if (containerRef.current) {
+        const c = containerRef.current.querySelector('canvas');
+        if (c) containerRef.current.removeChild(c);
+      }
+    };
   }, [screen, p1Char, p2Char, rematchKey]);
+
 
   // ── Character Select ────────────────────────────────────────────────────────
   if (screen === 'select') return (
@@ -531,7 +553,10 @@ export default function ArenaPage() {
           style={{ padding: '6px 16px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>✕ Quit</button>
       </div>
 
-      <canvas ref={canvasRef} style={{ display: 'block', flexShrink: 0 }} />
+      <div
+        ref={containerRef}
+        style={{ flex: 1, position: 'relative', background: '#030308', overflow: 'hidden' }}
+      />
 
       {/* Mobile buttons */}
       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'rgba(0,0,0,0.85)', borderTop: '1px solid rgba(255,255,255,0.06)', gap: 8 }}>
