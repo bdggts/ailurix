@@ -172,6 +172,10 @@ export default function ArenaPage() {
   var rematchKey      = rematchState[0];
   var setRematchKey   = rematchState[1];
 
+  var debugState      = useState('Waiting...');
+  var debugInfo       = debugState[0];
+  var setDebugInfo    = debugState[1];
+
   // =====================================================================
   // GAME LOOP EFFECT - uses requestAnimationFrame to wait for layout
   // =====================================================================
@@ -179,13 +183,16 @@ export default function ArenaPage() {
     if (screen !== 'fight' || !p1Char || !p2Char) return;
 
     var stopped = false;
+    setDebugInfo('Effect fired. Waiting for rAF...');
 
     // Wait ONE animation frame for browser to complete layout
     rafRef.current = requestAnimationFrame(function() {
-      if (stopped) return;
+      if (stopped) { setDebugInfo('STOPPED before rAF ran'); return; }
 
       var canvas = canvasRef.current;
-      if (!canvas) return;
+      if (!canvas) { setDebugInfo('ERROR: canvas ref is NULL'); return; }
+
+      setDebugInfo('rAF fired. Canvas found. Reading dimensions...');
 
       // USE WINDOW DIMENSIONS - always available, never 0
       var W = window.innerWidth;
@@ -198,11 +205,15 @@ export default function ArenaPage() {
       canvas.height = H;
 
       var ctx = canvas.getContext('2d');
-      if (!ctx) return;
+      if (!ctx) { setDebugInfo('ERROR: ctx is NULL. W=' + W + ' H=' + H); return; }
 
-      // Immediate test: draw a red rectangle to prove canvas works
+      setDebugInfo('OK! W=' + W + ' H=' + H + ' ctx=YES. Starting loop...');
+
+      // Immediate test: draw a bright rectangle to prove canvas works
       ctx.fillStyle = '#ff0000';
-      ctx.fillRect(0, 0, 100, 100);
+      ctx.fillRect(0, 0, 200, 200);
+      ctx.fillStyle = '#00ff00';
+      ctx.fillRect(200, 0, 200, 200);
 
       var frame = 0;
       var gs = {
@@ -460,7 +471,10 @@ export default function ArenaPage() {
         <span style={{fontSize:12,color:'#475569'}}>P1=[A/D/S/W] | P2=[Arrows]</span>
         <button onClick={function(){clearInterval(loopRef.current);setScreen('select');setP1Char(null);setP2Char(null);setStep(1);setWinner(null);}} style={{padding:'6px 16px',borderRadius:8,background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.3)',color:'#ef4444',fontWeight:700,cursor:'pointer',fontSize:13}}>Quit</button>
       </div>
-      <canvas ref={canvasRef} style={{display:'block',background:'#14003a',flexGrow:1,flexShrink:1,width:'100%',minHeight:0}} />
+      <div style={{position:'relative',flexGrow:1,flexShrink:1,minHeight:0,overflow:'hidden'}}>
+        <canvas ref={canvasRef} style={{display:'block',background:'#14003a',width:'100%',height:'100%'}} />
+        <div style={{position:'absolute',top:50,left:10,color:'#00ff00',fontSize:14,fontFamily:'monospace',zIndex:999,background:'rgba(0,0,0,0.85)',padding:'8px 12px',borderRadius:8,border:'1px solid #00ff00',maxWidth:'90%',wordBreak:'break-all'}}>DEBUG: {debugInfo}</div>
+      </div>
       <div style={{display:'flex',justifyContent:'space-between',padding:'10px 12px',background:'rgba(0,0,0,0.9)',borderTop:'1px solid rgba(255,255,255,0.07)',gap:8,flexShrink:0,height:100}}>
         <div style={{display:'flex',gap:8}}>
           {[['punch','Punch','#22c55e'],['kick','Kick','#f59e0b'],['block','Block','#3b82f6'],['special','Special','#ef4444']].map(function(arr){
