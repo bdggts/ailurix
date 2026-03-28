@@ -280,20 +280,33 @@ export default function ArenaPage() {
     function loop(){
       if(stopped)return;
       frame++;
-      ctx.clearRect(0,0,W,H);
-      drawArena();
-      drawChar(ctx,gs.p1.char,W*0.27,H*0.7,1,frame,gs.p1.state);
-      drawChar(ctx,gs.p2.char,W*0.73,H*0.7,-1,frame,gs.p2.state);
-      gs.particles=gs.particles.filter(function(p){updateParticle(p);drawParticle(ctx,p);return p.life>0;});
-      gs.floats.forEach(function(f){
-        f.y+=f.vy;f.life-=0.022;
-        ctx.save();ctx.globalAlpha=Math.max(0,f.life);
-        ctx.fillStyle=f.color;ctx.shadowColor=f.color;ctx.shadowBlur=8;
-        ctx.font='bold '+(20+Math.round((1.2-f.life)*4))+'px Rajdhani,Inter';
-        ctx.textAlign='center';ctx.fillText('-'+f.dmg,f.x,f.y);ctx.restore();
-      });
-      gs.floats=gs.floats.filter(function(f){return f.life>0;});
-      drawHUD();runCPU();
+      try {
+        ctx.clearRect(0,0,W,H);
+        drawArena();
+        drawChar(ctx,gs.p1.char,W*0.27,H*0.7,1,frame,gs.p1.state);
+        drawChar(ctx,gs.p2.char,W*0.73,H*0.7,-1,frame,gs.p2.state);
+        gs.particles=gs.particles.filter(function(p){updateParticle(p);drawParticle(ctx,p);return p.life>0;});
+        gs.floats.forEach(function(f){
+          f.y+=f.vy;f.life-=0.022;
+          ctx.save();ctx.globalAlpha=Math.max(0,f.life);
+          ctx.fillStyle=f.color;ctx.shadowColor=f.color;ctx.shadowBlur=8;
+          ctx.font='bold '+(20+Math.round((1.2-f.life)*4))+'px Rajdhani,Inter';
+          ctx.textAlign='center';ctx.fillText('-'+f.dmg,f.x,f.y);ctx.restore();
+        });
+        gs.floats=gs.floats.filter(function(f){return f.life>0;});
+        drawHUD();runCPU();
+        // DEBUG: green frame counter on canvas
+        ctx.fillStyle='#00ff00';ctx.font='bold 20px monospace';ctx.textAlign='left';
+        ctx.fillText('F:'+frame,10,H-10);
+      } catch(err) {
+        // Show error visibly in DOM
+        stopped = true;
+        clearInterval(loopRef.current);
+        var errDiv = document.createElement('div');
+        errDiv.style.cssText = 'position:fixed;top:60px;left:10px;right:10px;background:red;color:white;padding:16px;font-size:14px;font-family:monospace;z-index:9999;border-radius:8px;word-break:break-all;';
+        errDiv.textContent = 'LOOP ERROR at frame ' + frame + ': ' + err.message + ' | Stack: ' + (err.stack||'').substring(0,300);
+        document.body.appendChild(errDiv);
+      }
       if(Date.now()-gs.lastSec>=1000){gs.time--;gs.lastSec=Date.now();}
       if(!gs.over&&(gs.p1.hp<=0||gs.p2.hp<=0||gs.time<=0)){
         gs.over=true;
