@@ -161,6 +161,8 @@ export default function ArenaPage() {
   var dmx = dmxState[0];
   var rkState = useState(0);
   var rematchKey = rkState[0], setRematchKey = rkState[1];
+  var stageState = useState(1);
+  var stage = stageState[0], setStage = stageState[1];
 
   // =====================================================================
   // GAME ENGINE - canvas created via document.createElement (not React)
@@ -191,11 +193,15 @@ export default function ArenaPage() {
     if (!ctx) return;
 
     var frame = 0, stopped = false, shake = 0, combo = 0, lastHitter = null;
+    var roundNum = 1, p1Rounds = 0, p2Rounds = 0, roundOver = false, roundAnnounce = 0;
+    var cpuSpeed = Math.max(15, 45 - stage * 5); // CPU reacts faster at higher stages
+    var cpuDmgMult = 1 + (stage - 1) * 0.12; // CPU hits harder
     var gs = {
       p1: { char: p1Char, hp: p1Char.hp, energy: 0, state: 'idle', x: W*0.27, y: 0, vy: 0, atkType: '', atkFrame: 0, hitFlash: 0, combo: 0 },
-      p2: { char: p2Char, hp: p2Char.hp, energy: 0, state: 'idle', x: W*0.73, y: 0, vy: 0, atkType: '', atkFrame: 0, hitFlash: 0, combo: 0 },
-      particles: [], floats: [], time: 90, lastSec: Date.now(), over: false
+      p2: { char: p2Char, hp: Math.round(p2Char.hp*(1+(stage-1)*0.1)), energy: 0, state: 'idle', x: W*0.73, y: 0, vy: 0, atkType: '', atkFrame: 0, hitFlash: 0, combo: 0 },
+      particles: [], floats: [], time: 99, lastSec: Date.now(), over: false
     };
+    var p2MaxHp = gs.p2.hp;
 
     function spawn(x,y,color,n){for(var i=0;i<(n||12);i++)gs.particles.push(makeParticle(x,y,color));}
     function floatDmg(x,y,dmg,color){gs.floats.push({x:x,y:y,dmg:dmg,color:color,life:1.2,vy:-2.5});}
@@ -248,16 +254,20 @@ export default function ArenaPage() {
 
     var cpuT=0;
     function runCPU(){
-      if(gs.p2.state!=='idle'||gs.over)return;
-      cpuT++;if(cpuT<45)return;cpuT=0;
+      if(gs.p2.state!=='idle'||gs.over||roundOver)return;
+      cpuT++;if(cpuT<cpuSpeed)return;cpuT=0;
+      var dist=Math.abs(gs.p1.x-gs.p2.x);
       var r=Math.random();
-      if(gs.p2.energy>=80&&r<0.3)attack(gs.p2,gs.p1,'special');
-      else if(r<0.45)attack(gs.p2,gs.p1,'punch');
-      else if(r<0.75)attack(gs.p2,gs.p1,'kick');
-      else{gs.p2.state='block';playSound('block');setTimeout(function(){if(gs.p2.state==='block')gs.p2.state='idle';},420);}
-      // CPU movement: dodge or approach
-      if(Math.random()<0.3){var cpuDir=gs.p2.x>gs.p1.x?1:-1;doMove(gs.p2,cpuDir);}
-      if(Math.random()<0.15)doJump(gs.p2);
+      // Smarter CPU at higher stages: approach if far, block more, use specials
+      if(dist>160){doMove(gs.p2,gs.p2.x>gs.p1.x?-1:1);if(r<0.3)doMove(gs.p2,gs.p2.x>gs.p1.x?-1:1);return;}
+      if(gs.p2.energy>=80&&r<(0.2+stage*0.05))attack(gs.p2,gs.p1,'special');
+      else if(r<0.35)attack(gs.p2,gs.p1,'punch');
+      else if(r<0.6)attack(gs.p2,gs.p1,'kick');
+      else if(r<(0.65+stage*0.03)){gs.p2.state='block';playSound('block');setTimeout(function(){if(gs.p2.state==='block')gs.p2.state='idle';},420);}
+      else{doMove(gs.p2,gs.p2.x>gs.p1.x?-1:1);}
+      // CPU movement
+      if(Math.random()<(0.2+stage*0.05)){doMove(gs.p2,gs.p2.x>gs.p1.x?-1:1);}
+      if(Math.random()<(0.08+stage*0.02))doJump(gs.p2);
     }
 
     function onKey(e){
@@ -374,14 +384,16 @@ export default function ArenaPage() {
         ctx.restore();
       }
       if(Date.now()-gs.lastSec>=1000){gs.time--;gs.lastSec=Date.now();}
-      if(!gs.over&&(gs.p1.hp<=0||gs.p2.hp<=0||gs.time<=0)){
-        gs.over=true;
+      // Round announce countdown
+      if(roundAnnounce>0){roundAnnounce--;ctx.save();ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,0,W,H);ctx.textAlign='center';ctx.font='bold 64px Rajdhani,sans-serif';ctx.fillStyle='#f59e0b';ctx.shadowColor='#f59e0b';ctx.shadowBlur=30;ctx.fillText('ROUND '+roundNum,W/2,H/2-20);ctx.font='bold 22px Inter,sans-serif';ctx.fillStyle='white';ctx.shadowBlur=0;ctx.fillText('Stage '+stage+' | P1: '+p1Rounds+' - P2: '+p2Rounds,W/2,H/2+30);ctx.restore();return;}
+      if(!gs.over&&!roundOver&&(gs.p1.hp<=0||gs.p2.hp<=0||gs.time<=0)){
+        roundOver=true;
         playSound('ko');
+        var roundW=gs.p1.hp>gs.p2.hp?'P1':gs.p2.hp>gs.p1.hp?'P2':'DRAW';
+        if(roundW==='P1')p1Rounds++;
+        if(roundW==='P2')p2Rounds++;
         clearInterval(loopRef.current);
         window.removeEventListener('keydown',onKey);
-        var w=gs.p1.hp>gs.p2.hp?'P1':gs.p2.hp>gs.p1.hp?'P2':'DRAW';
-        if(w==='P1')setP1Wins(function(v){return v+1;});
-        if(w==='P2')setP2Wins(function(v){return v+1;});
         ctx.clearRect(0,0,W,H);drawArena();
         drawChar(ctx,gs.p1.char,gs.p1.x,H*0.7+gs.p1.y,1,frame,gs.p1.hp<=0?'hurt':'idle','',0);
         drawChar(ctx,gs.p2.char,gs.p2.x,H*0.7+gs.p2.y,-1,frame,gs.p2.hp<=0?'hurt':'idle','',0);
@@ -392,15 +404,36 @@ export default function ArenaPage() {
           ctx.fillStyle='rgba(0,0,0,0.85)';ctx.fillRect(0,0,W,H);
           ctx.textAlign='center';
           var koT=gs.p1.hp<=0||gs.p2.hp<=0?'K.O.':'TIME!';
-          ctx.font='bold 80px Rajdhani,Inter,sans-serif';
+          ctx.font='bold 60px Rajdhani,Inter,sans-serif';
           ctx.fillStyle='#ef4444';ctx.shadowColor='#ef4444';ctx.shadowBlur=45;
-          ctx.fillText(koT,W/2,H/2-10);ctx.shadowBlur=0;
-          ctx.font='bold 32px Rajdhani,Inter,sans-serif';ctx.fillStyle='white';
-          var winName=w==='P1'?gs.p1.char.name:w==='P2'?gs.p2.char.name:'';
-          ctx.fillText(w==='DRAW'?'DRAW!':winName+' WINS!',W/2,H/2+45);
-          ctx.font='18px Inter,sans-serif';ctx.fillStyle='#f59e0b';
-          ctx.fillText(w==='P1'?'+'+betAmount+' $DMX earned':w==='P2'?'-'+betAmount+' $DMX lost':'',W/2,H/2+85);
-          setTimeout(function(){setWinner(w);},2200);
+          ctx.fillText(koT,W/2,H/2-40);ctx.shadowBlur=0;
+          ctx.font='bold 28px Rajdhani,Inter,sans-serif';ctx.fillStyle='white';
+          var rWinName=roundW==='P1'?gs.p1.char.name:roundW==='P2'?gs.p2.char.name:'Nobody';
+          ctx.fillText(rWinName+' wins Round '+roundNum+'!',W/2,H/2+10);
+          ctx.font='bold 20px Inter,sans-serif';ctx.fillStyle='#f59e0b';
+          ctx.fillText('P1: '+p1Rounds+' | P2: '+p2Rounds+' (Best of 3)',W/2,H/2+45);
+          // Check if match is over (best of 3)
+          if(p1Rounds>=2||p2Rounds>=2){
+            var matchW=p1Rounds>=2?'P1':'P2';
+            ctx.font='bold 22px Inter,sans-serif';ctx.fillStyle=matchW==='P1'?'#22c55e':'#ef4444';
+            ctx.fillText(matchW==='P1'?'MATCH WIN! Stage '+(stage+1)+' unlocked!':'MATCH LOST! Try again...',W/2,H/2+80);
+            if(matchW==='P1')setP1Wins(function(v){return v+1;});
+            if(matchW==='P2')setP2Wins(function(v){return v+1;});
+            setTimeout(function(){setWinner(matchW);if(matchW==='P1')setStage(function(s){return s+1;});},2800);
+          } else {
+            // Next round
+            ctx.font='18px Inter,sans-serif';ctx.fillStyle='#94a3b8';
+            ctx.fillText('Next round starting...',W/2,H/2+80);
+            setTimeout(function(){
+              roundNum++;roundOver=false;
+              gs.p1.hp=p1Char.hp;gs.p1.energy=0;gs.p1.state='idle';gs.p1.x=W*0.27;gs.p1.y=0;gs.p1.vy=0;gs.p1.hitFlash=0;
+              gs.p2.hp=p2MaxHp;gs.p2.energy=0;gs.p2.state='idle';gs.p2.x=W*0.73;gs.p2.y=0;gs.p2.vy=0;gs.p2.hitFlash=0;
+              gs.time=99;gs.lastSec=Date.now();gs.over=false;gs.particles=[];gs.floats=[];
+              combo=0;lastHitter=null;shake=0;roundAnnounce=90;
+              window.addEventListener('keydown',onKey);
+              loopRef.current=setInterval(loop,16);
+            },2500);
+          }
         },500);
       }
     }
@@ -414,7 +447,7 @@ export default function ArenaPage() {
       delete window._dominexAttack;
       if (container) container.innerHTML = '';
     };
-  }, [screen, p1Char, p2Char, rematchKey]);
+  }, [screen, p1Char, p2Char, rematchKey, stage]);
 
   // ---- SELECT SCREEN ----
   if(screen==='select'){
@@ -462,11 +495,13 @@ export default function ArenaPage() {
     var wc=winner==='P1'?p1Char:winner==='P2'?p2Char:null;
     return (
       <div style={{minHeight:'100vh',background:'#030308',color:'white',fontFamily:'Inter,sans-serif',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16}}>
+        <div style={{fontSize:14,color:'#64748b',letterSpacing:2}}>STAGE {winner==='P1'?stage:stage}</div>
         <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:72,fontWeight:900,color:wc?wc.color:'#64748b'}}>{winner==='DRAW'?'DRAW!':wc.name+' WINS!'}</div>
-        <div style={{fontSize:16,color:'#64748b'}}>{winner==='P1'?'+'+betAmount+' $DMX earned!':winner==='P2'?'-'+betAmount+' $DMX lost':'No $DMX exchanged'}</div>
+        <div style={{fontSize:16,color:'#64748b'}}>{winner==='P1'?'+'+betAmount*stage+' $DMX earned!':winner==='P2'?'-'+betAmount+' $DMX lost':'No $DMX exchanged'}</div>
+        {winner==='P1'&&<div style={{fontSize:14,color:'#22c55e',fontWeight:700}}>Stage {stage} Complete! Next: Stage {stage+1} (harder CPU)</div>}
         <div style={{display:'flex',gap:12,marginTop:16}}>
-          <button onClick={function(){setWinner(null);setRematchKey(function(k){return k+1;});}} style={{padding:'14px 36px',borderRadius:12,background:'linear-gradient(135deg,#f59e0b,#ef4444)',border:'none',color:'#000',fontWeight:900,fontSize:17,cursor:'pointer'}}>Rematch</button>
-          <button onClick={function(){clearInterval(loopRef.current);setScreen('select');setP1Char(null);setP2Char(null);setStep(1);setWinner(null);setP1Wins(0);setP2Wins(0);setRematchKey(0);}} style={{padding:'14px 36px',borderRadius:12,background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.12)',color:'white',fontWeight:700,fontSize:17,cursor:'pointer'}}>New Match</button>
+          <button onClick={function(){setWinner(null);setRematchKey(function(k){return k+1;});}} style={{padding:'14px 36px',borderRadius:12,background:'linear-gradient(135deg,#f59e0b,#ef4444)',border:'none',color:'#000',fontWeight:900,fontSize:17,cursor:'pointer'}}>{winner==='P1'?'Next Stage':'Retry Stage'}</button>
+          <button onClick={function(){clearInterval(loopRef.current);setScreen('select');setP1Char(null);setP2Char(null);setStep(1);setWinner(null);setP1Wins(0);setP2Wins(0);setRematchKey(0);setStage(1);}} style={{padding:'14px 36px',borderRadius:12,background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.12)',color:'white',fontWeight:700,fontSize:17,cursor:'pointer'}}>New Match</button>
         </div>
       </div>
     );
