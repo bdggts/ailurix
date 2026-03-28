@@ -234,7 +234,11 @@ export default function ArenaPage() {
       canvas.style.top  = '0'; canvas.style.left = '0';
       container.appendChild(canvas);
       const ctx = canvas.getContext('2d');
+      if (!ctx) { console.error('[ARENA] ctx is null!'); return; }
       console.log('[ARENA] canvas ready', W, 'x', H);
+      // Immediate test draw to verify rendering works
+      ctx.fillStyle = '#05000f';
+      ctx.fillRect(0, 0, W, H);
       startGame(canvas, ctx, W, H);
     }, 100);
 
@@ -384,11 +388,12 @@ export default function ArenaPage() {
       ctx.fillText('P2: [←]Punch  [→]Kick  [↓]Block  [↑]Special', W - M, H - 8);
     }
 
-    let lastT = 0;
-    function loop(ts) {
-      rafId = requestAnimationFrame(loop);
-      if (ts - lastT < 1000 / 60) return;
-      lastT = ts; frame++;
+    // Use setInterval instead of RAF — works even when tab is not focused
+    let lastTick = performance.now();
+    function loop() {
+      const now = performance.now();
+      if (now - lastTick < 14) return;  // ~70fps cap
+      lastTick = now; frame++;
       ctx.clearRect(0, 0, W, H);
       drawArena();
       const gY = H * 0.7;
@@ -411,7 +416,7 @@ export default function ArenaPage() {
       if (!gs.over && (gs.p1.hp <= 0 || gs.p2.hp <= 0 || gs.time <= 0)) {
         gs.over = true;
         // STOP LOOP IMMEDIATELY — prevents canvas being cleared every frame during KO
-        cancelAnimationFrame(rafId);
+        clearInterval(rafId);
         window.removeEventListener('keydown', onKey);
 
         const w = gs.p1.hp > gs.p2.hp ? 'P1' : gs.p2.hp > gs.p1.hp ? 'P2' : 'DRAW';
@@ -450,12 +455,12 @@ export default function ArenaPage() {
         }, 500);
       }
     }
-    rafId = requestAnimationFrame(loop);
+    rafId = setInterval(loop, 16); // ~60fps via setInterval
     } // end startGame
     return () => {
       cancelled = true;
       clearTimeout(timer);
-      cancelAnimationFrame(rafId);
+      clearInterval(rafId);
       window.removeEventListener('keydown', onKey);
       // Remove imperatively created canvas from container
       if (containerRef.current) {
