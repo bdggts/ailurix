@@ -222,13 +222,11 @@ export default function ArenaPage() {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
-      // Use window dimensions directly — most reliable across all browsers/devices
+      // Use window dims minus fixed UI areas: header ~48px + buttons bar ~88px
       const W2 = window.innerWidth  || 800;
-      const H2 = window.innerHeight || 600;
+      const H2 = (window.innerHeight - 140) || 500; // 48px header + 88px buttons + buffer
       canvas.width  = W2;
       canvas.height = H2;
-      canvas.style.width  = W2 + 'px';
-      canvas.style.height = H2 + 'px';
       startGame(canvas, ctx, W2, H2);
     }, 80);
 
