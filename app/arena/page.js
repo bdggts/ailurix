@@ -24,13 +24,15 @@ var CHARS = [
 var _voiceReady=false;
 function announceVoice(text){
   try{
-    if(!window.speechSynthesis)return;
+    if(typeof window==='undefined'||!window.speechSynthesis)return;
     window.speechSynthesis.cancel();
     var u=new SpeechSynthesisUtterance(text);
     u.rate=0.8;u.pitch=0.4;u.volume=1;
     var voices=window.speechSynthesis.getVoices();
-    var deep=voices.find(function(v){return v.name.indexOf('Male')>-1||v.name.indexOf('David')>-1||v.name.indexOf('Google')>-1;});
-    if(deep)u.voice=deep;
+    if(voices&&voices.length){
+      var deep=voices.find(function(v){return v.name.indexOf('Male')>-1||v.name.indexOf('David')>-1||v.name.indexOf('Google')>-1;});
+      if(deep)u.voice=deep;
+    }
     window.speechSynthesis.speak(u);
   }catch(e){}
 }
@@ -61,7 +63,13 @@ function stopBGMusic(){
 
 // Sound effects via Web Audio API
 var _sndCtx=null;
-function getAudioCtx(){if(!_sndCtx)try{_sndCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}return _sndCtx;}
+function getAudioCtx(){
+  if(!_sndCtx)try{
+    _sndCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(_sndCtx.state==='suspended')_sndCtx.resume().catch(function(){});
+  }catch(e){}
+  return _sndCtx;
+}
 function playSound(type){
   var ac=getAudioCtx();if(!ac)return;
   var osc=ac.createOscillator(),g=ac.createGain(),n;
