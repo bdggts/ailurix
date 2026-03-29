@@ -263,6 +263,24 @@ export default function ArenaPage() {
   var stageState = useState(1);
   var stage = stageState[0], setStage = stageState[1];
 
+  // Read URL params on load to restore state after Next Stage navigation
+  useEffect(function(){
+    try{
+      var params=new URLSearchParams(window.location.search);
+      var fid=params.get('f');
+      var stg=parseInt(params.get('s')||'1',10);
+      if(fid){
+        var found=CHARS.find(function(c){return c.id===fid;});
+        if(found){
+          setP1Char(found);
+          setStage(stg||1);
+          // Clean URL without reload
+          window.history.replaceState(null,'','/arena');
+        }
+      }
+    }catch(e){}
+  },[]);
+
   // Tower: 14 opponents + GORO boss final (must be before useEffect)
   var TOWER_IDS=['cyrax','reptile','liukang','subzero','kitana','mileena','baraka','smoke','scorpion','kunglao','nightwolf','raiden','sektor','noob','goro'];
   var TOWER=TOWER_IDS.map(function(id){return CHARS.find(function(c){return c.id===id;});});
@@ -646,8 +664,8 @@ export default function ArenaPage() {
             <button onClick={function(){clearInterval(loopRef.current);setScreen('select');setP1Char(null);setP2Char(null);setStep(1);setWinner(null);setP1Wins(0);setP2Wins(0);setRematchKey(0);setStage(1);}} style={{padding:'14px 44px',borderRadius:12,background:'linear-gradient(135deg,#f59e0b,#fbbf24)',border:'none',color:'#000',fontWeight:900,fontSize:18,cursor:'pointer',letterSpacing:1}}>🏆 Play Again</button>
           ) : (
             <div style={{display:'flex',gap:12}}>
-              <button onTouchEnd={function(e){e.preventDefault();cleanupAllAudio();setP2Char(null);setWinner(null);setP1Wins(0);setP2Wins(0);setScreen('select');}} onClick={function(){cleanupAllAudio();setP2Char(null);setWinner(null);setP1Wins(0);setP2Wins(0);setScreen('select');}} style={{padding:'18px 36px',borderRadius:12,background:'linear-gradient(135deg,#f59e0b,#ef4444)',border:'none',color:'#000',fontWeight:900,fontSize:18,cursor:'pointer',zIndex:9999,position:'relative',touchAction:'manipulation'}}>{winner==='P1'?'Next Stage ▶':'Retry Stage'}</button>
-              <button onTouchEnd={function(e){e.preventDefault();cleanupAllAudio();setScreen('select');setP1Char(null);setP2Char(null);setWinner(null);setP1Wins(0);setP2Wins(0);setRematchKey(0);setStage(1);}} onClick={function(){cleanupAllAudio();setScreen('select');setP1Char(null);setP2Char(null);setWinner(null);setP1Wins(0);setP2Wins(0);setRematchKey(0);setStage(1);}} style={{padding:'18px 36px',borderRadius:12,background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.12)',color:'white',fontWeight:700,fontSize:18,cursor:'pointer',zIndex:9999,position:'relative',touchAction:'manipulation'}}>New Match</button>
+              <button onClick={function(){cleanupAllAudio();if(winner==='P1'){window.location.href='/arena?f='+encodeURIComponent(p1Char.id)+'&s='+stage;}else{window.location.href='/arena?f='+encodeURIComponent(p1Char.id)+'&s='+stage;}}} style={{padding:'18px 36px',borderRadius:12,background:'linear-gradient(135deg,#f59e0b,#ef4444)',border:'none',color:'#000',fontWeight:900,fontSize:18,cursor:'pointer',zIndex:9999,position:'relative',touchAction:'manipulation'}}>{winner==='P1'?'Next Stage ▶':'Retry Stage'}</button>
+              <button onClick={function(){cleanupAllAudio();window.location.href='/arena';}} style={{padding:'18px 36px',borderRadius:12,background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.12)',color:'white',fontWeight:700,fontSize:18,cursor:'pointer',zIndex:9999,position:'relative',touchAction:'manipulation'}}>New Match</button>
             </div>
           )}
         </div>
