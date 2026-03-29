@@ -2,23 +2,62 @@
 import { useEffect, useRef, useState } from 'react';
 
 var CHARS = [
-  { id:'kael',   name:'KAEL',   title:'Dark Warrior',  color:'#f59e0b', hp:100, speed:7,  power:9,  defense:8,  rarity:'Common',    special:'Blade Cyclone',    moves:{punch:12,kick:18,special:45} },
-  { id:'pyros',  name:'PYROS',  title:'Fire Mage',     color:'#ef4444', hp:85,  speed:8,  power:10, defense:6,  rarity:'Rare',      special:'Inferno Nova',     moves:{punch:10,kick:15,special:55} },
-  { id:'vela',   name:'VELA',   title:'Ice Assassin',  color:'#06b6d4', hp:80,  speed:10, power:8,  defense:7,  rarity:'Epic',      special:'Frost Prison',     moves:{punch:11,kick:16,special:40} },
-  { id:'zeus',   name:'ZEUS',   title:'Thunder God',   color:'#8b5cf6', hp:95,  speed:6,  power:10, defense:9,  rarity:'Legendary', special:'Thunder Judgement',moves:{punch:14,kick:20,special:60} },
-  { id:'mortis', name:'MORTIS', title:'Death Reaper',  color:'#dc2626', hp:90,  speed:9,  power:10, defense:7,  rarity:'Mythic',    special:'Soul Rip',         moves:{punch:13,kick:19,special:70} },
-  { id:'raze',   name:'RAZE',   title:'Blade Runner',  color:'#22c55e', hp:88,  speed:9,  power:8,  defense:7,  rarity:'Common',    special:'Dash Slice',       moves:{punch:11,kick:17,special:42} },
-  { id:'nova',   name:'NOVA',   title:'Star Crusher',  color:'#f472b6', hp:82,  speed:10, power:9,  defense:6,  rarity:'Rare',      special:'Supernova Blast',  moves:{punch:10,kick:16,special:52} },
-  { id:'titan',  name:'TITAN',  title:'Iron Giant',    color:'#78716c', hp:120, speed:4,  power:10, defense:10, rarity:'Epic',      special:'Earth Smash',      moves:{punch:16,kick:22,special:50} },
-  { id:'fang',   name:'FANG',   title:'Wolf Striker',  color:'#a3e635', hp:78,  speed:10, power:8,  defense:5,  rarity:'Common',    special:'Fang Rush',        moves:{punch:9,kick:15,special:38} },
-  { id:'shade',  name:'SHADE',  title:'Shadow Ninja',  color:'#a78bfa', hp:75,  speed:10, power:9,  defense:5,  rarity:'Rare',      special:'Shadow Clone',     moves:{punch:10,kick:14,special:48} },
-  { id:'blaze',  name:'BLAZE',  title:'Lava Demon',    color:'#fb923c', hp:92,  speed:7,  power:10, defense:8,  rarity:'Epic',      special:'Eruption',         moves:{punch:13,kick:19,special:58} },
-  { id:'frost',  name:'FROST',  title:'Cryo Knight',   color:'#38bdf8', hp:90,  speed:8,  power:8,  defense:9,  rarity:'Rare',      special:'Blizzard Wall',    moves:{punch:11,kick:16,special:44} },
-  { id:'venom',  name:'VENOM',  title:'Poison Serpent', color:'#84cc16', hp:85,  speed:9,  power:9,  defense:6,  rarity:'Epic',      special:'Toxic Cloud',      moves:{punch:12,kick:17,special:46} },
-  { id:'storm',  name:'STORM',  title:'Wind Sensei',   color:'#60a5fa', hp:88,  speed:9,  power:8,  defense:8,  rarity:'Legendary', special:'Tornado Strike',   moves:{punch:11,kick:16,special:50} },
-  { id:'skull',  name:'SKULL',  title:'Bone Crusher',  color:'#fafafa', hp:95,  speed:7,  power:10, defense:8,  rarity:'Mythic',    special:'Bone Storm',       moves:{punch:14,kick:20,special:55} },
-  { id:'dragon', name:'DRAGON', title:'Ancient Beast',  color:'#f59e0b', hp:200, speed:8,  power:10, defense:10, rarity:'BOSS',      special:'Dragon Fire',      moves:{punch:18,kick:28,special:80} },
+  { id:'scorpion', name:'SCORPION',   title:'Hell Ninja',     color:'#f59e0b', hp:100, speed:8,  power:9,  defense:7,  rarity:'Common',    special:'Spear Pull',       moves:{punch:12,kick:18,special:48} },
+  { id:'subzero',  name:'SUB-ZERO',   title:'Ice Warrior',    color:'#38bdf8', hp:95,  speed:7,  power:8,  defense:9,  rarity:'Common',    special:'Ice Freeze',       moves:{punch:11,kick:16,special:44} },
+  { id:'liukang',  name:'LIU KANG',   title:'Shaolin Monk',   color:'#ef4444', hp:90,  speed:9,  power:9,  defense:7,  rarity:'Rare',      special:'Flying Kick',      moves:{punch:10,kick:20,special:52} },
+  { id:'raiden',   name:'RAIDEN',     title:'Thunder God',    color:'#8b5cf6', hp:95,  speed:6,  power:10, defense:9,  rarity:'Legendary', special:'Lightning Bolt',   moves:{punch:14,kick:20,special:60} },
+  { id:'reptile',  name:'REPTILE',    title:'Hidden Fighter', color:'#22c55e', hp:88,  speed:9,  power:8,  defense:7,  rarity:'Rare',      special:'Acid Spit',        moves:{punch:11,kick:17,special:42} },
+  { id:'kitana',   name:'KITANA',     title:'Fan Assassin',   color:'#06b6d4', hp:85,  speed:10, power:8,  defense:6,  rarity:'Epic',      special:'Fan Throw',        moves:{punch:10,kick:16,special:46} },
+  { id:'mileena',  name:'MILEENA',    title:'Evil Twin',      color:'#f472b6', hp:82,  speed:10, power:9,  defense:5,  rarity:'Rare',      special:'Sai Throw',        moves:{punch:11,kick:17,special:50} },
+  { id:'jaxon',    name:'JAXON',      title:'Metal Arms',     color:'#78716c', hp:110, speed:5,  power:10, defense:10, rarity:'Epic',      special:'Ground Pound',     moves:{punch:16,kick:22,special:50} },
+  { id:'baraka',   name:'BARAKA',     title:'Blade Fighter',  color:'#fb923c', hp:92,  speed:7,  power:10, defense:8,  rarity:'Epic',      special:'Blade Fury',       moves:{punch:13,kick:19,special:55} },
+  { id:'smoke',    name:'SMOKE',      title:'Gray Ninja',     color:'#a78bfa', hp:80,  speed:10, power:9,  defense:5,  rarity:'Rare',      special:'Smoke Screen',     moves:{punch:10,kick:15,special:48} },
+  { id:'cyrax',    name:'CYRAX',      title:'Yellow Robot',   color:'#a3e635', hp:88,  speed:8,  power:8,  defense:8,  rarity:'Common',    special:'Net Trap',         moves:{punch:11,kick:16,special:44} },
+  { id:'sektor',   name:'SEKTOR',     title:'Red Robot',      color:'#dc2626', hp:90,  speed:8,  power:9,  defense:8,  rarity:'Epic',      special:'Missile Launch',   moves:{punch:12,kick:18,special:52} },
+  { id:'kunglao',  name:'KUNG LAO',   title:'Hat Fighter',    color:'#fafafa', hp:88,  speed:9,  power:8,  defense:7,  rarity:'Legendary', special:'Hat Throw',        moves:{punch:11,kick:17,special:46} },
+  { id:'nightwolf',name:'NIGHTWOLF',  title:'Spirit Warrior', color:'#84cc16', hp:92,  speed:7,  power:9,  defense:8,  rarity:'Mythic',    special:'Spirit Arrow',     moves:{punch:12,kick:18,special:50} },
+  { id:'noob',     name:'NOOB SAIBOT',title:'Dark Shadow',    color:'#64748b', hp:85,  speed:9,  power:10, defense:6,  rarity:'Mythic',    special:'Shadow Tackle',    moves:{punch:13,kick:19,special:58} },
+  { id:'goro',     name:'GORO',       title:'Four Arms Beast', color:'#f59e0b', hp:200, speed:6,  power:10, defense:10, rarity:'BOSS',      special:'Stomp Quake',      moves:{punch:18,kick:28,special:80} },
 ];
+
+// Voice announcer using speechSynthesis
+var _voiceReady=false;
+function announceVoice(text){
+  try{
+    if(!window.speechSynthesis)return;
+    window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(text);
+    u.rate=0.8;u.pitch=0.4;u.volume=1;
+    var voices=window.speechSynthesis.getVoices();
+    var deep=voices.find(function(v){return v.name.indexOf('Male')>-1||v.name.indexOf('David')>-1||v.name.indexOf('Google')>-1;});
+    if(deep)u.voice=deep;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+// Background fight music (procedural)
+var _bgOsc=null,_bgGain=null;
+function startBGMusic(){
+  try{
+    var ac=getAudioCtx();if(!ac||_bgOsc)return;
+    _bgOsc=ac.createOscillator();_bgGain=ac.createGain();
+    var f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=200;
+    _bgOsc.type='sawtooth';_bgOsc.frequency.value=55;
+    _bgGain.gain.value=0.06;
+    _bgOsc.connect(f);f.connect(_bgGain);_bgGain.connect(ac.destination);
+    _bgOsc.start();
+    // Rhythmic volume modulation
+    var now=ac.currentTime;
+    for(var i=0;i<200;i++){
+      _bgGain.gain.setValueAtTime(0.06,now+i*0.5);
+      _bgGain.gain.setValueAtTime(0.10,now+i*0.5+0.1);
+      _bgGain.gain.setValueAtTime(0.04,now+i*0.5+0.25);
+    }
+  }catch(e){}
+}
+function stopBGMusic(){
+  try{if(_bgOsc){_bgOsc.stop();_bgOsc=null;_bgGain=null;}}catch(e){_bgOsc=null;_bgGain=null;}
+}
 
 // Sound effects via Web Audio API
 var _sndCtx=null;
@@ -48,7 +87,7 @@ function drawChar(ctx, ch, x, groundY, dir, frame, state, atkType, atkFrame) {
   ctx.translate(x + lungeAmt, groundY + bob);
   ctx.scale(1, blockSquash);
   var g, i, a, fx, scyX;
-  if (ch.id === 'kael') {
+  if (ch.id === 'scorpion') {
     ctx.fillStyle = '#7c2d12';
     ctx.beginPath(); ctx.ellipse(0, -60, 24, 55, 0.2 * s, 0, Math.PI * 2); ctx.fill();
     g = ctx.createLinearGradient(-20, -85, 20, 0);
@@ -65,7 +104,7 @@ function drawChar(ctx, ch, x, groundY, dir, frame, state, atkType, atkFrame) {
     ctx.beginPath(); ctx.arc(-7, -97, 3, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(7, -97, 3, 0, Math.PI * 2); ctx.fill();
     ctx.shadowBlur = 0;
-  } else if (ch.id === 'pyros') {
+  } else if (ch.id === 'liukang') {
     for (i = 0; i < 6; i++) {
       a = frame * 0.15 + i * 1.05;
       ctx.fillStyle = 'rgba(239,68,68,' + (0.12 + Math.sin(a) * 0.08) + ')';
@@ -86,7 +125,7 @@ function drawChar(ctx, ch, x, groundY, dir, frame, state, atkType, atkFrame) {
     ctx.beginPath(); ctx.arc(-6,-93,4,0,Math.PI*2); ctx.fill();
     ctx.beginPath(); ctx.arc(6,-93,4,0,Math.PI*2); ctx.fill();
     ctx.shadowBlur=0;
-  } else if (ch.id === 'vela') {
+  } else if (ch.id === 'kitana') {
     ctx.strokeStyle='rgba(103,232,249,0.25)'; ctx.lineWidth=1;
     for(i=0;i<3;i++){ctx.beginPath();ctx.arc(0,-50,28+i*10+Math.sin(frame*0.1+i)*4,0,Math.PI*2);ctx.stroke();}
     g=ctx.createLinearGradient(-12,-85,12,10);
@@ -103,7 +142,7 @@ function drawChar(ctx, ch, x, groundY, dir, frame, state, atkType, atkFrame) {
     ctx.beginPath(); ctx.arc(-5,-96,3.5,0,Math.PI*2); ctx.fill();
     ctx.beginPath(); ctx.arc(5,-96,3.5,0,Math.PI*2); ctx.fill();
     ctx.shadowBlur=0;
-  } else if (ch.id === 'zeus') {
+  } else if (ch.id === 'raiden') {
     ctx.strokeStyle='rgba(167,139,250,0.5)'; ctx.lineWidth=2;
     for(i=0;i<4;i++){a=frame*0.18+i*1.57;ctx.beginPath();ctx.moveTo(0,-50);ctx.lineTo(Math.cos(a)*40,-50+Math.sin(a)*40);ctx.stroke();}
     g=ctx.createLinearGradient(-24,-92,24,18);
@@ -125,7 +164,7 @@ function drawChar(ctx, ch, x, groundY, dir, frame, state, atkType, atkFrame) {
     ctx.beginPath(); ctx.arc(-8,-103,4.5,0,Math.PI*2); ctx.fill();
     ctx.beginPath(); ctx.arc(8,-103,4.5,0,Math.PI*2); ctx.fill();
     ctx.shadowBlur=0;
-  } else if (ch.id === 'mortis') {
+  } else if (ch.id === 'noob') {
     for(i=0;i<8;i++){a=frame*0.07+i*0.785;ctx.fillStyle='rgba(20,0,0,'+(0.18-i*0.018)+')';ctx.beginPath();ctx.arc(Math.cos(a)*38,-45+Math.sin(a)*28,11,0,Math.PI*2);ctx.fill();}
     ctx.fillStyle='#0f172a';
     ctx.beginPath();ctx.moveTo(-20,-88);ctx.lineTo(-26,18);ctx.lineTo(-10,2);ctx.lineTo(0,18);ctx.lineTo(10,2);ctx.lineTo(26,18);ctx.lineTo(20,-88);ctx.closePath();ctx.fill();
@@ -159,7 +198,7 @@ function drawChar(ctx, ch, x, groundY, dir, frame, state, atkType, atkFrame) {
     ctx.beginPath(); ctx.arc(-6,-96,3.5,0,Math.PI*2); ctx.fill();
     ctx.beginPath(); ctx.arc(6,-96,3.5,0,Math.PI*2); ctx.fill();
     ctx.shadowBlur=0;
-    if(ch.id==='dragon'){
+    if(ch.id==='goro'){
       // Dragon wings
       ctx.fillStyle=ch.color+'66';
       ctx.beginPath();ctx.moveTo(-20,-80);ctx.lineTo(-55,-110);ctx.lineTo(-45,-60);ctx.closePath();ctx.fill();
@@ -294,6 +333,7 @@ export default function ArenaPage() {
       var hitX=(att.x+def.x)/2;
       spawn(hitX,H*0.7+def.y-40,blocked?'#3b82f6':att.char.color,move==='special'?35:blocked?6:18);
       if(combo>=3)floatDmg(hitX,H*0.7+def.y-80,combo+'x COMBO!','#fbbf24');
+      if(combo===5){floatDmg(hitX,H*0.7+def.y-110,'TOASTY!','#ef4444');announceVoice('Excellent');}
       floatDmg(hitX,H*0.7+def.y-50,dmg,move==='special'?'#fbbf24':att.char.color);
       setTimeout(function(){if(att.state==='attack')att.state='idle';},move==='special'?700:move==='kick'?420:280);
     }
@@ -448,10 +488,11 @@ export default function ArenaPage() {
         if(roundAnnounce>30){
           ctx.font='bold 64px Rajdhani,sans-serif';ctx.fillStyle='#f59e0b';ctx.shadowColor='#f59e0b';ctx.shadowBlur=30;
           ctx.fillText('ROUND '+roundNum,W/2,H/2-20);
+          if(roundAnnounce===85)announceVoice('Round '+(roundNum===1?'One':roundNum===2?'Two':'Three'));
           ctx.font='bold 22px Inter,sans-serif';ctx.fillStyle='white';ctx.shadowBlur=0;
-          ctx.fillText('Stage '+stage+' | '+gs.p2.char.name+(stage>=TOWER.length?' (DRAGON BOSS)':''),W/2,H/2+30);
+          ctx.fillText('Stage '+stage+' vs '+gs.p2.char.name+(p2Char&&p2Char.id==='goro'?' (FINAL BOSS)':''),W/2,H/2+30);
         } else {
-          if(roundAnnounce===30)playSound('fight');
+          if(roundAnnounce===30){playSound('fight');announceVoice('FIGHT');startBGMusic();}
           var fightScale=1+(30-roundAnnounce)*0.03;
           ctx.font='bold '+Math.round(72*fightScale)+'px Rajdhani,sans-serif';ctx.fillStyle='#ef4444';ctx.shadowColor='#ef4444';ctx.shadowBlur=40;
           ctx.fillText('FIGHT!',W/2,H/2+10);
@@ -463,11 +504,11 @@ export default function ArenaPage() {
       if(!gs.over&&!roundOver&&p2Pct<0.15&&p2Pct>0&&frame%60<40){
         ctx.save();ctx.textAlign='center';ctx.font='bold 38px Rajdhani,sans-serif';ctx.fillStyle='#ef4444';ctx.shadowColor='#ef4444';ctx.shadowBlur=25;
         ctx.fillText('FINISH HIM!',W/2,H*0.25);ctx.restore();
-        if(frame%60===1)playSound('finish');
+        if(frame%60===1){playSound('finish');if(frame%60===1&&frame%180===1)announceVoice('Finish Him');}
       }
       if(!gs.over&&!roundOver&&(gs.p1.hp<=0||gs.p2.hp<=0||gs.time<=0)){
         roundOver=true;
-        playSound('ko');
+        playSound('ko');stopBGMusic();
         var roundW=gs.p1.hp>gs.p2.hp?'P1':gs.p2.hp>gs.p1.hp?'P2':'DRAW';
         if(roundW==='P1')p1Rounds++;
         if(roundW==='P2')p2Rounds++;
@@ -489,13 +530,16 @@ export default function ArenaPage() {
           ctx.font='bold 28px Rajdhani,Inter,sans-serif';ctx.fillStyle='white';
           var rWinName=roundW==='P1'?gs.p1.char.name:roundW==='P2'?gs.p2.char.name:'Nobody';
           ctx.fillText(rWinName+' wins Round '+roundNum+'!',W/2,H/2+10);
+          announceVoice(rWinName+' wins');
           ctx.font='bold 20px Inter,sans-serif';ctx.fillStyle='#f59e0b';
           ctx.fillText('P1: '+p1Rounds+' | P2: '+p2Rounds+' (Best of 3)',W/2,H/2+45);
           // Check if match is over (best of 3)
           if(p1Rounds>=2||p2Rounds>=2){
             var matchW=p1Rounds>=2?'P1':'P2';
             ctx.font='bold 22px Inter,sans-serif';ctx.fillStyle=matchW==='P1'?'#22c55e':'#ef4444';
-            ctx.fillText(matchW==='P1'?'MATCH WIN! Stage '+(stage+1)+' unlocked!':'MATCH LOST! Try again...',W/2,H/2+80);
+            var isFlawless=matchW==='P1'&&gs.p1.hp>=gs.p1.char.hp;
+            if(isFlawless){ctx.fillText('FLAWLESS VICTORY!',W/2,H/2+80);announceVoice('Flawless Victory');}
+            else{ctx.fillText(matchW==='P1'?'MATCH WIN! Stage '+(stage+1)+' unlocked!':'MATCH LOST! Try again...',W/2,H/2+80);}
             if(matchW==='P1')setP1Wins(function(v){return v+1;});
             if(matchW==='P2')setP2Wins(function(v){return v+1;});
             setTimeout(function(){setWinner(matchW);if(matchW==='P1')setStage(function(s){return s+1;});},2800);
@@ -524,13 +568,15 @@ export default function ArenaPage() {
       clearInterval(loopRef.current);
       window.removeEventListener('keydown', onKey);
       delete window._dominexAttack;
+      stopBGMusic();
+      try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(e){}
       if (container) container.innerHTML = '';
     };
   }, [screen, p1Char, p2Char, rematchKey, stage]);
 
   // ---- SELECT SCREEN ----
-  // Tower: 10 opponents + Dragon boss final (index from CHARS, Dragon is last)
-  var TOWER_IDS=['fang','raze','pyros','frost','vela','nova','blaze','venom','shade','skull','storm','zeus','mortis','titan','dragon'];
+  // Tower: 14 opponents + GORO boss final
+  var TOWER_IDS=['cyrax','reptile','liukang','subzero','kitana','mileena','baraka','smoke','scorpion','kunglao','nightwolf','raiden','sektor','noob','goro'];
   var TOWER=TOWER_IDS.map(function(id){return CHARS.find(function(c){return c.id===id;});});
   var towerOpponent = TOWER[Math.min(stage-1, TOWER.length-1)];
 
@@ -539,7 +585,7 @@ export default function ArenaPage() {
       <div style={{minHeight:'100vh',background:'linear-gradient(135deg,#030308,#0a0005)',color:'white',fontFamily:'Inter,sans-serif',display:'flex',flexDirection:'column',alignItems:'center',padding:'20px 16px'}}>
         <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:40,fontWeight:700,color:'#f59e0b',letterSpacing:3,marginBottom:2,textShadow:'0 0 30px rgba(245,158,11,0.5)'}}>DOMINEX ARENA</div>
         <div style={{color:'#64748b',marginBottom:12,fontSize:13}}>TOWER MODE - Fight your way to the top!</div>
-        {!p1Char ? (<div><div style={{color:'#94a3b8',marginBottom:14,fontSize:15,textAlign:'center',fontWeight:700}}>Choose Your Fighter ({CHARS.length-1} Fighters)</div><div style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'center',maxWidth:920}}>{CHARS.filter(function(c){return c.id!=='dragon';}).map(function(c){var lbl='['+c.name[0]+']';return (<div key={c.id} onClick={function(){setP1Char(c);}} style={{width:105,padding:'10px 6px 8px',borderRadius:12,textAlign:'center',cursor:'pointer',background:'rgba(255,255,255,0.03)',border:'2px solid rgba(255,255,255,0.08)',boxShadow:'0 0 14px '+c.color+'30'}}><div style={{fontSize:28,marginBottom:2,color:c.color}}>{lbl}</div><div style={{fontFamily:'Rajdhani,sans-serif',fontSize:14,fontWeight:700,color:c.color}}>{c.name}</div><div style={{fontSize:8,color:'#64748b',marginBottom:4}}>{c.title}</div><div style={{display:'flex',gap:2}}><div style={{flex:1,height:3,background:'#1e293b',borderRadius:2,overflow:'hidden'}}><div style={{width:c.power*10+'%',height:'100%',background:'#ef4444',borderRadius:2}}></div></div><div style={{flex:1,height:3,background:'#1e293b',borderRadius:2,overflow:'hidden'}}><div style={{width:c.speed*10+'%',height:'100%',background:'#22c55e',borderRadius:2}}></div></div><div style={{flex:1,height:3,background:'#1e293b',borderRadius:2,overflow:'hidden'}}><div style={{width:c.defense*10+'%',height:'100%',background:'#3b82f6',borderRadius:2}}></div></div></div><div style={{marginTop:4,fontSize:8,color:c.color,fontWeight:700}}>{c.rarity}</div></div>);})}</div></div>) : (<div style={{width:'100%',maxWidth:500}}><div style={{textAlign:'center',marginBottom:12}}><span style={{color:p1Char.color,fontWeight:900,fontSize:22,fontFamily:'Rajdhani,sans-serif'}}>{p1Char.name}</span><span style={{color:'#475569',fontSize:14,marginLeft:8}}>({p1Char.title})</span></div><div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,padding:12,maxHeight:340,overflowY:'auto'}}><div style={{fontWeight:700,color:'#f59e0b',marginBottom:8,fontSize:14,textAlign:'center',letterSpacing:2}}>TOWER LADDER ({TOWER.length} Stages)</div>{TOWER.map(function(opp,i){var stg=i+1;var isCur=stg===stage;var isDone=stg<stage;var isBoss=opp.id==='dragon';var lbl='['+opp.name[0]+']';return (<div key={opp.id+i} style={{display:'flex',alignItems:'center',gap:8,padding:'7px 10px',marginBottom:4,borderRadius:10,background:isCur?'rgba(245,158,11,0.12)':isDone?'rgba(34,197,94,0.08)':'rgba(255,255,255,0.02)',border:'1.5px solid '+(isCur?'#f59e0b':isDone?'#22c55e44':'rgba(255,255,255,0.06)'),opacity:isDone?0.55:1}}><div style={{width:22,textAlign:'center',fontWeight:900,fontSize:12,color:isCur?'#f59e0b':isDone?'#22c55e':'#475569'}}>{isDone?'✓':stg}</div><div style={{fontSize:20,color:opp.color}}>{lbl}</div><div style={{flex:1}}><div style={{fontWeight:700,color:opp.color,fontSize:13}}>{opp.name}{isBoss?' 🐉 BOSS':''}</div><div style={{fontSize:9,color:'#64748b'}}>{opp.title} | HP:{Math.round(opp.hp*(1+(stg-1)*0.08))}</div></div><div style={{fontSize:10,color:isCur?'#f59e0b':isDone?'#22c55e':'#475569',fontWeight:700}}>{isDone?'CLEARED':isCur?'FIGHT!':'LOCKED'}</div></div>);})}</div><div style={{marginTop:12,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:10,padding:'10px 16px',textAlign:'center'}}><div style={{fontWeight:700,color:'#f59e0b',marginBottom:4,fontSize:12}}>Stage {stage} Bet</div><div style={{display:'flex',gap:6,justifyContent:'center',marginBottom:4}}>{[50,100,250,500].map(function(a){return <button key={a} onClick={function(){setBetAmount(a);}} style={{padding:'5px 12px',borderRadius:7,border:'1.5px solid '+(betAmount===a?'#f59e0b':'rgba(255,255,255,0.1)'),background:betAmount===a?'rgba(245,158,11,0.2)':'transparent',color:betAmount===a?'#f59e0b':'#64748b',fontWeight:700,cursor:'pointer',fontSize:11}}>{a}</button>;})}</div><div style={{fontSize:10,color:'#475569'}}>Win: <strong style={{color:'#22c55e'}}>+{betAmount*stage} $DMX</strong> | Bal: <strong style={{color:'#f59e0b'}}>{dmx.toLocaleString()}</strong></div></div><button onClick={function(){setP2Char(towerOpponent);setScreen('fight');playSound('round');}} style={{width:'100%',marginTop:12,padding:'14px',borderRadius:12,background:towerOpponent.id==='dragon'?'linear-gradient(135deg,#dc2626,#f59e0b)':'linear-gradient(135deg,#f59e0b,#ef4444)',border:'none',color:'#000',fontWeight:900,fontSize:18,cursor:'pointer',letterSpacing:2,fontFamily:'Rajdhani,sans-serif'}}>FIGHT STAGE {stage} - {towerOpponent.name}{towerOpponent.id==='dragon'?' 🐉':''}</button><button onClick={function(){setP1Char(null);setStage(1);}} style={{width:'100%',marginTop:6,padding:'8px',borderRadius:8,background:'transparent',border:'1px solid rgba(255,255,255,0.1)',color:'#64748b',fontWeight:600,fontSize:12,cursor:'pointer'}}>Change Fighter</button></div>)}
+        {!p1Char ? (<div><div style={{color:'#94a3b8',marginBottom:14,fontSize:15,textAlign:'center',fontWeight:700}}>Choose Your Fighter ({CHARS.length-1} Fighters)</div><div style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'center',maxWidth:920}}>{CHARS.filter(function(c){return c.id!=='goro';}).map(function(c){var lbl='['+c.name[0]+']';return (<div key={c.id} onClick={function(){setP1Char(c);announceVoice(c.name);}} style={{width:105,padding:'10px 6px 8px',borderRadius:12,textAlign:'center',cursor:'pointer',background:'rgba(255,255,255,0.03)',border:'2px solid rgba(255,255,255,0.08)',boxShadow:'0 0 14px '+c.color+'30'}}><div style={{fontSize:28,marginBottom:2,color:c.color}}>{lbl}</div><div style={{fontFamily:'Rajdhani,sans-serif',fontSize:14,fontWeight:700,color:c.color}}>{c.name}</div><div style={{fontSize:8,color:'#64748b',marginBottom:4}}>{c.title}</div><div style={{display:'flex',gap:2}}><div style={{flex:1,height:3,background:'#1e293b',borderRadius:2,overflow:'hidden'}}><div style={{width:c.power*10+'%',height:'100%',background:'#ef4444',borderRadius:2}}></div></div><div style={{flex:1,height:3,background:'#1e293b',borderRadius:2,overflow:'hidden'}}><div style={{width:c.speed*10+'%',height:'100%',background:'#22c55e',borderRadius:2}}></div></div><div style={{flex:1,height:3,background:'#1e293b',borderRadius:2,overflow:'hidden'}}><div style={{width:c.defense*10+'%',height:'100%',background:'#3b82f6',borderRadius:2}}></div></div></div><div style={{marginTop:4,fontSize:8,color:c.color,fontWeight:700}}>{c.rarity}</div></div>);})}</div></div>) : (<div style={{width:'100%',maxWidth:500}}><div style={{textAlign:'center',marginBottom:12}}><span style={{color:p1Char.color,fontWeight:900,fontSize:22,fontFamily:'Rajdhani,sans-serif'}}>{p1Char.name}</span><span style={{color:'#475569',fontSize:14,marginLeft:8}}>({p1Char.title})</span></div><div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,padding:12,maxHeight:340,overflowY:'auto'}}><div style={{fontWeight:700,color:'#f59e0b',marginBottom:8,fontSize:14,textAlign:'center',letterSpacing:2}}>TOWER LADDER ({TOWER.length} Stages)</div>{TOWER.map(function(opp,i){var stg=i+1;var isCur=stg===stage;var isDone=stg<stage;var isBoss=opp.id==='goro';var lbl='['+opp.name[0]+']';return (<div key={opp.id+i} style={{display:'flex',alignItems:'center',gap:8,padding:'7px 10px',marginBottom:4,borderRadius:10,background:isCur?'rgba(245,158,11,0.12)':isDone?'rgba(34,197,94,0.08)':'rgba(255,255,255,0.02)',border:'1.5px solid '+(isCur?'#f59e0b':isDone?'#22c55e44':'rgba(255,255,255,0.06)'),opacity:isDone?0.55:1}}><div style={{width:22,textAlign:'center',fontWeight:900,fontSize:12,color:isCur?'#f59e0b':isDone?'#22c55e':'#475569'}}>{isDone?'✓':stg}</div><div style={{fontSize:20,color:opp.color}}>{lbl}</div><div style={{flex:1}}><div style={{fontWeight:700,color:opp.color,fontSize:13}}>{opp.name}{isBoss?' 👹 BOSS':''}</div><div style={{fontSize:9,color:'#64748b'}}>{opp.title} | HP:{Math.round(opp.hp*(1+(stg-1)*0.08))}</div></div><div style={{fontSize:10,color:isCur?'#f59e0b':isDone?'#22c55e':'#475569',fontWeight:700}}>{isDone?'CLEARED':isCur?'FIGHT!':'LOCKED'}</div></div>);})}</div><div style={{marginTop:12,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:10,padding:'10px 16px',textAlign:'center'}}><div style={{fontWeight:700,color:'#f59e0b',marginBottom:4,fontSize:12}}>Stage {stage} Bet</div><div style={{display:'flex',gap:6,justifyContent:'center',marginBottom:4}}>{[50,100,250,500].map(function(a){return <button key={a} onClick={function(){setBetAmount(a);}} style={{padding:'5px 12px',borderRadius:7,border:'1.5px solid '+(betAmount===a?'#f59e0b':'rgba(255,255,255,0.1)'),background:betAmount===a?'rgba(245,158,11,0.2)':'transparent',color:betAmount===a?'#f59e0b':'#64748b',fontWeight:700,cursor:'pointer',fontSize:11}}>{a}</button>;})}</div><div style={{fontSize:10,color:'#475569'}}>Win: <strong style={{color:'#22c55e'}}>+{betAmount*stage} $DMX</strong> | Bal: <strong style={{color:'#f59e0b'}}>{dmx.toLocaleString()}</strong></div></div><button onClick={function(){setP2Char(towerOpponent);setScreen('fight');playSound('round');announceVoice(towerOpponent.name);}} style={{width:'100%',marginTop:12,padding:'14px',borderRadius:12,background:towerOpponent.id==='goro'?'linear-gradient(135deg,#dc2626,#f59e0b)':'linear-gradient(135deg,#f59e0b,#ef4444)',border:'none',color:'#000',fontWeight:900,fontSize:18,cursor:'pointer',letterSpacing:2,fontFamily:'Rajdhani,sans-serif'}}>FIGHT STAGE {stage} - {towerOpponent.name}{towerOpponent.id==='goro'?' 👹':''}</button><button onClick={function(){setP1Char(null);setStage(1);}} style={{width:'100%',marginTop:6,padding:'8px',borderRadius:8,background:'transparent',border:'1px solid rgba(255,255,255,0.1)',color:'#64748b',fontWeight:600,fontSize:12,cursor:'pointer'}}>Change Fighter</button></div>)}
       </div>
     );
   }
@@ -553,9 +599,9 @@ export default function ArenaPage() {
       <div style={{minHeight:'100vh',background:towerComplete?'linear-gradient(135deg,#1a0800,#3a1a00,#1a0800)':'#030308',color:'white',fontFamily:'Inter,sans-serif',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12}}>
         {towerComplete ? (
           <div style={{textAlign:'center'}}>
-            <div style={{fontSize:60,marginBottom:8}}>🐉</div>
+            <div style={{fontSize:60,marginBottom:8}}>👹</div>
             <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:52,fontWeight:900,background:'linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>TOWER COMPLETE!</div>
-            <div style={{fontSize:18,color:'#fbbf24',fontWeight:700,marginTop:4}}>You defeated the Dragon!</div>
+            <div style={{fontSize:18,color:'#fbbf24',fontWeight:700,marginTop:4}}>You defeated GORO!</div>
             <div style={{fontSize:14,color:'#22c55e',fontWeight:700,marginTop:8}}>+{betAmount*stage*3} $DMX Victory Bonus!</div>
             <div style={{fontSize:13,color:'#64748b',marginTop:4}}>All 15 stages cleared — You are the Champion!</div>
           </div>
