@@ -107,6 +107,17 @@ export default function Home() {
             <Link href="/arena" style={{ padding: '16px 36px', borderRadius: 14, background: 'var(--grad)', border: 'none', color: '#000', fontWeight: 800, fontSize: 17, animation: 'glow 3s infinite', letterSpacing: .5, textDecoration: 'none', display: 'inline-block' }}>
               ⚔️ Enter Arena
             </Link>
+            <a href="/dominex-arena.apk" download="dominex-arena.apk" style={{
+              padding: '16px 36px', borderRadius: 14, border: '1px solid rgba(16,185,129,.4)',
+              background: 'rgba(16,185,129,.12)', color: '#10b981', fontWeight: 800, fontSize: 17,
+              textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 10,
+              transition: 'all .2s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(16,185,129,.25)'; e.currentTarget.style.borderColor = '#10b981'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(16,185,129,.12)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,.4)'; }}
+            >
+              📱 Download APK
+            </a>
             <button style={{ padding: '16px 36px', borderRadius: 14, border: '1px solid var(--border)', background: 'var(--card)', color: '#fff', fontWeight: 700, fontSize: 17 }}
               onClick={() => document.getElementById('tokenomics')?.scrollIntoView({ behavior: 'smooth' })}>
               📊 View $DMX
