@@ -450,42 +450,16 @@ export default function ArenaPage() {
   }, [screen, p1Char, p2Char, rematchKey, stage]);
 
   // ---- SELECT SCREEN ----
+  // Tower opponents order (easiest to hardest)
+  var TOWER=[CHARS[0],CHARS[1],CHARS[2],CHARS[3],CHARS[4]];
+  var towerOpponent = TOWER[Math.min(stage-1, TOWER.length-1)];
+
   if(screen==='select'){
     return (
-      <div style={{minHeight:'100vh',background:'linear-gradient(135deg,#030308,#0a0005)',color:'white',fontFamily:'Inter,sans-serif',display:'flex',flexDirection:'column',alignItems:'center',padding:'28px 16px'}}>
-        <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:44,fontWeight:700,color:'#f59e0b',letterSpacing:3,marginBottom:4,textShadow:'0 0 30px rgba(245,158,11,0.5)'}}>DOMINEX ARENA</div>
-        <div style={{color:'#64748b',marginBottom:28,fontSize:15}}>{step===1?'PLAYER 1 - Choose Your Fighter':'PLAYER 2 - Choose Your Fighter'}</div>
-        {p1Char&&step===2?<div style={{marginBottom:16,fontSize:14,color:'#94a3b8'}}>P1: <span style={{color:p1Char.color,fontWeight:800}}>{p1Char.name}</span> vs ???</div>:null}
-        <div style={{display:'flex',gap:14,flexWrap:'wrap',justifyContent:'center',maxWidth:920}}>
-          {CHARS.map(function(c){
-            var lbl=c.id==='kael'?'[K]':c.id==='pyros'?'[P]':c.id==='vela'?'[V]':c.id==='zeus'?'[Z]':'[M]';
-            return (
-              <div key={c.id} onClick={function(){if(step===1){setP1Char(c);setStep(2);}else{setP2Char(c);setScreen('fight');}}}
-                style={{width:162,padding:'20px 14px 16px',borderRadius:20,textAlign:'center',cursor:'pointer',background:'rgba(255,255,255,0.03)',backdropFilter:'blur(10px)',border:'2px solid rgba(255,255,255,0.08)',boxShadow:'0 0 24px '+c.color+'40',transition:'all .2s'}}>
-                <div style={{fontSize:52,marginBottom:10}}>{lbl}</div>
-                <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:22,fontWeight:700,color:c.color,letterSpacing:1}}>{c.name}</div>
-                <div style={{fontSize:11,color:'#64748b',marginBottom:12}}>{c.title}</div>
-                <div style={{display:'flex',flexDirection:'column',gap:5}}>
-                  {[['PWR',c.power],['SPD',c.speed],['DEF',c.defense]].map(function(pair){
-                    return (<div key={pair[0]} style={{display:'flex',alignItems:'center',gap:6}}>
-                      <span style={{fontSize:10,color:'#64748b',width:26,textAlign:'right'}}>{pair[0]}</span>
-                      <div style={{flex:1,height:6,background:'#1e293b',borderRadius:3,overflow:'hidden'}}><div style={{width:pair[1]*10+'%',height:'100%',background:c.color,borderRadius:3}}></div></div>
-                    </div>);
-                  })}
-                </div>
-                <div style={{marginTop:12,display:'inline-block',padding:'3px 10px',borderRadius:6,background:c.color+'22',color:c.color,fontWeight:700,fontSize:11}}>{c.rarity}</div>
-                <div style={{marginTop:6,fontSize:10,color:'#475569'}}>Special: {c.special}</div>
-              </div>
-            );
-          })}
-        </div>
-        <div style={{marginTop:28,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,padding:'16px 28px',textAlign:'center'}}>
-          <div style={{fontWeight:700,color:'#f59e0b',marginBottom:6,fontSize:14}}>Match Bet</div>
-          <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:8}}>
-            {[50,100,250,500].map(function(a){return <button key={a} onClick={function(){setBetAmount(a);}} style={{padding:'7px 16px',borderRadius:8,border:'1.5px solid '+(betAmount===a?'#f59e0b':'rgba(255,255,255,0.1)'),background:betAmount===a?'rgba(245,158,11,0.2)':'transparent',color:betAmount===a?'#f59e0b':'#64748b',fontWeight:700,cursor:'pointer',fontSize:13}}>{a} $DMX</button>;})}
-          </div>
-          <div style={{fontSize:12,color:'#475569'}}>Balance: <strong style={{color:'#f59e0b'}}>{dmx.toLocaleString()} $DMX</strong></div>
-        </div>
+      <div style={{minHeight:'100vh',background:'linear-gradient(135deg,#030308,#0a0005)',color:'white',fontFamily:'Inter,sans-serif',display:'flex',flexDirection:'column',alignItems:'center',padding:'20px 16px'}}>
+        <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:40,fontWeight:700,color:'#f59e0b',letterSpacing:3,marginBottom:2,textShadow:'0 0 30px rgba(245,158,11,0.5)'}}>DOMINEX ARENA</div>
+        <div style={{color:'#64748b',marginBottom:12,fontSize:13}}>TOWER MODE - Fight your way to the top!</div>
+        {!p1Char ? (<div><div style={{color:'#94a3b8',marginBottom:14,fontSize:15,textAlign:'center',fontWeight:700}}>Choose Your Fighter</div><div style={{display:'flex',gap:12,flexWrap:'wrap',justifyContent:'center',maxWidth:920}}>{CHARS.map(function(c){var lbl=c.id==='kael'?'[K]':c.id==='pyros'?'[P]':c.id==='vela'?'[V]':c.id==='zeus'?'[Z]':'[M]';return (<div key={c.id} onClick={function(){setP1Char(c);}} style={{width:148,padding:'16px 10px 12px',borderRadius:16,textAlign:'center',cursor:'pointer',background:'rgba(255,255,255,0.03)',border:'2px solid rgba(255,255,255,0.08)',boxShadow:'0 0 20px '+c.color+'40'}}><div style={{fontSize:44,marginBottom:6}}>{lbl}</div><div style={{fontFamily:'Rajdhani,sans-serif',fontSize:20,fontWeight:700,color:c.color}}>{c.name}</div><div style={{fontSize:10,color:'#64748b',marginBottom:8}}>{c.title}</div><div style={{display:'flex',flexDirection:'column',gap:4}}>{[['PWR',c.power],['SPD',c.speed],['DEF',c.defense]].map(function(pair){return (<div key={pair[0]} style={{display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:9,color:'#64748b',width:24,textAlign:'right'}}>{pair[0]}</span><div style={{flex:1,height:5,background:'#1e293b',borderRadius:3,overflow:'hidden'}}><div style={{width:pair[1]*10+'%',height:'100%',background:c.color,borderRadius:3}}></div></div></div>);})}</div><div style={{marginTop:8,display:'inline-block',padding:'2px 8px',borderRadius:5,background:c.color+'22',color:c.color,fontWeight:700,fontSize:10}}>{c.rarity}</div></div>);})}</div></div>) : (<div style={{width:'100%',maxWidth:500}}><div style={{textAlign:'center',marginBottom:16}}><span style={{color:p1Char.color,fontWeight:900,fontSize:22,fontFamily:'Rajdhani,sans-serif'}}>{p1Char.name}</span><span style={{color:'#475569',fontSize:14,marginLeft:8}}>({p1Char.title})</span></div><div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,padding:16}}><div style={{fontWeight:700,color:'#f59e0b',marginBottom:12,fontSize:15,textAlign:'center',letterSpacing:2}}>TOWER LADDER</div>{TOWER.map(function(opp,i){var stg=i+1;var isCur=stg===stage;var isDone=stg<stage;var isBoss=stg===5;var lbl=opp.id==='kael'?'[K]':opp.id==='pyros'?'[P]':opp.id==='vela'?'[V]':opp.id==='zeus'?'[Z]':'[M]';return (<div key={opp.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',marginBottom:6,borderRadius:12,background:isCur?'rgba(245,158,11,0.12)':isDone?'rgba(34,197,94,0.08)':'rgba(255,255,255,0.02)',border:'1.5px solid '+(isCur?'#f59e0b':isDone?'#22c55e44':'rgba(255,255,255,0.06)'),opacity:isDone?0.6:1}}><div style={{width:28,textAlign:'center',fontWeight:900,fontSize:14,color:isCur?'#f59e0b':isDone?'#22c55e':'#475569'}}>{isDone?'OK':stg}</div><div style={{fontSize:28}}>{lbl}</div><div style={{flex:1}}><div style={{fontWeight:700,color:opp.color,fontSize:15}}>{opp.name}{isBoss?' (BOSS)':''}</div><div style={{fontSize:10,color:'#64748b'}}>{opp.title} | HP: {Math.round(opp.hp*(1+(stg-1)*0.1))}</div></div><div style={{fontSize:11,color:isCur?'#f59e0b':isDone?'#22c55e':'#475569',fontWeight:700}}>{isDone?'CLEARED':isCur?'FIGHT!':'LOCKED'}</div></div>);})}</div><div style={{marginTop:16,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:12,padding:'12px 20px',textAlign:'center'}}><div style={{fontWeight:700,color:'#f59e0b',marginBottom:6,fontSize:13}}>Stage {stage} Bet</div><div style={{display:'flex',gap:8,justifyContent:'center',marginBottom:6}}>{[50,100,250,500].map(function(a){return <button key={a} onClick={function(){setBetAmount(a);}} style={{padding:'6px 14px',borderRadius:8,border:'1.5px solid '+(betAmount===a?'#f59e0b':'rgba(255,255,255,0.1)'),background:betAmount===a?'rgba(245,158,11,0.2)':'transparent',color:betAmount===a?'#f59e0b':'#64748b',fontWeight:700,cursor:'pointer',fontSize:12}}>{a} $DMX</button>;})}</div><div style={{fontSize:11,color:'#475569'}}>Win: <strong style={{color:'#22c55e'}}>+{betAmount*stage} $DMX</strong> | Balance: <strong style={{color:'#f59e0b'}}>{dmx.toLocaleString()} $DMX</strong></div></div><button onClick={function(){setP2Char(towerOpponent);setScreen('fight');}} style={{width:'100%',marginTop:16,padding:'16px',borderRadius:14,background:'linear-gradient(135deg,#f59e0b,#ef4444)',border:'none',color:'#000',fontWeight:900,fontSize:20,cursor:'pointer',letterSpacing:2,fontFamily:'Rajdhani,sans-serif'}}>FIGHT STAGE {stage} - {towerOpponent.name}{stage===5?' (BOSS)':''}</button><button onClick={function(){setP1Char(null);setStage(1);}} style={{width:'100%',marginTop:8,padding:'10px',borderRadius:10,background:'transparent',border:'1px solid rgba(255,255,255,0.1)',color:'#64748b',fontWeight:600,fontSize:13,cursor:'pointer'}}>Change Fighter</button></div>)}
       </div>
     );
   }
