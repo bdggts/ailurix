@@ -229,7 +229,7 @@ export default function ArenaPage() {
     canvas.style.display = 'block';
     canvas.style.width = W + 'px';
     canvas.style.height = H + 'px';
-    canvas.style.background = '#14003a';
+    canvas.style.background = stage>=13?'#3a0000':stage>=10?'#1a0040':stage>=7?'#001428':stage>=4?'#001a14':'#14003a';
 
     // Clear container and append canvas
     container.innerHTML = '';
@@ -340,8 +340,19 @@ export default function ArenaPage() {
     };
 
     function drawArena(){
+      // Stage-based arena themes
+      var themes=[
+        {sky1:'#14003a',sky2:'#2a0828',sky3:'#3a0a08',gnd1:'#4a1a00',gnd2:'#1a0600',line:'#f59e0b',torch:'#f97316'},
+        {sky1:'#001a14',sky2:'#002820',sky3:'#083a08',gnd1:'#1a4a00',gnd2:'#0a1a06',line:'#22c55e',torch:'#4ade80'},
+        {sky1:'#001428',sky2:'#0a1440',sky3:'#081a3a',gnd1:'#003a4a',gnd2:'#001a2a',line:'#06b6d4',torch:'#67e8f9'},
+        {sky1:'#1a0040',sky2:'#280040',sky3:'#140028',gnd1:'#2a0050',gnd2:'#0a0020',line:'#8b5cf6',torch:'#a78bfa'},
+        {sky1:'#3a0000',sky2:'#400808',sky3:'#280000',gnd1:'#4a0a00',gnd2:'#1a0000',line:'#ef4444',torch:'#f87171'},
+      ];
+      var ti=Math.min(Math.floor((stage-1)/3),themes.length-1);
+      if(p2Char&&p2Char.id==='dragon')ti=4;
+      var t=themes[ti];
       var sky=ctx.createLinearGradient(0,0,0,H);
-      sky.addColorStop(0,'#14003a');sky.addColorStop(0.6,'#2a0828');sky.addColorStop(1,'#3a0a08');
+      sky.addColorStop(0,t.sky1);sky.addColorStop(0.6,t.sky2);sky.addColorStop(1,t.sky3);
       ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
       var i;
       for(i=0;i<80;i++){
@@ -349,10 +360,10 @@ export default function ArenaPage() {
         ctx.beginPath();ctx.arc((i*137+43)%W,(i*97+17)%(H*0.6),i%5===0?2:1.2,0,Math.PI*2);ctx.fill();
       }
       var gnd=ctx.createLinearGradient(0,H*0.7,0,H);
-      gnd.addColorStop(0,'#4a1a00');gnd.addColorStop(1,'#1a0600');
+      gnd.addColorStop(0,t.gnd1);gnd.addColorStop(1,t.gnd2);
       ctx.fillStyle=gnd;ctx.fillRect(0,H*0.7,W,H*0.3);
-      ctx.shadowColor='#f59e0b';ctx.shadowBlur=14;
-      ctx.strokeStyle='#f59e0b';ctx.lineWidth=2;
+      ctx.shadowColor=t.line;ctx.shadowBlur=14;
+      ctx.strokeStyle=t.line;ctx.lineWidth=2;
       ctx.beginPath();ctx.moveTo(0,H*0.7);ctx.lineTo(W,H*0.7);ctx.stroke();
       ctx.shadowBlur=0;
       [W*0.08,W*0.92].forEach(function(cx){
@@ -361,7 +372,7 @@ export default function ArenaPage() {
         ctx.fillStyle=cg;ctx.fillRect(cx-16,H*0.28,32,H*0.42);
         ctx.fillStyle='#78716c';ctx.fillRect(cx-20,H*0.28,40,12);
         var fire=ctx.createRadialGradient(cx,H*0.28,2,cx,H*0.28,26);
-        fire.addColorStop(0,'#fff7aa');fire.addColorStop(0.4,'#f97316');fire.addColorStop(1,'rgba(239,68,68,0)');
+        fire.addColorStop(0,'#fff7aa');fire.addColorStop(0.4,t.torch);fire.addColorStop(1,'rgba(0,0,0,0)');
         ctx.fillStyle=fire;
         ctx.beginPath();ctx.arc(cx,H*0.28+Math.sin(frame*0.15)*4,26,0,Math.PI*2);ctx.fill();
       });
@@ -536,15 +547,41 @@ export default function ArenaPage() {
   // ---- WINNER SCREEN ----
   if(winner){
     var wc=winner==='P1'?p1Char:winner==='P2'?p2Char:null;
+    var towerComplete=winner==='P1'&&stage>=TOWER.length;
+    var isFlawless=winner==='P1'&&p1Char&&p1Char.hp===p1Char.hp; // placeholder - real check set via ref
     return (
-      <div style={{minHeight:'100vh',background:'#030308',color:'white',fontFamily:'Inter,sans-serif',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16}}>
-        <div style={{fontSize:14,color:'#64748b',letterSpacing:2}}>STAGE {winner==='P1'?stage:stage}</div>
-        <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:72,fontWeight:900,color:wc?wc.color:'#64748b'}}>{winner==='DRAW'?'DRAW!':wc.name+' WINS!'}</div>
-        <div style={{fontSize:16,color:'#64748b'}}>{winner==='P1'?'+'+betAmount*stage+' $DMX earned!':winner==='P2'?'-'+betAmount+' $DMX lost':'No $DMX exchanged'}</div>
-        {winner==='P1'&&<div style={{fontSize:14,color:'#22c55e',fontWeight:700}}>Stage {stage} Complete! Next: Stage {stage+1} (harder CPU)</div>}
-        <div style={{display:'flex',gap:12,marginTop:16}}>
-          <button onClick={function(){setWinner(null);setRematchKey(function(k){return k+1;});}} style={{padding:'14px 36px',borderRadius:12,background:'linear-gradient(135deg,#f59e0b,#ef4444)',border:'none',color:'#000',fontWeight:900,fontSize:17,cursor:'pointer'}}>{winner==='P1'?'Next Stage':'Retry Stage'}</button>
-          <button onClick={function(){clearInterval(loopRef.current);setScreen('select');setP1Char(null);setP2Char(null);setStep(1);setWinner(null);setP1Wins(0);setP2Wins(0);setRematchKey(0);setStage(1);}} style={{padding:'14px 36px',borderRadius:12,background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.12)',color:'white',fontWeight:700,fontSize:17,cursor:'pointer'}}>New Match</button>
+      <div style={{minHeight:'100vh',background:towerComplete?'linear-gradient(135deg,#1a0800,#3a1a00,#1a0800)':'#030308',color:'white',fontFamily:'Inter,sans-serif',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12}}>
+        {towerComplete ? (
+          <div style={{textAlign:'center'}}>
+            <div style={{fontSize:60,marginBottom:8}}>🐉</div>
+            <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:52,fontWeight:900,background:'linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>TOWER COMPLETE!</div>
+            <div style={{fontSize:18,color:'#fbbf24',fontWeight:700,marginTop:4}}>You defeated the Dragon!</div>
+            <div style={{fontSize:14,color:'#22c55e',fontWeight:700,marginTop:8}}>+{betAmount*stage*3} $DMX Victory Bonus!</div>
+            <div style={{fontSize:13,color:'#64748b',marginTop:4}}>All 15 stages cleared — You are the Champion!</div>
+          </div>
+        ) : (
+          <div style={{textAlign:'center'}}>
+            <div style={{fontSize:13,color:'#64748b',letterSpacing:2}}>STAGE {stage} / {TOWER.length}</div>
+            <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:64,fontWeight:900,color:wc?wc.color:'#64748b'}}>{winner==='DRAW'?'DRAW!':wc.name+' WINS!'}</div>
+            <div style={{fontSize:15,color:'#64748b'}}>{winner==='P1'?'+'+betAmount*stage+' $DMX earned!':winner==='P2'?'-'+betAmount+' $DMX lost':'No $DMX exchanged'}</div>
+            {winner==='P1'&&<div style={{fontSize:13,color:'#22c55e',fontWeight:700,marginTop:4}}>Stage {stage} Complete! Next: {TOWER[stage]?TOWER[stage].name:'???'}</div>}
+          </div>
+        )}
+        <div style={{display:'flex',gap:6,marginTop:8}}>
+          {TOWER.slice(0,Math.min(15,TOWER.length)).map(function(_,i){
+            var stg=i+1;
+            return <div key={i} style={{width:14,height:14,borderRadius:3,background:stg<stage||(winner==='P1'&&stg===stage)?'#22c55e':stg===stage?'#ef4444':'#1e293b',border:'1px solid rgba(255,255,255,0.1)',fontSize:7,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700}}>{stg<=stage?(stg<stage||(winner==='P1')?'✓':'✗'):''}</div>;
+          })}
+        </div>
+        <div style={{display:'flex',gap:12,marginTop:12}}>
+          {towerComplete ? (
+            <button onClick={function(){clearInterval(loopRef.current);setScreen('select');setP1Char(null);setP2Char(null);setStep(1);setWinner(null);setP1Wins(0);setP2Wins(0);setRematchKey(0);setStage(1);}} style={{padding:'14px 44px',borderRadius:12,background:'linear-gradient(135deg,#f59e0b,#fbbf24)',border:'none',color:'#000',fontWeight:900,fontSize:18,cursor:'pointer',letterSpacing:1}}>🏆 Play Again</button>
+          ) : (
+            <div style={{display:'flex',gap:12}}>
+              <button onClick={function(){setWinner(null);setRematchKey(function(k){return k+1;});}} style={{padding:'14px 32px',borderRadius:12,background:'linear-gradient(135deg,#f59e0b,#ef4444)',border:'none',color:'#000',fontWeight:900,fontSize:16,cursor:'pointer'}}>{winner==='P1'?'Next Stage ▶':'Retry Stage'}</button>
+              <button onClick={function(){clearInterval(loopRef.current);setScreen('select');setP1Char(null);setP2Char(null);setStep(1);setWinner(null);setP1Wins(0);setP2Wins(0);setRematchKey(0);setStage(1);}} style={{padding:'14px 32px',borderRadius:12,background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.12)',color:'white',fontWeight:700,fontSize:16,cursor:'pointer'}}>New Match</button>
+            </div>
+          )}
         </div>
       </div>
     );
