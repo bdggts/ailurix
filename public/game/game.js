@@ -1,34 +1,34 @@
-'use strict';
+'use strict'; // v2.1 fullscreen+canvas
 (function(){
 
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // DATA
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 var CHARS=[
-  {id:'scorpion',name:'SCORPION',title:'Hell Ninja',    color:'#f59e0b',accent:'#fbbf24',hp:100,spd:8,pow:9, def:7, rarity:'Common',   spl:'Spear Pull',  em:'🔥'},
-  {id:'subzero', name:'SUB-ZERO',title:'Ice Warrior',   color:'#38bdf8',accent:'#7dd3fc',hp:95, spd:7,pow:8, def:9, rarity:'Common',   spl:'Ice Freeze',  em:'❄️'},
-  {id:'liukang', name:'LIU KANG',title:'Shaolin Monk',  color:'#ef4444',accent:'#fca5a5',hp:90, spd:9,pow:9, def:7, rarity:'Rare',     spl:'Flying Kick', em:'🥋'},
-  {id:'raiden',  name:'RAIDEN',  title:'Thunder God',   color:'#8b5cf6',accent:'#c4b5fd',hp:95, spd:6,pow:10,def:9, rarity:'Legendary',spl:'Lightning',   em:'⚡'},
-  {id:'reptile', name:'REPTILE', title:'Hidden Fighter', color:'#22c55e',accent:'#86efac',hp:88, spd:9,pow:8, def:7, rarity:'Rare',     spl:'Acid Spit',   em:'🦎'},
-  {id:'kitana',  name:'KITANA',  title:'Fan Assassin',  color:'#06b6d4',accent:'#67e8f9',hp:85, spd:10,pow:8,def:6, rarity:'Epic',     spl:'Fan Throw',   em:'🪭'},
-  {id:'mileena', name:'MILEENA', title:'Evil Twin',     color:'#f472b6',accent:'#f9a8d4',hp:82, spd:10,pow:9,def:5, rarity:'Rare',     spl:'Sai Throw',   em:'🗡️'},
-  {id:'jaxon',   name:'JAXON',   title:'Metal Arms',    color:'#78716c',accent:'#d6d3d1',hp:110,spd:5, pow:10,def:10,rarity:'Epic',     spl:'Ground Pound',em:'🦾'},
-  {id:'baraka',  name:'BARAKA',  title:'Blade Fighter', color:'#fb923c',accent:'#fdba74',hp:92, spd:7, pow:10,def:8, rarity:'Epic',     spl:'Blade Fury',  em:'⚔️'},
-  {id:'smoke',   name:'SMOKE',   title:'Gray Ninja',    color:'#a78bfa',accent:'#c4b5fd',hp:80, spd:10,pow:9, def:5, rarity:'Rare',     spl:'Smoke Screen', em:'💨'},
-  {id:'cyrax',   name:'CYRAX',   title:'Yellow Robot',  color:'#a3e635',accent:'#d9f99d',hp:88, spd:8, pow:8, def:8, rarity:'Common',   spl:'Net Trap',    em:'🤖'},
-  {id:'sektor',  name:'SEKTOR',  title:'Red Robot',     color:'#dc2626',accent:'#fca5a5',hp:90, spd:8, pow:9, def:8, rarity:'Epic',     spl:'Missiles',    em:'🚀'},
-  {id:'kunglao', name:'KUNG LAO',title:'Hat Fighter',   color:'#e2e8f0',accent:'#f1f5f9',hp:88, spd:9, pow:8, def:7, rarity:'Legendary',spl:'Hat Throw',   em:'🎩'},
-  {id:'nightwolf',name:'NIGHTWOLF',title:'Spirit Warrior',color:'#84cc16',accent:'#bef264',hp:92,spd:7,pow:9,def:8,rarity:'Mythic',  spl:'Spirit Arrow',em:'🏹'},
-  {id:'noob',    name:'NOOB',    title:'Dark Shadow',   color:'#64748b',accent:'#94a3b8',hp:85, spd:9, pow:10,def:6, rarity:'Mythic',   spl:'Shadow Clone',em:'👤'},
-  {id:'goro',    name:'GORO',    title:'Final Boss',    color:'#d97706',accent:'#fbbf24',hp:220,spd:4, pow:10,def:10,rarity:'BOSS',     spl:'Stomp Quake', em:'👹',boss:true},
+  {id:'scorpion',name:'SCORPION',title:'Hell Ninja',    color:'#f59e0b',accent:'#fbbf24',hp:100,spd:8,pow:9, def:7, rarity:'Common',   spl:'Spear Pull',  em:'ðŸ”¥'},
+  {id:'subzero', name:'SUB-ZERO',title:'Ice Warrior',   color:'#38bdf8',accent:'#7dd3fc',hp:95, spd:7,pow:8, def:9, rarity:'Common',   spl:'Ice Freeze',  em:'â„ï¸'},
+  {id:'liukang', name:'LIU KANG',title:'Shaolin Monk',  color:'#ef4444',accent:'#fca5a5',hp:90, spd:9,pow:9, def:7, rarity:'Rare',     spl:'Flying Kick', em:'ðŸ¥‹'},
+  {id:'raiden',  name:'RAIDEN',  title:'Thunder God',   color:'#8b5cf6',accent:'#c4b5fd',hp:95, spd:6,pow:10,def:9, rarity:'Legendary',spl:'Lightning',   em:'âš¡'},
+  {id:'reptile', name:'REPTILE', title:'Hidden Fighter', color:'#22c55e',accent:'#86efac',hp:88, spd:9,pow:8, def:7, rarity:'Rare',     spl:'Acid Spit',   em:'ðŸ¦Ž'},
+  {id:'kitana',  name:'KITANA',  title:'Fan Assassin',  color:'#06b6d4',accent:'#67e8f9',hp:85, spd:10,pow:8,def:6, rarity:'Epic',     spl:'Fan Throw',   em:'ðŸª­'},
+  {id:'mileena', name:'MILEENA', title:'Evil Twin',     color:'#f472b6',accent:'#f9a8d4',hp:82, spd:10,pow:9,def:5, rarity:'Rare',     spl:'Sai Throw',   em:'ðŸ—¡ï¸'},
+  {id:'jaxon',   name:'JAXON',   title:'Metal Arms',    color:'#78716c',accent:'#d6d3d1',hp:110,spd:5, pow:10,def:10,rarity:'Epic',     spl:'Ground Pound',em:'ðŸ¦¾'},
+  {id:'baraka',  name:'BARAKA',  title:'Blade Fighter', color:'#fb923c',accent:'#fdba74',hp:92, spd:7, pow:10,def:8, rarity:'Epic',     spl:'Blade Fury',  em:'âš”ï¸'},
+  {id:'smoke',   name:'SMOKE',   title:'Gray Ninja',    color:'#a78bfa',accent:'#c4b5fd',hp:80, spd:10,pow:9, def:5, rarity:'Rare',     spl:'Smoke Screen', em:'ðŸ’¨'},
+  {id:'cyrax',   name:'CYRAX',   title:'Yellow Robot',  color:'#a3e635',accent:'#d9f99d',hp:88, spd:8, pow:8, def:8, rarity:'Common',   spl:'Net Trap',    em:'ðŸ¤–'},
+  {id:'sektor',  name:'SEKTOR',  title:'Red Robot',     color:'#dc2626',accent:'#fca5a5',hp:90, spd:8, pow:9, def:8, rarity:'Epic',     spl:'Missiles',    em:'ðŸš€'},
+  {id:'kunglao', name:'KUNG LAO',title:'Hat Fighter',   color:'#e2e8f0',accent:'#f1f5f9',hp:88, spd:9, pow:8, def:7, rarity:'Legendary',spl:'Hat Throw',   em:'ðŸŽ©'},
+  {id:'nightwolf',name:'NIGHTWOLF',title:'Spirit Warrior',color:'#84cc16',accent:'#bef264',hp:92,spd:7,pow:9,def:8,rarity:'Mythic',  spl:'Spirit Arrow',em:'ðŸ¹'},
+  {id:'noob',    name:'NOOB',    title:'Dark Shadow',   color:'#64748b',accent:'#94a3b8',hp:85, spd:9, pow:10,def:6, rarity:'Mythic',   spl:'Shadow Clone',em:'ðŸ‘¤'},
+  {id:'goro',    name:'GORO',    title:'Final Boss',    color:'#d97706',accent:'#fbbf24',hp:220,spd:4, pow:10,def:10,rarity:'BOSS',     spl:'Stomp Quake', em:'ðŸ‘¹',boss:true},
 ];
 var PLAYABLE=CHARS.filter(function(c){return !c.boss;});
 var TOWER_ORDER=['cyrax','reptile','liukang','subzero','kitana','mileena','baraka','smoke','scorpion','kunglao','nightwolf','raiden','sektor','noob','goro'];
 var TOWER=TOWER_ORDER.map(function(id){return CHARS.find(function(c){return c.id===id;});});
 
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // STATE
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 var G={
   screen:'splash',
   player:null,
@@ -43,9 +43,9 @@ var G={
 // Per-frame key state (set by buttons, read every game frame)
 var KEYS={left:false,right:false,jump:false};
 
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // AUDIO
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 var AC_ctx=null;
 function AC(){if(!AC_ctx)try{AC_ctx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}if(AC_ctx&&AC_ctx.state==='suspended')AC_ctx.resume().catch(function(){});return AC_ctx;}
 function beep(freq,type,dur,vol,delay){var ac=AC();if(!ac)return;var o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+(delay||0);o.type=type||'sine';o.frequency.value=freq;g.gain.setValueAtTime(vol||0.2,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+dur);}
@@ -62,9 +62,9 @@ function snd(type){try{
   else if(type==='fight'){beep(300,'square',0.05,0.4);beep(500,'square',0.05,0.35,0.06);beep(700,'square',0.15,0.3,0.12);}
 }catch(e){}}
 
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // UTILS
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function $(id){return document.getElementById(id);}
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
@@ -78,9 +78,9 @@ function showScreen(name){
 function save(){try{localStorage.setItem('dnx_stage',G.stage);}catch(e){}}
 function load(){try{var s=parseInt(localStorage.getItem('dnx_stage')||'1',10);G.stage=isNaN(s)||s<1?1:Math.min(s,15);}catch(e){}}
 
-// ═══════════════════════════════════════════════════════
-// CANVAS DRAWING — CHARACTERS
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// CANVAS DRAWING â€” CHARACTERS
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function drawFighter(ctx,f,t){
   var x=f.x,y=f.y,dir=f.dir,c=f.ch.color,ac=f.ch.accent;
   var H=f.H,st=f.state,af=f.af;
@@ -175,9 +175,9 @@ function drawFighter(ctx,f,t){
   ctx.shadowBlur=0;ctx.restore();
 }
 
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // BACKGROUND
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 var BG_THEMES=[
   ['#1a0800','#3d1500','#6b2d00'],  // 1-3 temple
   ['#00040f','#001230','#002260'],  // 4-6 ice
@@ -210,9 +210,9 @@ function drawBG(ctx,W,H,stage,t){
   }
 }
 
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // PARTICLES
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function spawnParts(parts,x,y,col,n){
   for(var i=0;i<n;i++)parts.push({x:x,y:y,vx:(Math.random()-0.5)*10,vy:(Math.random()-0.5)*10-4,color:col,life:22+Math.random()*14,size:2+Math.random()*4.5});
 }
@@ -224,9 +224,9 @@ function drawParts(ctx,parts){
   ctx.globalAlpha=1;
 }
 
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // HUD UPDATE (DOM)
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function hudUpdate(gs){
   var p1=gs.p1,p2=gs.p2;
   var p1pct=Math.max(0,p1.hp/p1.maxHp);
@@ -240,12 +240,12 @@ function hudUpdate(gs){
   $('btn-special').className='atk atk-special'+(p1.energy>=100?' glow':'');
   $('timer').textContent=Math.max(0,gs.timer);
   $('timer').style.color=gs.timer<=10?'#ef4444':'#f59e0b';
-  $('round-info').textContent='R'+gs.round+' · '+gs.p1r+'-'+gs.p2r;
+  $('round-info').textContent='R'+gs.round+' Â· '+gs.p1r+'-'+gs.p2r;
 }
 
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // FIGHT ENGINE
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function initFight(){
   G.stopped=false;
   G.gs=null;
@@ -254,15 +254,20 @@ function initFight(){
   $('hud-p1-name').textContent=G.player.name;$('hud-p1-name').style.color=G.player.color;
   $('hud-p2-name').textContent=opp.name;$('hud-p2-name').style.color=opp.color;
   G.cpuTick=0;
-  // KEY FIX: wait 2 frames for flex layout to calculate canvas dimensions
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      var cv=$('game-canvas');
-      // Canvas is now absolute/full-area, so use game-area dimensions
-      var area=$('game-area');
-      var W=area?area.clientWidth:window.innerWidth;
-      var H=area?(area.clientHeight||window.innerHeight-42):window.innerHeight-42;
-      W=Math.max(W,200);H=Math.max(H,200);
+  // MOBILE FIX: Poll every 50ms until game-area has real dimensions
+  function waitAndInit(attempts) {
+    var cv=$('game-canvas');
+    var area=$('game-area');
+    var W=area?area.clientWidth:window.innerWidth;
+    var H=area?area.clientHeight:0;
+    if(H<50){H=window.innerHeight-42;}  // fallback
+    if(W<50){W=window.innerWidth;}
+    W=Math.max(W,200);H=Math.max(H,200);
+    if((H<100||W<100)&&attempts<30){
+      setTimeout(function(){waitAndInit(attempts+1);},50);
+      return;
+    }
+
       cv.width=W;cv.height=H;
       var SC=H/300;
       var FLOOR=H*0.78;
@@ -278,9 +283,10 @@ function initFight(){
       };
       startBGMusic();
       G.raf=requestAnimationFrame(fightLoop);
-    });
-  });
+  }
+  waitAndInit(0); // start polling
 }
+
 
 function stopFight(){
   G.stopped=true;
@@ -413,15 +419,15 @@ function fightLoop(){
   var p1=gs.p1,p2=gs.p2;
   p1.H=p2.H=Math.round(gs.SC*70);  // 30% smaller characters
 
-  // ── COUNTDOWN ──
+  // â”€â”€ COUNTDOWN â”€â”€
   if(gs.phase==='countdown'){
     gs.cdTick--;
     if(gs.cdTick<=0){snd('cd');gs.cd--;gs.cdTick=60;if(gs.cd<=0){gs.phase='fight';snd('fight');}}
   }
 
-  // ── FIGHT TICK ──
+  // â”€â”€ FIGHT TICK â”€â”€
   if(gs.phase==='fight'){
-    // ── PLAYER MOVEMENT (every frame from key state) ──
+    // â”€â”€ PLAYER MOVEMENT (every frame from key state) â”€â”€
     var canAct=['idle','walk'].indexOf(p1.state)>=0;
     var moving=false;
     if(KEYS.left&&!KEYS.right&&canAct){p1.x=Math.max(45,p1.x-p1.ch.spd*1.4*gs.SC);if(p1.state==='idle'||p1.state==='walk'){p1.state='walk';moving=true;}}
@@ -458,10 +464,10 @@ function fightLoop(){
   // Shake decay
   if(gs.shake>0)gs.shake=Math.max(0,gs.shake-2);
 
-  // ── PARTICLES ──
+  // â”€â”€ PARTICLES â”€â”€
   tickParts(gs.parts);
 
-  // ── DRAW ──
+  // â”€â”€ DRAW â”€â”€
   ctx.save();
   if(gs.shake>0){var sx=(Math.random()-0.5)*gs.shake,sy=(Math.random()-0.5)*gs.shake;ctx.translate(sx,sy);}
   drawBG(ctx,W,H,G.stage,gs.frame);
@@ -469,13 +475,18 @@ function fightLoop(){
   drawFighter(ctx,p1,gs.frame);
   drawFighter(ctx,p2,gs.frame);
 
-  // Countdown overlay
+  // Characters always visible — countdown text overlaid on TOP (no dark mask)
   if(gs.phase==='countdown'){
-    ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);
-    ctx.shadowColor='#f59e0b';ctx.shadowBlur=50;ctx.fillStyle='#f59e0b';
     var cText=gs.cd>0?String(gs.cd):'FIGHT!';
-    ctx.font='bold '+Math.round(H*0.22)+'px Rajdhani,Impact,sans-serif';
-    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(cText,W/2,H/2);
+    var fontSize=Math.round(H*0.22);
+    ctx.font='bold '+fontSize+'px Rajdhani,Impact,sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    // Shadow outline for readability
+    ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=8;ctx.strokeText(cText,W/2,H*0.4);
+    ctx.shadowColor=gs.cd>0?'#f59e0b':'#22c55e';
+    ctx.shadowBlur=40;
+    ctx.fillStyle=gs.cd>0?'#f59e0b':'#22c55e';
+    ctx.fillText(cText,W/2,H*0.4);
     ctx.shadowBlur=0;
   }
 
@@ -496,9 +507,9 @@ function fightLoop(){
   hudUpdate(gs);
 }
 
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SCREENS LOGIC
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 // SPLASH
 function initSplash(){
@@ -555,7 +566,7 @@ function updatePreview(){
   $('prev-title').textContent=c.title;
   var rEl=$('prev-rarity');rEl.textContent=c.rarity;rEl.style.color=c.color;rEl.style.background=c.color+'22';rEl.style.border='1px solid '+c.color+'44';
   $('prev-spl').textContent=c.spl;$('prev-spl').style.color=c.color;
-  var stats=[['⚔️ POWER',c.pow,'#ef4444'],['⚡ SPEED',c.spd,'#22c55e'],['🛡️ DEFENSE',c.def,'#3b82f6'],['❤️ HP',Math.round(c.hp/10),'#f472b6']];
+  var stats=[['âš”ï¸ POWER',c.pow,'#ef4444'],['âš¡ SPEED',c.spd,'#22c55e'],['ðŸ›¡ï¸ DEFENSE',c.def,'#3b82f6'],['â¤ï¸ HP',Math.round(c.hp/10),'#f472b6']];
   $('prev-stats').innerHTML=stats.map(function(s){return '<div class="stat-row"><div class="stat-lbl"><span>'+s[0]+'</span><span class="stat-val" style="color:'+s[2]+'">'+s[1]+'/10</span></div><div class="stat-bg"><div class="stat-fill" style="width:'+s[1]*10+'%;background:'+s[2]+'"></div></div></div>';}).join('');
   var btn=$('select-btn');btn.style.background='linear-gradient(135deg,'+c.color+','+c.color+'88)';btn.style.boxShadow='0 4px 20px '+c.color+'55';
 }
@@ -582,14 +593,14 @@ function showResult(win,gs){
   stopFight();
   var opp=TOWER[Math.min(G.stage-1,TOWER.length-1)];
   var champion=win&&G.stage>=15;
-  $('res-emoji').textContent=champion?'🏆':win?G.player.em:opp.em;
+  $('res-emoji').textContent=champion?'ðŸ†':win?G.player.em:opp.em;
   var title=champion?'CHAMPION!':win?'YOU WIN!':'YOU LOSE!';
   var col=champion?'#f59e0b':win?'#22c55e':'#ef4444';
   $('res-title').textContent=title;$('res-title').style.color=col;
-  $('res-sub').textContent=win?'Stage '+G.stage+' Complete'+(champion?' — All 15 done! 🏆':'')+'!':'Stage '+G.stage+' Failed';
+  $('res-sub').textContent=win?'Stage '+G.stage+' Complete'+(champion?' â€” All 15 done! ðŸ†':'')+'!':'Stage '+G.stage+' Failed';
   var nb=$('res-next'),rb=$('res-retry');
-  if(win&&!champion){nb.style.display='block';nb.textContent='NEXT STAGE ▶ ('+(G.stage+1)+'/15)';}
-  else if(champion){nb.style.display='block';nb.textContent='PLAY AGAIN 🏆';}
+  if(win&&!champion){nb.style.display='block';nb.textContent='NEXT STAGE â–¶ ('+(G.stage+1)+'/15)';}
+  else if(champion){nb.style.display='block';nb.textContent='PLAY AGAIN ðŸ†';}
   else{nb.style.display='none';}
   rb.style.display=win?'none':'block';
   document.getElementById('result-screen').style.background=champion?'radial-gradient(ellipse at center,#1a1000,#000)':win?'radial-gradient(ellipse at center,#001400,#000)':'radial-gradient(ellipse at center,#140000,#000)';
@@ -603,11 +614,11 @@ function showResult(win,gs){
   $('res-menu').onclick=function(){G.stage=1;save();G.screen='splash';showScreen('splash');initSplash();};
 }
 
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // CONTROLS SETUP
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 function setupControls(){
-  // D-pad — key state approach (smooth, per-frame)
+  // D-pad â€” key state approach (smooth, per-frame)
   ['dp-up','dp-left','dp-right'].forEach(function(id){
     var el=$(id);
     if(!el)return;
@@ -657,9 +668,9 @@ function setupControls(){
   document.addEventListener('touchmove',function(e){e.preventDefault();},{passive:false});
 }
 
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // INIT
-// ═══════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 document.addEventListener('DOMContentLoaded',function(){
   load();
   setupControls();

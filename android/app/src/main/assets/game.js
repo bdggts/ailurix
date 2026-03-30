@@ -1,4 +1,4 @@
-﻿'use strict'; // v2.1 fullscreen+canvas
+'use strict'; // v2.1 fullscreen+canvas
 (function(){
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -254,15 +254,20 @@ function initFight(){
   $('hud-p1-name').textContent=G.player.name;$('hud-p1-name').style.color=G.player.color;
   $('hud-p2-name').textContent=opp.name;$('hud-p2-name').style.color=opp.color;
   G.cpuTick=0;
-  // KEY FIX: wait 2 frames for flex layout to calculate canvas dimensions
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      var cv=$('game-canvas');
-      // Canvas is now absolute/full-area, so use game-area dimensions
-      var area=$('game-area');
-      var W=area?area.clientWidth:window.innerWidth;
-      var H=area?(area.clientHeight||window.innerHeight-42):window.innerHeight-42;
-      W=Math.max(W,200);H=Math.max(H,200);
+  // MOBILE FIX: Poll every 50ms until game-area has real dimensions
+  function waitAndInit(attempts) {
+    var cv=$('game-canvas');
+    var area=$('game-area');
+    var W=area?area.clientWidth:window.innerWidth;
+    var H=area?area.clientHeight:0;
+    if(H<50){H=window.innerHeight-42;}  // fallback
+    if(W<50){W=window.innerWidth;}
+    W=Math.max(W,200);H=Math.max(H,200);
+    if((H<100||W<100)&&attempts<30){
+      setTimeout(function(){waitAndInit(attempts+1);},50);
+      return;
+    }
+
       cv.width=W;cv.height=H;
       var SC=H/300;
       var FLOOR=H*0.78;
@@ -278,9 +283,10 @@ function initFight(){
       };
       startBGMusic();
       G.raf=requestAnimationFrame(fightLoop);
-    });
-  });
+  }
+  waitAndInit(0); // start polling
 }
+
 
 function stopFight(){
   G.stopped=true;
@@ -469,13 +475,18 @@ function fightLoop(){
   drawFighter(ctx,p1,gs.frame);
   drawFighter(ctx,p2,gs.frame);
 
-  // Countdown overlay
+  // Characters always visible — countdown text overlaid on TOP (no dark mask)
   if(gs.phase==='countdown'){
-    ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);
-    ctx.shadowColor='#f59e0b';ctx.shadowBlur=50;ctx.fillStyle='#f59e0b';
     var cText=gs.cd>0?String(gs.cd):'FIGHT!';
-    ctx.font='bold '+Math.round(H*0.22)+'px Rajdhani,Impact,sans-serif';
-    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(cText,W/2,H/2);
+    var fontSize=Math.round(H*0.22);
+    ctx.font='bold '+fontSize+'px Rajdhani,Impact,sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    // Shadow outline for readability
+    ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=8;ctx.strokeText(cText,W/2,H*0.4);
+    ctx.shadowColor=gs.cd>0?'#f59e0b':'#22c55e';
+    ctx.shadowBlur=40;
+    ctx.fillStyle=gs.cd>0?'#f59e0b':'#22c55e';
+    ctx.fillText(cText,W/2,H*0.4);
     ctx.shadowBlur=0;
   }
 
