@@ -1,10 +1,12 @@
-﻿name: Build Android APK
+name: Build Android APK
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['.github/workflows/build-apk.yml', 'android/**']
+    paths:
+      - '.github/workflows/build-apk.yml'
+      - 'android/**'
 
 jobs:
   build-apk:
@@ -23,37 +25,23 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install SDK components
-        run: yes | sdkmanager 'build-tools;34.0.0' 'platforms;android-34' 'platform-tools'
+        run: yes | sdkmanager "build-tools;34.0.0" "platforms;android-34" "platform-tools"
 
       - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.6'
 
-      - name: Generate fixed keystore
+      - name: Generate keystore and assetlinks
         run: |
           keytool -genkey -v -keystore dominex.keystore -alias dominex \
             -keyalg RSA -keysize 2048 -validity 36500 \
             -dname "CN=Dominex Arena,OU=Dev,O=Dominex,L=IN,S=IN,C=IN" \
-            -storepass dominex@2026 -keypass dominex@2026 2>/dev/null
-          # Get SHA-256 fingerprint for assetlinks.json
-          FINGERPRINT=$(keytool -list -v -keystore dominex.keystore \
-            -alias dominex -storepass dominex@2026 2>/dev/null | \
-            grep "SHA256:" | sed "s/.*SHA256: //")
-          echo "SHA256 Fingerprint: $FINGERPRINT"
-          echo "FINGERPRINT=$FINGERPRINT" >> $GITHUB_ENV
-          # Create assetlinks.json
+            -storepass dominex123 -keypass dominex123 2>/dev/null
+          FP=$(keytool -list -v -keystore dominex.keystore -alias dominex \
+            -storepass dominex123 2>/dev/null | grep "SHA256:" | sed 's/.*SHA256: //')
+          echo "Fingerprint: $FP"
           mkdir -p public/.well-known
-          cat > public/.well-known/assetlinks.json << ASSETEOF
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "com.dominex.arena",
-    "sha256_cert_fingerprints": ["$FINGERPRINT"]
-  }
-}]
-ASSETEOF
-          echo "assetlinks.json created:"
+          printf '[{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"android_app","package_name":"com.dominex.arena","sha256_cert_fingerprints":["%s"]}}]' "$FP" > public/.well-known/assetlinks.json
           cat public/.well-known/assetlinks.json
 
       - name: Build APK
@@ -62,12 +50,11 @@ ASSETEOF
 
       - name: Sign APK
         run: |
-          set -e
           APK=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
-          echo "Signing: $APK"
+          echo "Found APK: $APK"
           "$ANDROID_HOME/build-tools/34.0.0/apksigner" sign \
             --ks dominex.keystore --ks-key-alias dominex \
-            --ks-pass pass:dominex@2026 --key-pass pass:dominex@2026 \
+            --ks-pass pass:dominex123 --key-pass pass:dominex123 \
             --out public/dominex-arena.apk "$APK"
           ls -lh public/dominex-arena.apk
 
