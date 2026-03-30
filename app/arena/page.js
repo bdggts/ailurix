@@ -772,94 +772,188 @@ export default function ArenaPage() {
 
 
   // ---- SELECT SCREEN ----
+  var PLAYABLE=CHARS.filter(function(c){return c.id!=='goro';});
+  var selIdxState=useState(0); var selIdx=selIdxState[0]; var setSelIdx=selIdxState[1];
+  var selChar=PLAYABLE[selIdx];
+
   if(screen==='select'){
     return (
-      <div style={{minHeight:'100vh',background:'linear-gradient(135deg,#030308,#0a0005)',color:'white',fontFamily:'Inter,sans-serif',display:'flex',flexDirection:'column',alignItems:'center',padding:'20px 16px'}}>
-        <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:40,fontWeight:700,color:'#f59e0b',letterSpacing:3,marginBottom:2,textShadow:'0 0 30px rgba(245,158,11,0.5)'}}>DOMINEX ARENA</div>
-        <div style={{color:'#64748b',marginBottom:12,fontSize:13}}>TOWER MODE - Fight your way to the top!</div>
-        {!p1Char ? (<div><div style={{color:'#94a3b8',marginBottom:14,fontSize:15,textAlign:'center',fontWeight:700}}>Choose Your Fighter ({CHARS.length-1} Fighters)</div><div style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'center',maxWidth:920}}>{CHARS.filter(function(c){return c.id!=='goro';}).map(function(c){return (<div key={c.id} onClick={function(){setP1Char(c);announceVoice(c.name);}} style={{width:105,padding:'8px 6px 8px',borderRadius:12,textAlign:'center',cursor:'pointer',background:'rgba(255,255,255,0.03)',border:'2px solid rgba(255,255,255,0.08)',boxShadow:'0 0 14px '+c.color+'30',transition:'transform 0.15s',position:'relative'}}>{c.img?<img src={c.img} alt={c.name} style={{width:52,height:52,borderRadius:8,objectFit:'cover',border:'2px solid '+c.color+'44',display:'block',margin:'0 auto 4px'}} />:<div style={{width:52,height:52,borderRadius:8,background:'rgba(255,255,255,0.05)',border:'2px solid '+c.color+'44',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 4px',fontSize:28}}>{c.emoji}</div>}<div style={{fontFamily:'Rajdhani,sans-serif',fontSize:13,fontWeight:700,color:c.color}}>{c.name}</div><div style={{fontSize:8,color:'#64748b',marginBottom:4}}>{c.title}</div><div style={{display:'flex',gap:2}}><div style={{flex:1,height:3,background:'#1e293b',borderRadius:2,overflow:'hidden'}}><div style={{width:c.power*10+'%',height:'100%',background:'#ef4444',borderRadius:2}}></div></div><div style={{flex:1,height:3,background:'#1e293b',borderRadius:2,overflow:'hidden'}}><div style={{width:c.speed*10+'%',height:'100%',background:'#22c55e',borderRadius:2}}></div></div><div style={{flex:1,height:3,background:'#1e293b',borderRadius:2,overflow:'hidden'}}><div style={{width:c.defense*10+'%',height:'100%',background:'#3b82f6',borderRadius:2}}></div></div></div><div style={{marginTop:4,fontSize:8,color:c.color,fontWeight:700}}>{c.rarity}</div></div>);})}</div></div>) : (<div style={{width:'100%',maxWidth:500}}><div style={{textAlign:'center',marginBottom:12}}>{p1Char.img?<img src={p1Char.img} alt={p1Char.name} style={{width:60,height:60,borderRadius:10,objectFit:'cover',border:'2px solid '+p1Char.color,display:'inline-block',verticalAlign:'middle',marginRight:10}} />:<span style={{fontSize:40,marginRight:10,verticalAlign:'middle'}}>{p1Char.emoji}</span>}<span style={{color:p1Char.color,fontWeight:900,fontSize:22,fontFamily:'Rajdhani,sans-serif'}}>{p1Char.name}</span><span style={{color:'#475569',fontSize:14,marginLeft:8}}>({p1Char.title})</span></div><div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,padding:12,maxHeight:340,overflowY:'auto'}}><div style={{fontWeight:700,color:'#f59e0b',marginBottom:8,fontSize:14,textAlign:'center',letterSpacing:2}}>TOWER LADDER ({TOWER.length} Stages)</div>{TOWER.map(function(opp,i){var stg=i+1;var isCur=stg===stage;var isDone=stg<stage;var isBoss=opp.id==='goro';return (<div key={opp.id+i} style={{display:'flex',alignItems:'center',gap:8,padding:'7px 10px',marginBottom:4,borderRadius:10,background:isCur?'rgba(245,158,11,0.12)':isDone?'rgba(34,197,94,0.08)':'rgba(255,255,255,0.02)',border:'1.5px solid '+(isCur?'#f59e0b':isDone?'#22c55e44':'rgba(255,255,255,0.06)'),opacity:isDone?0.55:1}}><div style={{width:22,textAlign:'center',fontWeight:900,fontSize:12,color:isCur?'#f59e0b':isDone?'#22c55e':'#475569'}}>{isDone?'✓':stg}</div>{opp.img?<img src={opp.img} alt={opp.name} style={{width:28,height:28,borderRadius:6,objectFit:'cover',border:'1px solid '+opp.color+'66'}} />:<div style={{width:28,height:28,borderRadius:6,background:'rgba(255,255,255,0.05)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,border:'1px solid '+opp.color+'66'}}>{opp.emoji}</div>}<div style={{flex:1}}><div style={{fontWeight:700,color:opp.color,fontSize:13}}>{opp.name}{isBoss?' 👹 BOSS':''}</div><div style={{fontSize:9,color:'#64748b'}}>{opp.title} | HP:{Math.round(opp.hp*(1+(stg-1)*0.08))}</div></div><div style={{fontSize:10,color:isCur?'#f59e0b':isDone?'#22c55e':'#475569',fontWeight:700}}>{isDone?'CLEARED':isCur?'FIGHT!':'LOCKED'}</div></div>);})}</div><div style={{marginTop:12,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:10,padding:'10px 16px',textAlign:'center'}}><div style={{fontWeight:700,color:'#f59e0b',marginBottom:4,fontSize:12}}>Stage {stage} Bet</div><div style={{display:'flex',gap:6,justifyContent:'center',marginBottom:4}}>{[50,100,250,500].map(function(a){return <button key={a} onClick={function(){setBetAmount(a);}} style={{padding:'5px 12px',borderRadius:7,border:'1.5px solid '+(betAmount===a?'#f59e0b':'rgba(255,255,255,0.1)'),background:betAmount===a?'rgba(245,158,11,0.2)':'transparent',color:betAmount===a?'#f59e0b':'#64748b',fontWeight:700,cursor:'pointer',fontSize:11}}>{a}</button>;})}</div><div style={{fontSize:10,color:'#475569'}}>Win: <strong style={{color:'#22c55e'}}>+{betAmount*stage} $DMX</strong> | Bal: <strong style={{color:'#f59e0b'}}>{dmx.toLocaleString()}</strong></div></div><button onClick={function(){setP2Char(towerOpponent);setScreen('fight');playSound('round');announceVoice(towerOpponent.name);}} style={{width:'100%',marginTop:12,padding:'14px',borderRadius:12,background:towerOpponent.id==='goro'?'linear-gradient(135deg,#dc2626,#f59e0b)':'linear-gradient(135deg,#f59e0b,#ef4444)',border:'none',color:'#000',fontWeight:900,fontSize:18,cursor:'pointer',letterSpacing:2,fontFamily:'Rajdhani,sans-serif'}}>FIGHT STAGE {stage} - {towerOpponent.name}{towerOpponent.id==='goro'?' 👹':''}</button><button onClick={function(){setP1Char(null);setStage(1);}} style={{width:'100%',marginTop:6,padding:'8px',borderRadius:8,background:'transparent',border:'1px solid rgba(255,255,255,0.1)',color:'#64748b',fontWeight:600,fontSize:12,cursor:'pointer'}}>Change Fighter</button></div>)}
-      </div>
-    );
-  }
-
-  // ---- WINNER SCREEN ----
-  if(winner){
-    var wc=winner==='P1'?p1Char:winner==='P2'?p2Char:null;
-    var towerComplete=winner==='P1'&&stage>=TOWER.length;
-    var isFlawless=winner==='P1'&&p1Char&&p1Char.hp===p1Char.hp; // placeholder - real check set via ref
-    return (
-      <div style={{minHeight:'100vh',background:towerComplete?'linear-gradient(135deg,#1a0800,#3a1a00,#1a0800)':'#030308',color:'white',fontFamily:'Inter,sans-serif',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12}}>
-        {towerComplete ? (
-          <div style={{textAlign:'center'}}>
-            <div style={{fontSize:60,marginBottom:8}}>👹</div>
-            <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:52,fontWeight:900,background:'linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>TOWER COMPLETE!</div>
-            <div style={{fontSize:18,color:'#fbbf24',fontWeight:700,marginTop:4}}>You defeated GORO!</div>
-            <div style={{fontSize:14,color:'#22c55e',fontWeight:700,marginTop:8}}>+{betAmount*stage*3} $DMX Victory Bonus!</div>
-            <div style={{fontSize:13,color:'#64748b',marginTop:4}}>All 15 stages cleared — You are the Champion!</div>
+      <div style={{position:'fixed',inset:0,background:'#030308',color:'white',fontFamily:'Inter,sans-serif',display:'flex',overflow:'hidden'}}>
+        {/* LEFT PANEL - Character grid */}
+        <div style={{flex:1,display:'flex',flexDirection:'column',borderRight:'1px solid rgba(255,255,255,0.07)',overflow:'hidden'}}>
+          {/* Title */}
+          <div style={{padding:'10px 14px 6px',flexShrink:0,background:'linear-gradient(180deg,rgba(0,0,0,0.8) 0%,transparent 100%)'}}>
+            <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:22,fontWeight:900,color:'#f59e0b',letterSpacing:4,lineHeight:1}}>DOMINEX</div>
+            <div style={{fontSize:9,color:'#475569',letterSpacing:2,fontWeight:600}}>CHOOSE FIGHTER</div>
           </div>
-        ) : (
-          <div style={{textAlign:'center'}}>
-            <div style={{fontSize:13,color:'#64748b',letterSpacing:2}}>STAGE {stage} / {TOWER.length}</div>
-            <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:64,fontWeight:900,color:wc?wc.color:'#64748b'}}>{winner==='DRAW'?'DRAW!':wc.name+' WINS!'}</div>
-            <div style={{fontSize:15,color:'#64748b'}}>{winner==='P1'?'+'+betAmount*stage+' $DMX earned!':winner==='P2'?'-'+betAmount+' $DMX lost':'No $DMX exchanged'}</div>
-            {winner==='P1'&&<div style={{fontSize:13,color:'#22c55e',fontWeight:700,marginTop:4}}>Stage {stage} Complete! Next: {TOWER[stage]?TOWER[stage].name:'???'}</div>}
+          {/* Character grid */}
+          <div style={{flex:1,overflowY:'auto',display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5,padding:'6px 10px',WebkitOverflowScrolling:'touch',alignContent:'start'}}>
+            {PLAYABLE.map(function(c,i){var sel=i===selIdx;return(
+              <div key={c.id} onClick={function(){setSelIdx(i);announceVoice(c.name);}} style={{borderRadius:10,textAlign:'center',cursor:'pointer',padding:'6px 3px',background:sel?c.color+'22':'rgba(255,255,255,0.04)',border:'2px solid '+(sel?c.color:'rgba(255,255,255,0.07)'),transition:'all .12s',transform:sel?'scale(1.06)':'scale(1)',boxShadow:sel?'0 0 14px '+c.color+'55':'none',position:'relative'}}>
+                <div style={{fontSize:24,lineHeight:1.2}}>{c.emoji}</div>
+                <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:9,fontWeight:700,color:sel?c.color:'#64748b',marginTop:2,lineHeight:1,letterSpacing:0.5}}>{c.name.split(' ')[0]}</div>
+                {sel&&<div style={{position:'absolute',bottom:2,left:'50%',transform:'translateX(-50%)',width:5,height:5,borderRadius:'50%',background:c.color,boxShadow:'0 0 6px '+c.color}}/>}
+              </div>
+            );})}
           </div>
-        )}
-        <div style={{display:'flex',gap:6,marginTop:8}}>
-          {TOWER.slice(0,Math.min(15,TOWER.length)).map(function(_,i){
-            var stg=i+1;
-            return <div key={i} style={{width:14,height:14,borderRadius:3,background:stg<stage||(winner==='P1'&&stg===stage)?'#22c55e':stg===stage?'#ef4444':'#1e293b',border:'1px solid rgba(255,255,255,0.1)',fontSize:7,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700}}>{stg<=stage?(stg<stage||(winner==='P1')?'✓':'✗'):''}</div>;
-          })}
         </div>
-        <div style={{display:'flex',gap:12,marginTop:12}}>
-          {towerComplete ? (
-            <button onClick={function(){cancelAnimationFrame(loopRef.current);setScreen('select');setP1Char(null);setP2Char(null);setStep(1);setWinner(null);setP1Wins(0);setP2Wins(0);setRematchKey(0);setStage(1);}} style={{padding:'14px 44px',borderRadius:12,background:'linear-gradient(135deg,#f59e0b,#fbbf24)',border:'none',color:'#000',fontWeight:900,fontSize:18,cursor:'pointer',letterSpacing:1}}>🏆 Play Again</button>
+
+        {/* RIGHT PANEL */}
+        <div style={{width:200,display:'flex',flexDirection:'column',overflow:'hidden',background:'rgba(0,0,0,0.6)'}}>
+          {!p1Char ? (
+            // Character preview + select
+            <>
+              <div style={{flex:1,padding:'12px 14px',overflowY:'auto'}}>
+                {/* Big emoji */}
+                <div style={{textAlign:'center',marginBottom:8}}>
+                  <div style={{fontSize:52,lineHeight:1}}>{selChar.emoji}</div>
+                  <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:18,fontWeight:900,color:selChar.color,letterSpacing:1,marginTop:4}}>{selChar.name}</div>
+                  <div style={{fontSize:9,color:'#64748b',marginBottom:8}}>{selChar.title}</div>
+                  <div style={{display:'inline-block',padding:'2px 10px',borderRadius:20,background:selChar.color+'22',border:'1px solid '+selChar.color+'44',fontSize:9,color:selChar.color,fontWeight:700}}>{selChar.rarity}</div>
+                </div>
+                {/* Stats */}
+                <div style={{marginTop:10,display:'flex',flexDirection:'column',gap:5}}>
+                  {[['⚔️ PWR',selChar.power,'#ef4444'],['⚡ SPD',selChar.speed,'#22c55e'],['🛡️ DEF',selChar.defense,'#3b82f6'],['❤️ HP',Math.round(selChar.hp/10),'#f472b6']].map(function(s){return(
+                    <div key={s[0]}>
+                      <div style={{display:'flex',justifyContent:'space-between',fontSize:9,color:'#64748b',marginBottom:2}}><span>{s[0]}</span><span style={{color:s[2],fontWeight:700}}>{s[1]}/10</span></div>
+                      <div style={{height:4,background:'#1e293b',borderRadius:2,overflow:'hidden'}}><div style={{width:s[1]*10+'%',height:'100%',background:s[2],borderRadius:2}}/></div>
+                    </div>
+                  );})}
+                </div>
+                <div style={{marginTop:10,padding:'6px 8px',background:'rgba(255,255,255,0.04)',borderRadius:8,border:'1px solid rgba(255,255,255,0.07)'}}>
+                  <div style={{fontSize:8,color:'#64748b',marginBottom:2}}>SPECIAL</div>
+                  <div style={{fontSize:10,color:selChar.color,fontWeight:700}}>{selChar.special}</div>
+                </div>
+              </div>
+              <div style={{padding:'10px 14px',paddingBottom:'max(10px,env(safe-area-inset-bottom))',flexShrink:0}}>
+                <button onClick={function(){setP1Char(selChar);announceVoice(selChar.name+' selected');}} style={{width:'100%',padding:'12px',borderRadius:14,background:'linear-gradient(135deg,'+selChar.color+','+selChar.color+'88)',border:'none',color:'#000',fontWeight:900,fontSize:14,cursor:'pointer',letterSpacing:2,fontFamily:'Rajdhani,sans-serif',boxShadow:'0 4px 16px '+selChar.color+'55'}}>
+                  SELECT ▶
+                </button>
+              </div>
+            </>
           ) : (
-            <div style={{display:'flex',gap:12}}>
-              <button onClick={function(){cleanupAllAudio();if(winner==='P1'){window.location.href='/arena?f='+encodeURIComponent(p1Char.id)+'&s='+stage;}else{window.location.href='/arena?f='+encodeURIComponent(p1Char.id)+'&s='+stage;}}} style={{padding:'18px 36px',borderRadius:12,background:'linear-gradient(135deg,#f59e0b,#ef4444)',border:'none',color:'#000',fontWeight:900,fontSize:18,cursor:'pointer',zIndex:9999,position:'relative',touchAction:'manipulation'}}>{winner==='P1'?'Next Stage ▶':'Retry Stage'}</button>
-              <button onClick={function(){cleanupAllAudio();window.location.href='/arena';}} style={{padding:'18px 36px',borderRadius:12,background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.12)',color:'white',fontWeight:700,fontSize:18,cursor:'pointer',zIndex:9999,position:'relative',touchAction:'manipulation'}}>New Match</button>
-            </div>
+            // Stage info after selection
+            <>
+              <div style={{flex:1,padding:'10px 14px',overflowY:'auto'}}>
+                {/* VS display */}
+                <div style={{textAlign:'center',marginBottom:10}}>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-around',marginBottom:6}}>
+                    <div style={{textAlign:'center'}}>
+                      <div style={{fontSize:28}}>{p1Char.emoji}</div>
+                      <div style={{fontSize:9,color:p1Char.color,fontWeight:700}}>YOU</div>
+                    </div>
+                    <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:24,fontWeight:900,color:'#ef4444',textShadow:'0 0 15px rgba(239,68,68,0.5)'}}>VS</div>
+                    <div style={{textAlign:'center'}}>
+                      <div style={{fontSize:28}}>{towerOpponent.emoji}</div>
+                      <div style={{fontSize:9,color:towerOpponent.color,fontWeight:700,lineHeight:1}}>{towerOpponent.name.split(' ')[0]}</div>
+                    </div>
+                  </div>
+                  <div style={{fontSize:10,color:'#f59e0b',fontWeight:700,letterSpacing:1}}>STAGE {stage}/{TOWER.length}</div>
+                </div>
+                {/* Tower dots */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:4,marginBottom:10}}>
+                  {TOWER.map(function(_,i){var stg=i+1;var done=stg<stage;var cur=stg===stage;return(
+                    <div key={i} style={{borderRadius:6,padding:'4px 2px',textAlign:'center',background:done?'rgba(34,197,94,0.15)':cur?'rgba(245,158,11,0.15)':'rgba(255,255,255,0.03)',border:'1px solid '+(done?'#22c55e44':cur?'#f59e0b':'rgba(255,255,255,0.06)')}}>
+                      <div style={{fontSize:12}}>{done?'✓':TOWER[i].emoji}</div>
+                      <div style={{fontSize:7,color:done?'#22c55e':cur?'#f59e0b':'#374151',fontWeight:700}}>{stg}</div>
+                    </div>
+                  );})}
+                </div>
+                {/* Bet */}
+                <div style={{background:'rgba(245,158,11,0.06)',border:'1px solid rgba(245,158,11,0.18)',borderRadius:10,padding:'8px 10px',marginBottom:8}}>
+                  <div style={{fontSize:9,color:'#f59e0b',fontWeight:700,marginBottom:5,letterSpacing:1}}>⚡ BET $DMX</div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4}}>
+                    {[50,100,250,500].map(function(a){return<button key={a} onClick={function(){setBetAmount(a);}} style={{padding:'5px 0',borderRadius:6,border:'1px solid '+(betAmount===a?'#f59e0b':'rgba(255,255,255,0.08)'),background:betAmount===a?'rgba(245,158,11,0.2)':'transparent',color:betAmount===a?'#f59e0b':'#64748b',fontWeight:700,cursor:'pointer',fontSize:10}}>{a}</button>;})}
+                  </div>
+                  <div style={{marginTop:5,fontSize:9,color:'#475569',textAlign:'center'}}>Win: <strong style={{color:'#22c55e'}}>+{betAmount*stage}</strong></div>
+                </div>
+              </div>
+              <div style={{padding:'8px 14px',paddingBottom:'max(8px,env(safe-area-inset-bottom))',flexShrink:0,display:'flex',flexDirection:'column',gap:6}}>
+                <button onClick={function(){setP2Char(towerOpponent);setScreen('fight');playSound('round');announceVoice('FIGHT');}} style={{width:'100%',padding:'13px',borderRadius:14,background:towerOpponent.id==='goro'?'linear-gradient(135deg,#dc2626,#f59e0b)':'linear-gradient(135deg,#ef4444,#f59e0b)',border:'none',color:'#000',fontWeight:900,fontSize:16,cursor:'pointer',letterSpacing:2,fontFamily:'Rajdhani,sans-serif',boxShadow:'0 4px 20px rgba(245,158,11,0.35)'}}>
+                  ⚔️ FIGHT!{towerOpponent.id==='goro'?' 👹':''}
+                </button>
+                <button onClick={function(){setP1Char(null);}} style={{width:'100%',padding:'7px',borderRadius:10,background:'transparent',border:'1px solid rgba(255,255,255,0.08)',color:'#64748b',fontWeight:600,fontSize:11,cursor:'pointer'}}>← Back</button>
+              </div>
+            </>
           )}
         </div>
       </div>
     );
   }
 
-  // ---- FIGHT SCREEN (Mobile-First) ----
-  function haptic(){try{if(navigator.vibrate)navigator.vibrate(25);}catch(e){}}
-  function doAttack(action){haptic();if(window._dominexAttack)window._dominexAttack(1,action);}
-  var mobBtn={padding:'10px 0',borderRadius:10,background:'rgba(0,0,0,0.85)',fontWeight:900,fontSize:13,cursor:'pointer',minWidth:52,minHeight:48,textAlign:'center',touchAction:'manipulation',WebkitTapHighlightColor:'transparent',border:'none',display:'flex',alignItems:'center',justifyContent:'center',letterSpacing:1};
-  var btnBase={touchAction:'manipulation',WebkitTapHighlightColor:'transparent',border:'none',cursor:'pointer',userSelect:'none',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,borderRadius:14,transition:'transform .1s'};
-  return (
-    <div style={{height:'100dvh',background:'#030308',display:'flex',flexDirection:'column',userSelect:'none',overflow:'hidden',touchAction:'none',position:'fixed',inset:0}}>
-      {/* Minimal header */}
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'4px 12px',background:'#000',flexShrink:0,height:36,borderBottom:'1px solid rgba(245,158,11,0.15)'}}>
-        <span style={{fontFamily:'Rajdhani,sans-serif',fontWeight:900,fontSize:16,color:'#f59e0b',letterSpacing:3}}>DOMINEX</span>
-        <div style={{display:'flex',gap:8}}>
-          <button onClick={function(){try{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen();}catch(e){}}} style={Object.assign({},btnBase,{padding:'4px 10px',background:'rgba(255,255,255,0.06)',color:'#94a3b8',fontSize:12,border:'1px solid rgba(255,255,255,0.08)',borderRadius:8})}>⛶</button>
-          <button onClick={function(){cancelAnimationFrame(loopRef.current);try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}setScreen('select');setP1Char(null);setP2Char(null);setStep(1);setWinner(null);}} style={Object.assign({},btnBase,{padding:'4px 12px',background:'rgba(239,68,68,0.15)',color:'#ef4444',fontSize:12,border:'1px solid rgba(239,68,68,0.25)',borderRadius:8})}>✕ Exit</button>
+  // ---- WINNER SCREEN (landscape) ----
+  if(winner){
+    var wc=winner==='P1'?p1Char:winner==='P2'?p2Char:null;
+    var towerComplete=winner==='P1'&&stage>TOWER.length;
+    return (
+      <div style={{position:'fixed',inset:0,background:'#030308',color:'white',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',justifyContent:'center',gap:24,padding:24}}>
+        <div style={{textAlign:'center',flex:1}}>
+          <div style={{fontSize:towerComplete?80:64,lineHeight:1,marginBottom:8}}>{towerComplete?'🏆':wc?wc.emoji:'🤝'}</div>
+          <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:towerComplete?40:48,fontWeight:900,color:wc?wc.color:'#64748b',lineHeight:1,textShadow:'0 0 30px '+(wc?wc.color+'66':'transparent')}}>
+            {towerComplete?'CHAMPION!':winner==='P1'?'YOU WIN!':winner==='P2'?'YOU LOSE!':'DRAW!'}
+          </div>
+          {towerComplete&&<div style={{fontSize:13,color:'#22c55e',fontWeight:700,marginTop:6}}>All 15 Stages Cleared! +{betAmount*stage*3} $DMX</div>}
+          {!towerComplete&&<div style={{fontSize:13,color:winner==='P1'?'#22c55e':'#ef4444',fontWeight:700,marginTop:6}}>{winner==='P1'?'+'+betAmount*stage+' $DMX':winner==='P2'?'-'+betAmount+' $DMX':'No Change'}</div>}
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:10,minWidth:180}}>
+          <div style={{display:'flex',gap:5,justifyContent:'center',flexWrap:'wrap',marginBottom:4}}>
+            {TOWER.map(function(_,i){var stg=i+1;var done=stg<stage||(winner==='P1'&&stg===stage);var fail=stg===stage&&winner==='P2';return<div key={i} style={{width:14,height:14,borderRadius:3,background:done?'#22c55e':fail?'#ef4444':'#1e293b'}}/>;})}
+          </div>
+          {towerComplete?(
+            <button onClick={function(){setScreen('select');setP1Char(null);setP2Char(null);setWinner(null);setStage(1);}} style={{padding:'14px',borderRadius:14,background:'linear-gradient(135deg,#f59e0b,#fbbf24)',border:'none',color:'#000',fontWeight:900,fontSize:18,cursor:'pointer',fontFamily:'Rajdhani,sans-serif',letterSpacing:2}}>PLAY AGAIN 🏆</button>
+          ):(
+            <>
+              <button onClick={function(){cleanupAllAudio();window.location.href='/arena?f='+encodeURIComponent(p1Char.id)+'&s='+stage;}} style={{padding:'14px',borderRadius:14,background:winner==='P1'?'linear-gradient(135deg,#22c55e,#16a34a)':'linear-gradient(135deg,#ef4444,#f59e0b)',border:'none',color:'#000',fontWeight:900,fontSize:17,cursor:'pointer',letterSpacing:2,fontFamily:'Rajdhani,sans-serif'}}>
+                {winner==='P1'?'NEXT STAGE ▶':'RETRY ↺'}
+              </button>
+              <button onClick={function(){cleanupAllAudio();window.location.href='/arena';}} style={{padding:'10px',borderRadius:12,background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'#94a3b8',fontWeight:700,fontSize:14,cursor:'pointer'}}>Change Fighter</button>
+            </>
+          )}
         </div>
       </div>
-      {/* Canvas */}
-      <div ref={containerRef} style={{flex:1,minHeight:0,overflow:'hidden',background:'#0a0020'}} />
-      {/* Controls */}
-      <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',alignItems:'center',padding:'8px 10px',paddingBottom:'max(8px,env(safe-area-inset-bottom))',background:'#000',borderTop:'2px solid rgba(245,158,11,0.2)',gap:8,flexShrink:0}}>
-        {/* D-Pad */}
-        <div style={{display:'flex',flexDirection:'column',gap:6,alignItems:'center'}}>
-          <button onPointerDown={function(){doAttack('jump');}} style={Object.assign({},btnBase,{width:52,height:42,background:'rgba(168,85,247,0.15)',border:'2px solid rgba(168,85,247,0.5)',color:'#c084fc',fontSize:20})}>↑</button>
-          <div style={{display:'flex',gap:6}}>
-            <button onPointerDown={function(){doAttack('left');}} style={Object.assign({},btnBase,{width:52,height:42,background:'rgba(168,85,247,0.15)',border:'2px solid rgba(168,85,247,0.5)',color:'#c084fc',fontSize:20})}>◀</button>
-            <button onPointerDown={function(){doAttack('right');}} style={Object.assign({},btnBase,{width:52,height:42,background:'rgba(168,85,247,0.15)',border:'2px solid rgba(168,85,247,0.5)',color:'#c084fc',fontSize:20})}>▶</button>
-          </div>
+    );
+  }
+
+  // ---- FIGHT SCREEN (Landscape) ----
+  function haptic(){try{if(navigator.vibrate)navigator.vibrate(18);}catch(e){}}
+  function doAttack(action){haptic();if(window._dominexAttack)window._dominexAttack(1,action);}
+  var cb={touchAction:'manipulation',WebkitTapHighlightColor:'transparent',cursor:'pointer',userSelect:'none',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontFamily:'Rajdhani,sans-serif',letterSpacing:1,border:'none',borderRadius:12};
+  return (
+    <div style={{position:'fixed',inset:0,background:'#030308',display:'flex',flexDirection:'column',overflow:'hidden',touchAction:'none'}}>
+      {/* Slim header */}
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'4px 14px',background:'#000',flexShrink:0,borderBottom:'2px solid rgba(245,158,11,0.25)',height:34}}>
+        <span style={{fontFamily:'Rajdhani,sans-serif',fontWeight:900,fontSize:16,color:'#f59e0b',letterSpacing:4}}>DOMINEX</span>
+        <div style={{display:'flex',gap:8}}>
+          <button onClick={function(){try{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen();}catch(e){}}} style={Object.assign({},cb,{padding:'3px 10px',background:'rgba(255,255,255,0.06)',color:'#64748b',fontSize:11,border:'1px solid rgba(255,255,255,0.1)'})}>⛶</button>
+          <button onClick={function(){cancelAnimationFrame(loopRef.current);try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}setScreen('select');setP1Char(null);setP2Char(null);setWinner(null);}} style={Object.assign({},cb,{padding:'3px 12px',background:'rgba(239,68,68,0.14)',color:'#ef4444',fontSize:11,border:'1px solid rgba(239,68,68,0.28)'})}>✕ Exit</button>
         </div>
-        {/* Center label */}
-        <div style={{textAlign:'center',color:'rgba(245,158,11,0.4)',fontSize:10,fontWeight:700,letterSpacing:2}}>VS</div>
-        {/* Attack buttons */}
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,justifyItems:'center'}}>
-          <button onPointerDown={function(){doAttack('punch');}} style={Object.assign({},btnBase,{width:'100%',height:42,background:'rgba(34,197,94,0.15)',border:'2px solid rgba(34,197,94,0.5)',color:'#4ade80',fontSize:13})}>👊 HIT</button>
-          <button onPointerDown={function(){doAttack('kick');}} style={Object.assign({},btnBase,{width:'100%',height:42,background:'rgba(245,158,11,0.15)',border:'2px solid rgba(245,158,11,0.5)',color:'#fbbf24',fontSize:13})}>🦶 KICK</button>
-          <button onPointerDown={function(){doAttack('block');}} style={Object.assign({},btnBase,{width:'100%',height:42,background:'rgba(59,130,246,0.15)',border:'2px solid rgba(59,130,246,0.5)',color:'#60a5fa',fontSize:13})}>🛡️ BLK</button>
-          <button onPointerDown={function(){doAttack('special');}} style={Object.assign({},btnBase,{width:'100%',height:42,background:'rgba(239,68,68,0.2)',border:'2px solid rgba(239,68,68,0.6)',color:'#f87171',fontSize:13,boxShadow:'0 0 12px rgba(239,68,68,0.3)'})}>⚡ SPL</button>
+      </div>
+
+      {/* Main landscape layout: D-pad | Canvas | Attacks */}
+      <div style={{flex:1,display:'flex',alignItems:'stretch',gap:0,overflow:'hidden'}}>
+
+        {/* LEFT: D-Pad */}
+        <div style={{width:140,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:8,padding:'8px 10px',background:'rgba(0,0,0,0.5)',flexShrink:0,borderRight:'1px solid rgba(255,255,255,0.05)'}}>
+          <button onPointerDown={function(){doAttack('jump');}} style={Object.assign({},cb,{width:56,height:48,background:'rgba(168,85,247,0.17)',border:'2px solid rgba(168,85,247,0.55)',color:'#c084fc',fontSize:22})}>↑</button>
+          <div style={{display:'flex',gap:8}}>
+            <button onPointerDown={function(){doAttack('left');}} style={Object.assign({},cb,{width:56,height:48,background:'rgba(168,85,247,0.17)',border:'2px solid rgba(168,85,247,0.55)',color:'#c084fc',fontSize:22})}>◀</button>
+            <button onPointerDown={function(){doAttack('right');}} style={Object.assign({},cb,{width:56,height:48,background:'rgba(168,85,247,0.17)',border:'2px solid rgba(168,85,247,0.55)',color:'#c084fc',fontSize:22})}>▶</button>
+          </div>
+          <div style={{fontSize:9,color:'rgba(168,85,247,0.5)',fontWeight:700,letterSpacing:1,marginTop:2}}>MOVE</div>
+        </div>
+
+        {/* CENTER: Canvas */}
+        <div ref={containerRef} style={{flex:1,minWidth:0,overflow:'hidden'}} />
+
+        {/* RIGHT: Attack buttons */}
+        <div style={{width:140,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:8,padding:'8px 10px',background:'rgba(0,0,0,0.5)',flexShrink:0,borderLeft:'1px solid rgba(255,255,255,0.05)'}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,width:'100%'}}>
+            <button onPointerDown={function(){doAttack('punch');}} style={Object.assign({},cb,{height:52,background:'rgba(34,197,94,0.17)',border:'2px solid rgba(34,197,94,0.55)',color:'#4ade80',fontSize:13,flexDirection:'column',gap:2})}>👊<span style={{fontSize:8}}>HIT</span></button>
+            <button onPointerDown={function(){doAttack('kick');}} style={Object.assign({},cb,{height:52,background:'rgba(245,158,11,0.17)',border:'2px solid rgba(245,158,11,0.55)',color:'#fbbf24',fontSize:13,flexDirection:'column',gap:2})}>🦶<span style={{fontSize:8}}>KICK</span></button>
+            <button onPointerDown={function(){doAttack('block');}} style={Object.assign({},cb,{height:52,background:'rgba(59,130,246,0.17)',border:'2px solid rgba(59,130,246,0.55)',color:'#60a5fa',fontSize:13,flexDirection:'column',gap:2})}>🛡️<span style={{fontSize:8}}>BLOCK</span></button>
+            <button onPointerDown={function(){doAttack('special');}} style={Object.assign({},cb,{height:52,background:'rgba(239,68,68,0.22)',border:'2px solid rgba(239,68,68,0.65)',color:'#f87171',fontSize:13,flexDirection:'column',gap:2,boxShadow:'0 0 14px rgba(239,68,68,0.28)'})}>⚡<span style={{fontSize:8}}>SPEC</span></button>
+          </div>
+          <div style={{fontSize:9,color:'rgba(239,68,68,0.5)',fontWeight:700,letterSpacing:1,marginTop:2}}>ATTACK</div>
         </div>
       </div>
     </div>

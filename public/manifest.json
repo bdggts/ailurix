@@ -4,7 +4,7 @@
   "description": "The most addictive crypto fighting game. Fight through 15 stages, earn $DMX tokens.",
   "start_url": "/arena",
   "display": "fullscreen",
-  "orientation": "portrait",
+  "orientation": "landscape",
   "background_color": "#030308",
   "theme_color": "#f59e0b",
   "categories": ["games", "entertainment"],
