@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>Dominex Arena</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Rajdhani',Impact,sans-serif;}
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700;900&display=swap');
+
+/* ── LAYOUT ─────────────────────────────────────── */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:#000;}
+#screens{position:absolute;inset:0;z-index:10;}
+#fight-ui{position:absolute;inset:0;display:none;flex-direction:column;z-index:5;}
+
+/* ── HUD ─────────────────────────────────────────── */
+#hud{
+  height:42px;flex-shrink:0;
+  display:flex;align-items:center;gap:8px;
+  padding:4px 10px;background:rgba(0,0,0,0.92);
+  border-bottom:2px solid rgba(245,158,11,0.3);
+}
+.hud-side{flex:1;display:flex;flex-direction:column;gap:3px;}
+.hud-side.right{align-items:flex-end;}
+.char-name{font-size:10px;font-weight:900;letter-spacing:1px;line-height:1;}
+.hp-wrap{width:100%;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;border:1px solid rgba(255,255,255,0.15);}
+.hp-bar{height:100%;border-radius:4px;transition:width .1s;background:linear-gradient(90deg,#22c55e,#4ade80);}
+.hp-bar.low{background:linear-gradient(90deg,#ef4444,#f97316);}
+.en-wrap{width:100%;height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;}
+.en-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,#8b5cf6,#a78bfa);transition:width .15s;}
+.en-bar.ready{background:linear-gradient(90deg,#f59e0b,#fbbf24);box-shadow:0 0 6px #f59e0b;}
+.hud-center{text-align:center;min-width:60px;}
+#timer{font-size:22px;font-weight:900;color:#f59e0b;line-height:1;text-shadow:0 0 12px rgba(245,158,11,0.6);}
+#round-info{font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;}
+
+/* ── GAME AREA ──────────────────────────────────── */
+#game-area{flex:1;position:relative;overflow:hidden;}
+#game-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+
+/* ── CONTROL PANELS — OVERLAID ON CANVAS ─────────── */
+.ctrl-panel{
+  position:absolute;
+  bottom:18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  pointer-events:none;
+}
+.ctrl-panel *{pointer-events:all;}
+.ctrl-panel.left{left:10px;}
+.ctrl-panel.right{right:10px;}
+
+
+
+/* ── D-PAD ──────────────────────────────────────── */
+.dpad{position:relative;width:116px;height:90px;}
+.dp{
+  position:absolute;
+  width:42px;height:36px;
+  border-radius:10px;
+  background:rgba(20,20,35,0.75);
+  border:2px solid rgba(255,255,255,0.18);
+  color:rgba(255,255,255,0.9);
+  font-size:17px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;touch-action:manipulation;
+  box-shadow:0 4px 12px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.15);
+  backdrop-filter:blur(6px);
+  transition:all .05s;
+  -webkit-backdrop-filter:blur(6px);
+}
+.dp:active,.dp.pressed{
+  transform:scale(0.88);
+  background:rgba(100,80,200,0.7);
+  border-color:rgba(168,85,247,0.8);
+  box-shadow:0 2px 8px rgba(0,0,0,0.5),0 0 14px rgba(168,85,247,0.4);
+}
+.dp-up{top:0;left:50%;transform:translateX(-50%);}
+.dp-up:active,.dp-up.pressed{transform:translateX(-50%) scale(0.88);}
+.dp-left{top:50%;left:0;transform:translateY(-50%);}
+.dp-left:active,.dp-left.pressed{transform:translateY(-50%) scale(0.88);}
+.dp-right{top:50%;right:0;transform:translateY(-50%);}
+.dp-right:active,.dp-right.pressed{transform:translateY(-50%) scale(0.88);}
+.dp-label{font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:1px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.8);}
+
+/* ── ATTACK BUTTONS ─────────────────────────────── */
+.atk-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.atk{
+  width:52px;height:52px;border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1px;cursor:pointer;touch-action:manipulation;
+  font-weight:900;font-family:'Rajdhani',Impact,sans-serif;
+  border:2.5px solid transparent;
+  background:rgba(0,0,0,0.65);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  box-shadow:0 4px 16px rgba(0,0,0,0.7),inset 0 2px 0 rgba(255,255,255,0.12);
+  transition:all .05s;
+  position:relative;overflow:hidden;
+}
+.atk::before{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,0.1) 0%,transparent 55%);}
+.atk:active,.atk.pressed{transform:scale(0.86);}
+.atk-icon{font-size:17px;line-height:1;}
+.atk-lbl{font-size:7px;font-weight:900;letter-spacing:.5px;}
+
+.atk-punch{border-color:#22c55e;color:#22c55e;box-shadow:0 4px 14px rgba(34,197,94,0.3),inset 0 2px 0 rgba(255,255,255,0.1);}
+.atk-punch:active,.atk-punch.pressed{box-shadow:0 2px 8px rgba(34,197,94,0.5),0 0 16px rgba(34,197,94,0.4),inset 0 1px 0 rgba(255,255,255,0.1);}
+.atk-kick{border-color:#f59e0b;color:#f59e0b;box-shadow:0 4px 14px rgba(245,158,11,0.3),inset 0 2px 0 rgba(255,255,255,0.1);}
+.atk-kick:active,.atk-kick.pressed{box-shadow:0 2px 8px rgba(245,158,11,0.5),0 0 16px rgba(245,158,11,0.4),inset 0 1px 0 rgba(255,255,255,0.1);}
+.atk-block{border-color:#3b82f6;color:#3b82f6;box-shadow:0 4px 14px rgba(59,130,246,0.3),inset 0 2px 0 rgba(255,255,255,0.1);}
+.atk-block:active,.atk-block.pressed{box-shadow:0 2px 8px rgba(59,130,246,0.5),0 0 16px rgba(59,130,246,0.4),inset 0 1px 0 rgba(255,255,255,0.1);}
+.atk-special{border-color:#ef4444;color:#ef4444;box-shadow:0 4px 14px rgba(239,68,68,0.3),inset 0 2px 0 rgba(255,255,255,0.1);}
+.atk-special:active,.atk-special.pressed{box-shadow:0 2px 8px rgba(239,68,68,0.6),0 0 20px rgba(239,68,68,0.5),inset 0 1px 0 rgba(255,255,255,0.1);}
+.atk-special.glow{animation:specPulse 0.8s ease-in-out infinite;}
+@keyframes specPulse{0%,100%{box-shadow:0 4px 14px rgba(239,68,68,0.3),inset 0 2px 0 rgba(255,255,255,0.1);}50%{box-shadow:0 4px 24px rgba(239,68,68,0.7),0 0 24px rgba(239,68,68,0.5),inset 0 2px 0 rgba(255,255,255,0.1);border-color:#ff6b6b;}}
+.atk-label{margin-top:8px;font-size:8px;color:rgba(239,68,68,0.5);letter-spacing:1px;font-weight:700;}
+
+/* ── OVERLAY SCREENS ─────────────────────────────── */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.screen.active{opacity:1;pointer-events:all;}
+
+/* Splash */
+#splash{background:#000;}
+#splash canvas{position:absolute;inset:0;width:100%;height:100%;}
+.splash-content{position:relative;z-index:2;text-align:center;width:100%;}
+.splash-logo{font-size:clamp(40px,10vw,80px);font-weight:900;color:#f59e0b;letter-spacing:6px;text-shadow:0 0 40px rgba(245,158,11,0.7),0 0 80px rgba(245,158,11,0.3);line-height:1;}
+.splash-sub{font-size:clamp(16px,4vw,28px);color:#fff;letter-spacing:8px;margin-top:4px;opacity:0.6;}
+.play-btn{
+  margin-top:clamp(20px,5vh,40px);
+  padding:16px clamp(40px,10vw,80px);
+  border-radius:16px;
+  background:linear-gradient(135deg,#f59e0b,#ef4444);
+  border:none;color:#000;font-weight:900;
+  font-size:clamp(18px,4vw,28px);letter-spacing:3px;
+  font-family:'Rajdhani',Impact,sans-serif;
+  cursor:pointer;touch-action:manipulation;
+  box-shadow:0 0 40px rgba(245,158,11,0.5),0 8px 24px rgba(0,0,0,0.4);
+  animation:btnPulse 2s ease-in-out infinite;
+}
+@keyframes btnPulse{0%,100%{box-shadow:0 0 40px rgba(245,158,11,0.5),0 8px 24px rgba(0,0,0,0.4);}50%{box-shadow:0 0 60px rgba(245,158,11,0.8),0 8px 30px rgba(0,0,0,0.4);}}
+
+/* Select */
+#select{background:#030308;flex-direction:row;}
+#select-grid-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid rgba(255,255,255,0.07);}
+#select-title{padding:8px 14px 5px;text-align:center;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.05);}
+#select-title h2{font-size:13px;font-weight:900;color:#f59e0b;letter-spacing:3px;}
+#select-title p{font-size:9px;color:#475569;letter-spacing:2px;}
+#char-grid{flex:1;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:8px 10px;overflow-y:auto;align-content:start;}
+.char-card{
+  border-radius:12px;padding:7px 4px 7px;text-align:center;cursor:pointer;
+  background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.07);
+  transition:all .12s;touch-action:manipulation;position:relative;
+}
+.char-card.sel{border-color:var(--cc);background:var(--cb);transform:scale(1.07);box-shadow:0 0 16px var(--cs);}
+.char-card .cem{font-size:26px;line-height:1.1;}
+.char-card .cnm{font-size:9px;font-weight:700;margin-top:3px;color:#64748b;letter-spacing:.5px;line-height:1;}
+.char-card.sel .cnm{color:var(--cc);}
+.char-dot{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;display:none;}
+.char-card.sel .char-dot{display:block;background:var(--cc);box-shadow:0 0 8px var(--cc);}
+
+#select-panel{width:185px;display:flex;flex-direction:column;background:rgba(0,0,0,0.55);}
+#prev-wrap{flex:1;padding:12px 14px;overflow-y:auto;}
+.prev-emoji{text-align:center;font-size:52px;line-height:1;margin-bottom:6px;}
+.prev-name{text-align:center;font-size:18px;font-weight:900;letter-spacing:1px;}
+.prev-title{text-align:center;font-size:9px;color:#64748b;margin-bottom:5px;}
+.prev-rarity{display:inline-block;padding:2px 12px;border-radius:20px;font-size:9px;font-weight:700;margin-bottom:10px;}
+.stat-row{margin-bottom:6px;}
+.stat-lbl{display:flex;justify-content:space-between;font-size:9px;color:#94a3b8;margin-bottom:2px;}
+.stat-val{font-weight:700;}
+.stat-bg{height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;}
+.stat-fill{height:100%;border-radius:3px;transition:width .3s;}
+.prev-special{padding:7px 10px;background:rgba(255,255,255,0.04);border-radius:9px;border:1px solid rgba(255,255,255,0.07);margin-top:8px;}
+.prev-spl-lbl{font-size:8px;color:#64748b;letter-spacing:1px;margin-bottom:2px;}
+.prev-spl-val{font-size:11px;font-weight:700;}
+#select-btn-wrap{padding:8px 12px;padding-bottom:max(8px,env(safe-area-inset-bottom));flex-shrink:0;}
+.sel-btn{
+  width:100%;padding:14px;border-radius:14px;
+  border:none;color:#000;font-weight:900;font-size:16px;
+  font-family:'Rajdhani',Impact,sans-serif;letter-spacing:2px;
+  cursor:pointer;touch-action:manipulation;
+  transition:box-shadow .2s;
+}
+
+/* VS Screen */
+#vs-screen{background:#000;}
+.vs-bg-l,.vs-bg-r{position:absolute;top:0;bottom:0;width:45%;pointer-events:none;}
+.vs-bg-l{left:0;background:radial-gradient(ellipse at 20% 50%,var(--c1) 0%,transparent 70%);}
+.vs-bg-r{right:0;background:radial-gradient(ellipse at 80% 50%,var(--c2) 0%,transparent 70%);}
+.vs-content{position:relative;display:flex;align-items:center;justify-content:space-around;width:100%;padding:0 20px;}
+.vs-fighter{text-align:center;animation:none;}
+.vs-fighter.anim-l{animation:vsSlideL .5s ease-out both;}
+.vs-fighter.anim-r{animation:vsSlideR .5s ease-out both;}
+@keyframes vsSlideL{from{transform:translateX(-80px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes vsSlideR{from{transform:translateX(80px);opacity:0}to{transform:translateX(0);opacity:1}}
+.vs-emoji{font-size:clamp(50px,12vw,90px);line-height:1;display:block;}
+.vs-name{font-size:clamp(16px,4vw,26px);font-weight:900;letter-spacing:2px;margin-top:8px;}
+.vs-role{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:2px;}
+.vs-mid{text-align:center;min-width:80px;}
+.vs-text{font-size:clamp(44px,12vw,80px);font-weight:900;color:#ef4444;text-shadow:0 0 40px rgba(239,68,68,0.9),0 0 80px rgba(239,68,68,0.4);line-height:1;animation:vsFlash .6s ease-out both .3s;}
+@keyframes vsFlash{0%{opacity:0;transform:scale(1.5)}100%{opacity:1;transform:scale(1)}}
+.vs-stage{font-size:11px;color:#f59e0b;font-weight:700;letter-spacing:1px;margin-top:4px;}
+
+/* Result */
+#result-screen{padding:20px;}
+.res-emoji{font-size:clamp(60px,15vw,100px);line-height:1;text-align:center;margin-bottom:10px;}
+.res-title{font-size:clamp(36px,10vw,64px);font-weight:900;text-align:center;line-height:1;}
+.res-sub{font-size:14px;font-weight:700;text-align:center;margin-top:8px;opacity:0.7;}
+.res-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;margin-top:20px;}
+.res-btn{
+  padding:15px;border-radius:14px;border:none;
+  font-weight:900;font-size:18px;letter-spacing:2px;
+  font-family:'Rajdhani',Impact,sans-serif;cursor:pointer;touch-action:manipulation;
+}
+.res-btn.primary{background:linear-gradient(135deg,#22c55e,#16a34a);color:#000;}
+.res-btn.danger{background:linear-gradient(135deg,#ef4444,#f59e0b);color:#000;}
+.res-btn.ghost{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#94a3b8;font-size:14px;padding:11px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── SCREEN OVERLAYS ──────────────────────────── -->
+  <div id="screens">
+
+    <!-- SPLASH -->
+    <div class="screen active" id="splash">
+      <canvas id="splash-canvas"></canvas>
+      <div class="splash-content">
+        <div class="splash-logo">DOMINEX</div>
+        <div class="splash-sub">ARENA</div>
+        <button class="play-btn" id="play-btn">⚔️ PLAY NOW</button>
+      </div>
+    </div>
+
+    <!-- SELECT -->
+    <div class="screen" id="select">
+      <div id="select-grid-wrap">
+        <div id="select-title"><h2>CHOOSE FIGHTER</h2><p id="sel-stage-info">STAGE 1 OF 15</p></div>
+        <div id="char-grid"></div>
+      </div>
+      <div id="select-panel">
+        <div id="prev-wrap">
+          <div class="prev-emoji" id="prev-emoji">🔥</div>
+          <div id="prev-color-block" style="text-align:center">
+            <div class="prev-name" id="prev-name">SCORPION</div>
+            <div class="prev-title" id="prev-title">Hell Ninja</div>
+            <div class="prev-rarity" id="prev-rarity">Common</div>
+          </div>
+          <div id="prev-stats"></div>
+          <div class="prev-special">
+            <div class="prev-spl-lbl">SPECIAL MOVE</div>
+            <div class="prev-spl-val" id="prev-spl">Spear Pull</div>
+          </div>
+        </div>
+        <div id="select-btn-wrap">
+          <button class="sel-btn" id="select-btn">SELECT ▶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VS -->
+    <div class="screen" id="vs-screen">
+      <div class="vs-bg-l" id="vs-bg-l" style="--c1:rgba(245,158,11,0.2)"></div>
+      <div class="vs-bg-r" id="vs-bg-r" style="--c2:rgba(56,189,248,0.2)"></div>
+      <div class="vs-content">
+        <div class="vs-fighter anim-l" id="vs-p1">
+          <span class="vs-emoji" id="vs-p1-emoji">🔥</span>
+          <div class="vs-name" id="vs-p1-name">SCORPION</div>
+          <div class="vs-role">YOU</div>
+        </div>
+        <div class="vs-mid">
+          <div class="vs-text">VS</div>
+          <div class="vs-stage" id="vs-stage-label">STAGE 1/15</div>
+        </div>
+        <div class="vs-fighter anim-r" id="vs-p2">
+          <span class="vs-emoji" id="vs-p2-emoji">❄️</span>
+          <div class="vs-name" id="vs-p2-name">SUB-ZERO</div>
+          <div class="vs-role" id="vs-p2-role">CPU</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="screen" id="result-screen">
+      <div class="res-emoji" id="res-emoji">🔥</div>
+      <div class="res-title" id="res-title">YOU WIN!</div>
+      <div class="res-sub" id="res-sub">Stage 1 Complete!</div>
+      <div class="res-btns">
+        <button class="res-btn primary" id="res-next">NEXT STAGE ▶</button>
+        <button class="res-btn danger" id="res-retry">RETRY ↺</button>
+        <button class="res-btn ghost" id="res-menu">🏠 Main Menu</button>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <!-- ── FIGHT UI (shown only during fight) ───────── -->
+  <div id="fight-ui">
+    <!-- HUD -->
+    <div id="hud">
+      <div class="hud-side left">
+        <div class="char-name" id="hud-p1-name" style="color:#f59e0b">SCORPION</div>
+        <div class="hp-wrap"><div class="hp-bar" id="hud-p1-hp" style="width:100%"></div></div>
+        <div class="en-wrap"><div class="en-bar" id="hud-p1-en" style="width:0%"></div></div>
+      </div>
+      <div class="hud-center">
+        <div id="timer">99</div>
+        <div id="round-info">R1 · 0-0</div>
+      </div>
+      <div class="hud-side right">
+        <div class="char-name" id="hud-p2-name" style="color:#38bdf8;text-align:right">SUB-ZERO</div>
+        <div class="hp-wrap" style="direction:rtl"><div class="hp-bar" id="hud-p2-hp" style="width:100%"></div></div>
+        <div class="en-wrap" style="direction:rtl"><div class="en-bar" id="hud-p2-en" style="width:0%"></div></div>
+      </div>
+    </div>
+    <!-- Game area: canvas fullscreen, controls overlaid -->
+    <div id="game-area">
+      <canvas id="game-canvas"></canvas>
+      <!-- D-Pad overlaid bottom-left -->
+      <div class="ctrl-panel left">
+        <div class="dpad">
+          <button class="dp dp-up" id="dp-up" data-action="jump">↑</button>
+          <button class="dp dp-left" id="dp-left" data-action="left">◀</button>
+          <button class="dp dp-right" id="dp-right" data-action="right">▶</button>
+        </div>
+        <div class="dp-label">MOVE</div>
+      </div>
+      <!-- Attack buttons overlaid bottom-right -->
+      <div class="ctrl-panel right">
+        <div class="atk-grid">
+          <button class="atk atk-punch" id="btn-punch" data-action="punch">
+            <span class="atk-icon">👊</span>
+            <span class="atk-lbl">HIT</span>
+          </button>
+          <button class="atk atk-kick" id="btn-kick" data-action="kick">
+            <span class="atk-icon">🦶</span>
+            <span class="atk-lbl">KICK</span>
+          </button>
+          <button class="atk atk-block" id="btn-block" data-action="block">
+            <span class="atk-icon">🛡️</span>
+            <span class="atk-lbl">BLK</span>
+          </button>
+          <button class="atk atk-special" id="btn-special" data-action="special">
+            <span class="atk-icon">⚡</span>
+            <span class="atk-lbl">SPEC</span>
+          </button>
+        </div>
+        <div class="atk-label">ATTACK</div>
+      </div>
+    </div>
+  </div><!-- /fight-ui -->
+
+</div><!-- /app -->
+<script src="game.js"></script>
+</body>
+</html>
