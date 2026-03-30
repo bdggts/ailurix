@@ -226,31 +226,35 @@ function hudUpdate(gs){
 // ═══════════════════════════════════════════════════════
 function initFight(){
   G.stopped=false;
-  var cv=$('game-canvas');
-  var W=cv.offsetWidth,H=cv.offsetHeight;
-  cv.width=W;cv.height=H;
-  var SC=H/300;
-  var FLOOR=H*0.8;
+  G.gs=null;
   var opp=TOWER[Math.min(G.stage-1,TOWER.length-1)];
   var eHpMult=1+(G.stage-1)*0.09;
-
-  G.gs={
-    p1:{ch:G.player,x:W*0.28,y:FLOOR,vy:0,onGround:true,hp:G.player.hp,maxHp:G.player.hp,energy:0,state:'idle',af:0,cd:0,dir:1,H:Math.round(SC*100)},
-    p2:{ch:opp,x:W*0.72,y:FLOOR,vy:0,onGround:true,hp:Math.round(opp.hp*eHpMult),maxHp:Math.round(opp.hp*eHpMult),energy:0,state:'idle',af:0,cd:0,dir:-1,H:Math.round(SC*100)},
-    timer:99,lastSec:Date.now(),
-    p1r:0,p2r:0,round:1,
-    parts:[],shake:0,
-    phase:'countdown',// countdown|fight|roundOver|matchOver
-    cd:3,cdTick:70,
-    frame:0,W:W,H:H,FLOOR:FLOOR,SC:SC,
-    over:false,
-  };
-
   $('hud-p1-name').textContent=G.player.name;$('hud-p1-name').style.color=G.player.color;
   $('hud-p2-name').textContent=opp.name;$('hud-p2-name').style.color=opp.color;
-  startBGMusic();
   G.cpuTick=0;
-  G.raf=requestAnimationFrame(fightLoop);
+  // KEY FIX: wait 2 frames for flex layout to calculate canvas dimensions
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      var cv=$('game-canvas');
+      var W=Math.max(cv.offsetWidth,cv.parentElement.clientWidth-260,200);
+      var H=Math.max(cv.offsetHeight,cv.parentElement.clientHeight,window.innerHeight-42,200);
+      cv.width=W;cv.height=H;
+      var SC=H/300;
+      var FLOOR=H*0.8;
+      G.gs={
+        p1:{ch:G.player,x:W*0.28,y:FLOOR,vy:0,onGround:true,hp:G.player.hp,maxHp:G.player.hp,energy:0,state:'idle',af:0,cd:0,dir:1,H:Math.round(SC*100)},
+        p2:{ch:opp,x:W*0.72,y:FLOOR,vy:0,onGround:true,hp:Math.round(opp.hp*eHpMult),maxHp:Math.round(opp.hp*eHpMult),energy:0,state:'idle',af:0,cd:0,dir:-1,H:Math.round(SC*100)},
+        timer:99,lastSec:Date.now(),
+        p1r:0,p2r:0,round:1,
+        parts:[],shake:0,
+        phase:'countdown',cd:3,cdTick:70,
+        frame:0,W:W,H:H,FLOOR:FLOOR,SC:SC,
+        over:false,
+      };
+      startBGMusic();
+      G.raf=requestAnimationFrame(fightLoop);
+    });
+  });
 }
 
 function stopFight(){
@@ -374,8 +378,20 @@ function fightLoop(){
   var gs=G.gs;if(!gs)return;
   gs.frame++;
   var cv=$('game-canvas');
-  var W=cv.offsetWidth,H=cv.offsetHeight;
-  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;gs.W=W;gs.H=H;gs.FLOOR=H*0.8;gs.SC=H/300;}
+  var W=cv.offsetWidth||gs.W;
+  var H=cv.offsetHeight||gs.H;
+  // Guard: skip if canvas has no size
+  if(!W||!H)return;
+  if(Math.abs(cv.width-W)>2||Math.abs(cv.height-H)>2){
+    cv.width=W;cv.height=H;
+    gs.W=W;gs.H=H;gs.FLOOR=H*0.8;gs.SC=H/300;
+    // Reposition fighters correctly after resize
+    var mid=W*0.5;
+    gs.p1.x=W*0.28;gs.p2.x=W*0.72;
+    gs.p1.y=gs.FLOOR;gs.p2.y=gs.FLOOR;
+  }
+  // Always use stored dimensions
+  W=gs.W;H=gs.H;
   var ctx=cv.getContext('2d');
   var p1=gs.p1,p2=gs.p2;
   p1.H=p2.H=Math.round(gs.SC*100);
