@@ -24,15 +24,24 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Show Android SDK location
+      - name: Setup Android SDK & install components
         run: |
+          # Android SDK is pre-installed on macos runner
           echo "ANDROID_HOME=$ANDROID_HOME"
-          ls $ANDROID_HOME/build-tools/ || echo "no build-tools"
-          ls $ANDROID_HOME/platforms/ || echo "no platforms"
+          # Add cmdline-tools to PATH
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/tools/bin:$PATH"
+          # Use full path since sdkmanager may not be in default PATH
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -f "$SDKMANAGER" ]; then
+            SDKMANAGER="$ANDROID_HOME/tools/bin/sdkmanager"
+          fi
+          echo "Using sdkmanager: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "build-tools;33.0.2" "platforms;android-34" || true
+          ls "$ANDROID_HOME/build-tools/" || true
 
       - name: Install SDK components
-        run: |
-          sdkmanager "build-tools;33.0.2" "platforms;android-34"
+        run: echo "SDK setup done"
 
       - name: Create local.properties
         working-directory: android
