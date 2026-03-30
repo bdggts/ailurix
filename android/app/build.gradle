@@ -1,17 +1,14 @@
-plugins { id 'com.android.application' }
+apply plugin: 'com.android.application'
 android {
-  compileSdk 34
+  compileSdkVersion 34
   defaultConfig {
     applicationId 'com.dominex.arena'
-    minSdk 21
-    targetSdk 34
+    minSdkVersion 21
+    targetSdkVersion 34
     versionCode 3
     versionName '2.1'
   }
   buildTypes {
     release { minifyEnabled false }
   }
-  namespace 'com.dominex.arena'
 }
-// No external deps — WebView is built into Android SDK!
-dependencies {}

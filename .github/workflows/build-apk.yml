@@ -30,43 +30,40 @@ jobs:
       - name: Install SDK components
         run: yes | sdkmanager "build-tools;34.0.0" "platforms;android-34" "platform-tools"
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.6'
-
       - name: Generate keystore
         run: |
           keytool -genkey -v -keystore dominex.keystore -alias dominex \
             -keyalg RSA -keysize 2048 -validity 36500 \
             -dname "CN=Dominex Arena,OU=Game,O=Dominex,L=IN,S=IN,C=IN" \
-            -storepass DominexGame2026 -keypass DominexGame2026 2>/dev/null
-          FP=$(keytool -list -v -keystore dominex.keystore -alias dominex \
-            -storepass DominexGame2026 2>/dev/null | grep "SHA256:" | sed 's/.*SHA256: //')
-          echo "SHA256=$FP"
-          mkdir -p public/.well-known
-          printf '[{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"android_app","package_name":"com.dominex.arena","sha256_cert_fingerprints":["%s"]}}]' "$FP" > public/.well-known/assetlinks.json
+            -storepass DominexGame2026 -keypass DominexGame2026 2>/dev/null || true
 
-      - name: Build APK
+      - name: Build APK with Gradle
         working-directory: android
-        run: gradle assembleRelease --no-daemon -x lint
+        run: |
+          # Download Gradle 7.6
+          wget -q https://services.gradle.org/distributions/gradle-7.6-bin.zip -O /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /opt/gradle
+          export GRADLE_HOME=/opt/gradle/gradle-7.6
+          export PATH=$GRADLE_HOME/bin:$PATH
+          gradle --version
+          gradle assembleRelease --no-daemon -x lint --stacktrace
 
       - name: Sign APK
         run: |
           APK=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
-          echo "Signing: $APK"
+          echo "Found APK: $APK"
           "$ANDROID_HOME/build-tools/34.0.0/apksigner" sign \
             --ks dominex.keystore --ks-key-alias dominex \
             --ks-pass pass:DominexGame2026 --key-pass pass:DominexGame2026 \
             --out public/dominex-arena.apk "$APK"
           ls -lh public/dominex-arena.apk
 
-      - name: Commit artifacts
+      - name: Commit APK
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
-          git add public/dominex-arena.apk public/.well-known/assetlinks.json
-          git diff --staged --quiet || git commit -m "ci: build WebView game APK [skip ci]"
+          git add public/dominex-arena.apk
+          git diff --staged --quiet || git commit -m "ci: update APK [skip ci]"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
