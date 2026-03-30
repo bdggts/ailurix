@@ -37,66 +37,75 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ra
 #round-info{font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;}
 
 /* ── GAME AREA ──────────────────────────────────── */
-#game-area{flex:1;display:flex;overflow:hidden;}
-#game-canvas{flex:1;display:block;min-width:0;}
+#game-area{flex:1;position:relative;overflow:hidden;}
+#game-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
 
-/* ── CONTROL PANELS ─────────────────────────────── */
+/* ── CONTROL PANELS — OVERLAID ON CANVAS ─────────── */
 .ctrl-panel{
-  width:130px;flex-shrink:0;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  background:rgba(0,0,0,0.7);
-  padding:10px 6px;
+  position:absolute;
+  bottom:18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  pointer-events:none;
 }
-.ctrl-panel.left{border-right:1px solid rgba(255,255,255,0.05);}
-.ctrl-panel.right{border-left:1px solid rgba(255,255,255,0.05);}
+.ctrl-panel *{pointer-events:all;}
+.ctrl-panel.left{left:10px;}
+.ctrl-panel.right{right:10px;}
+
+
 
 /* ── D-PAD ──────────────────────────────────────── */
-.dpad{position:relative;width:120px;height:100px;}
+.dpad{position:relative;width:116px;height:90px;}
 .dp{
   position:absolute;
-  width:44px;height:38px;
-  border-radius:9px;
-  background:linear-gradient(145deg,rgba(60,60,80,0.9),rgba(30,30,45,0.95));
-  border:2px solid rgba(255,255,255,0.15);
-  color:rgba(255,255,255,0.85);
-  font-size:18px;font-weight:900;
+  width:42px;height:36px;
+  border-radius:10px;
+  background:rgba(20,20,35,0.75);
+  border:2px solid rgba(255,255,255,0.18);
+  color:rgba(255,255,255,0.9);
+  font-size:17px;font-weight:900;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;touch-action:manipulation;
-  box-shadow:0 4px 10px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.12);
+  box-shadow:0 4px 12px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.15);
+  backdrop-filter:blur(6px);
   transition:all .05s;
+  -webkit-backdrop-filter:blur(6px);
 }
 .dp:active,.dp.pressed{
-  transform:scale(0.9);
-  background:linear-gradient(145deg,rgba(100,100,140,0.9),rgba(60,60,90,0.95));
-  border-color:rgba(168,85,247,0.7);
-  box-shadow:0 2px 6px rgba(0,0,0,0.5),0 0 10px rgba(168,85,247,0.3),inset 0 1px 0 rgba(255,255,255,0.1);
+  transform:scale(0.88);
+  background:rgba(100,80,200,0.7);
+  border-color:rgba(168,85,247,0.8);
+  box-shadow:0 2px 8px rgba(0,0,0,0.5),0 0 14px rgba(168,85,247,0.4);
 }
 .dp-up{top:0;left:50%;transform:translateX(-50%);}
-.dp-up:active,.dp-up.pressed{transform:translateX(-50%) scale(0.9);}
+.dp-up:active,.dp-up.pressed{transform:translateX(-50%) scale(0.88);}
 .dp-left{top:50%;left:0;transform:translateY(-50%);}
-.dp-left:active,.dp-left.pressed{transform:translateY(-50%) scale(0.9);}
+.dp-left:active,.dp-left.pressed{transform:translateY(-50%) scale(0.88);}
 .dp-right{top:50%;right:0;transform:translateY(-50%);}
-.dp-right:active,.dp-right.pressed{transform:translateY(-50%) scale(0.9);}
-.dp-label{margin-top:8px;font-size:8px;color:rgba(168,85,247,0.5);letter-spacing:1px;font-weight:700;}
+.dp-right:active,.dp-right.pressed{transform:translateY(-50%) scale(0.88);}
+.dp-label{font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:1px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.8);}
 
 /* ── ATTACK BUTTONS ─────────────────────────────── */
-.atk-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:116px;}
+.atk-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
 .atk{
-  width:54px;height:54px;border-radius:50%;
+  width:52px;height:52px;border-radius:50%;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:2px;cursor:pointer;touch-action:manipulation;
+  gap:1px;cursor:pointer;touch-action:manipulation;
   font-weight:900;font-family:'Rajdhani',Impact,sans-serif;
-  border:3px solid transparent;
-  background:rgba(0,0,0,0.6);
-  box-shadow:0 4px 14px rgba(0,0,0,0.6),inset 0 2px 0 rgba(255,255,255,0.1);
+  border:2.5px solid transparent;
+  background:rgba(0,0,0,0.65);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  box-shadow:0 4px 16px rgba(0,0,0,0.7),inset 0 2px 0 rgba(255,255,255,0.12);
   transition:all .05s;
   position:relative;overflow:hidden;
 }
-.atk::before{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,0.08) 0%,transparent 60%);}
-.atk:active,.atk.pressed{transform:scale(0.88);}
-.atk-icon{font-size:18px;line-height:1;}
-.atk-lbl{font-size:8px;font-weight:900;letter-spacing:1px;}
+.atk::before{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,0.1) 0%,transparent 55%);}
+.atk:active,.atk.pressed{transform:scale(0.86);}
+.atk-icon{font-size:17px;line-height:1;}
+.atk-lbl{font-size:7px;font-weight:900;letter-spacing:.5px;}
 
 .atk-punch{border-color:#22c55e;color:#22c55e;box-shadow:0 4px 14px rgba(34,197,94,0.3),inset 0 2px 0 rgba(255,255,255,0.1);}
 .atk-punch:active,.atk-punch.pressed{box-shadow:0 2px 8px rgba(34,197,94,0.5),0 0 16px rgba(34,197,94,0.4),inset 0 1px 0 rgba(255,255,255,0.1);}
@@ -308,9 +317,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ra
         <div class="en-wrap" style="direction:rtl"><div class="en-bar" id="hud-p2-en" style="width:0%"></div></div>
       </div>
     </div>
-    <!-- Game area -->
+    <!-- Game area: canvas fullscreen, controls overlaid -->
     <div id="game-area">
-      <!-- D-Pad -->
+      <canvas id="game-canvas"></canvas>
+      <!-- D-Pad overlaid bottom-left -->
       <div class="ctrl-panel left">
         <div class="dpad">
           <button class="dp dp-up" id="dp-up" data-action="jump">↑</button>
@@ -319,9 +329,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ra
         </div>
         <div class="dp-label">MOVE</div>
       </div>
-      <!-- Canvas -->
-      <canvas id="game-canvas"></canvas>
-      <!-- Attack buttons -->
+      <!-- Attack buttons overlaid bottom-right -->
       <div class="ctrl-panel right">
         <div class="atk-grid">
           <button class="atk atk-punch" id="btn-punch" data-action="punch">

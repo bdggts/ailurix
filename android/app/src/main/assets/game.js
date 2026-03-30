@@ -87,17 +87,22 @@ function drawFighter(ctx,f,t){
   ctx.save();ctx.translate(x,y);if(dir<0)ctx.scale(-1,1);
 
   // Animation values
-  var bob=st==='idle'?Math.sin(t*0.08)*3:0;          // 1 bob/sec
-  var walkPhase=st==='walk'?Math.sin(t*0.5)*8:0;     // 4 steps/sec
+  var bob=st==='idle'?Math.sin(t*0.08)*3:0;
+  var walkPhase=st==='walk'?Math.sin(t*0.5)*8:0;
   var pX=st==='punch'?Math.sin(af/14*Math.PI)*38:st==='special'?Math.sin(af/24*Math.PI)*52:0;
   var kY=st==='kick'?-Math.sin(af/18*Math.PI)*44:0;
   var hurt=st==='hurt';
   var block=st==='block';
   var squat=block?0.88:1;
   var jumpY=f.vy<-1?-10:f.vy>1?5:0;
+  // Walk lean: tilt toward movement direction
+  var lean=0;
+  if(st==='walk'){lean=0.12;}  // lean forward
 
   // Special FX
   if(st==='special'){ctx.shadowColor=c;ctx.shadowBlur=22;}
+  // Walk lean
+  if(lean){ctx.rotate(lean);}
 
   // SHADOW
   ctx.fillStyle='rgba(0,0,0,0.28)';ctx.beginPath();ctx.ellipse(0,2,24,6,0,0,Math.PI*2);ctx.fill();
@@ -150,6 +155,22 @@ function drawFighter(ctx,f,t){
 
   // HURT flash
   if(hurt&&(Math.floor(af/2)%2===0)){ctx.fillStyle='rgba(255,60,60,0.38)';ctx.fillRect(-20,-H+bob+jumpY,40,H+6);}
+
+  // CYRAX / robot special details
+  if(f.ch.id==='cyrax'||f.ch.id==='sektor'){
+    // Chest panel
+    ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(-8,-H*0.79+bob+jumpY,16,12);
+    ctx.fillStyle='#0f0';if(f.ch.id==='sektor')ctx.fillStyle='#f00';
+    ctx.fillRect(-6,-H*0.77+bob+jumpY,12,2);// scan line 1
+    ctx.fillRect(-6,-H*0.73+bob+jumpY,8,2); // scan line 2
+    // Antenna
+    ctx.fillStyle=ac;ctx.fillRect(-1,-H*1.04+bob+jumpY,2,H*0.14);
+    ctx.beginPath();ctx.arc(0,-H*1.06+bob+jumpY,3,0,Math.PI*2);
+    ctx.fillStyle=f.ch.id==='cyrax'?'#0f0':'#f00';ctx.fill();
+    // Eye visor
+    ctx.fillStyle=f.ch.id==='cyrax'?'rgba(0,255,0,0.7)':'rgba(255,0,0,0.7)';
+    ctx.fillRect(-9,-H*0.93+bob+jumpY,18,5);
+  }
 
   ctx.shadowBlur=0;ctx.restore();
 }
@@ -237,14 +258,17 @@ function initFight(){
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
       var cv=$('game-canvas');
-      var W=Math.max(cv.offsetWidth,cv.parentElement.clientWidth-260,200);
-      var H=Math.max(cv.offsetHeight,cv.parentElement.clientHeight,window.innerHeight-42,200);
+      // Canvas is now absolute/full-area, so use game-area dimensions
+      var area=$('game-area');
+      var W=area?area.clientWidth:window.innerWidth;
+      var H=area?(area.clientHeight||window.innerHeight-42):window.innerHeight-42;
+      W=Math.max(W,200);H=Math.max(H,200);
       cv.width=W;cv.height=H;
       var SC=H/300;
-      var FLOOR=H*0.8;
+      var FLOOR=H*0.78;
       G.gs={
-        p1:{ch:G.player,x:W*0.28,y:FLOOR,vy:0,onGround:true,hp:G.player.hp,maxHp:G.player.hp,energy:0,state:'idle',af:0,cd:0,dir:1,H:Math.round(SC*100)},
-        p2:{ch:opp,x:W*0.72,y:FLOOR,vy:0,onGround:true,hp:Math.round(opp.hp*eHpMult),maxHp:Math.round(opp.hp*eHpMult),energy:0,state:'idle',af:0,cd:0,dir:-1,H:Math.round(SC*100)},
+        p1:{ch:G.player,x:W*0.28,y:FLOOR,vy:0,onGround:true,hp:G.player.hp,maxHp:G.player.hp,energy:0,state:'idle',af:0,cd:0,dir:1,H:Math.round(SC*70)},
+        p2:{ch:opp,x:W*0.72,y:FLOOR,vy:0,onGround:true,hp:Math.round(opp.hp*eHpMult),maxHp:Math.round(opp.hp*eHpMult),energy:0,state:'idle',af:0,cd:0,dir:-1,H:Math.round(SC*70)},
         timer:99,lastSec:Date.now(),
         p1r:0,p2r:0,round:1,
         parts:[],shake:0,
@@ -373,23 +397,21 @@ function fightLoop(){
   var gs=G.gs;if(!gs)return;
   gs.frame++;
   var cv=$('game-canvas');
-  var W=cv.offsetWidth||gs.W;
-  var H=cv.offsetHeight||gs.H;
-  // Guard: skip if canvas has no size
+  // Use game-area full dimensions
+  var area=$('game-area');
+  var W=area?area.clientWidth:cv.offsetWidth||gs.W;
+  var H=area?(area.clientHeight||gs.H):cv.offsetHeight||gs.H;
   if(!W||!H)return;
   if(Math.abs(cv.width-W)>2||Math.abs(cv.height-H)>2){
     cv.width=W;cv.height=H;
-    gs.W=W;gs.H=H;gs.FLOOR=H*0.8;gs.SC=H/300;
-    // Reposition fighters correctly after resize
-    var mid=W*0.5;
+    gs.W=W;gs.H=H;gs.FLOOR=H*0.78;gs.SC=H/300;
     gs.p1.x=W*0.28;gs.p2.x=W*0.72;
     gs.p1.y=gs.FLOOR;gs.p2.y=gs.FLOOR;
   }
-  // Always use stored dimensions
   W=gs.W;H=gs.H;
   var ctx=cv.getContext('2d');
   var p1=gs.p1,p2=gs.p2;
-  p1.H=p2.H=Math.round(gs.SC*100);
+  p1.H=p2.H=Math.round(gs.SC*70);  // 30% smaller characters
 
   // ── COUNTDOWN ──
   if(gs.phase==='countdown'){
