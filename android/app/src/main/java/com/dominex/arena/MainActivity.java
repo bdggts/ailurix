@@ -1,4 +1,4 @@
-﻿package com.dominex.arena;
+package com.dominex.arena;
 
 import android.app.Activity;
 import android.net.ConnectivityManager;
@@ -21,14 +21,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Remove title bar
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        // Fullscreen flags
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        // Hide system UI (immersive mode)
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(
             View.SYSTEM_UI_FLAG_FULLSCREEN |
@@ -38,14 +34,12 @@ public class MainActivity extends Activity {
             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
         );
 
-        // Create WebView
         webView = new WebView(this);
         webView.setLayoutParams(new android.view.ViewGroup.LayoutParams(
             android.view.ViewGroup.LayoutParams.MATCH_PARENT,
             android.view.ViewGroup.LayoutParams.MATCH_PARENT
         ));
 
-        // WebView Settings
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
@@ -60,15 +54,11 @@ public class MainActivity extends Activity {
             s.setSafeBrowsingEnabled(false);
         }
 
-        // Hardware acceleration
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-
-        // No scroll bars
         webView.setHorizontalScrollBarEnabled(false);
         webView.setVerticalScrollBarEnabled(false);
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
-        // Clients
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -77,7 +67,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        // Smart loading: online = latest from Vercel, offline = local bundled game
         if (isOnline()) {
             webView.loadUrl("https://dominex-three.vercel.app/game/index.html");
         } else {
@@ -87,7 +76,6 @@ public class MainActivity extends Activity {
         setContentView(webView);
     }
 
-    // Check internet connectivity
     private boolean isOnline() {
         try {
             ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
@@ -100,13 +88,12 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        // Block back button â€” don't exit game accidentally
+        // Block back button
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Re-enable immersive mode after dialogs
         getWindow().getDecorView().setSystemUiVisibility(
             View.SYSTEM_UI_FLAG_FULLSCREEN |
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
