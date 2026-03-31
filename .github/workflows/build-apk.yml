@@ -22,15 +22,20 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Android SDK
+      - name: Setup Android SDK + Gradle
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
+          # SDK
           SDKMAN=$(find "$ANDROID_HOME" -name sdkmanager -type f 2>/dev/null | head -1)
-          if [ -n "$SDKMAN" ]; then
-            yes | "$SDKMAN" --licenses > /dev/null 2>&1 || true
-            "$SDKMAN" "platforms;android-34" "build-tools;33.0.2" 2>&1 | tail -3 || true
-          fi
+          [ -n "$SDKMAN" ] && yes | "$SDKMAN" --licenses > /dev/null 2>&1 || true
+          [ -n "$SDKMAN" ] && "$SDKMAN" "platforms;android-34" "build-tools;33.0.2" > /dev/null 2>&1 || true
           echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          
+          # Gradle 7.6
+          wget -q https://services.gradle.org/distributions/gradle-7.6-bin.zip -O /tmp/g.zip
+          unzip -q /tmp/g.zip -d /opt/
+          chmod +x /opt/gradle-7.6/bin/gradle
+          echo "/opt/gradle-7.6/bin" >> $GITHUB_PATH
+          /opt/gradle-7.6/bin/gradle --version | head -3
 
       - name: Generate keystore
         run: |
@@ -39,60 +44,14 @@ jobs:
             -dname "CN=Dominex,O=Dominex,C=IN" \
             -storepass Dom2026 -keypass Dom2026 2>/dev/null
 
-      - name: Download and setup Gradle
-        run: |
-          cd android
-          # Download gradle wrapper jar
-          WRAPPER_JAR="gradle/wrapper/gradle-wrapper.jar"
-          mkdir -p gradle/wrapper
-          echo "Downloading gradle-wrapper.jar..."
-          curl -sL "https://github.com/gradle/gradle/raw/v7.6.0/gradle/wrapper/gradle-wrapper.jar" -o "$WRAPPER_JAR" || \
-          curl -sL "https://repo.maven.apache.org/maven2/org/gradle/gradle-wrapper/7.6/gradle-wrapper-7.6.jar" -o "$WRAPPER_JAR" || true
-          ls -la "$WRAPPER_JAR" 2>/dev/null || echo "Wrapper jar not found, using system gradle"
-          chmod +x gradlew 2>/dev/null || true
-          
-          # Also download gradle directly as fallback
-          if [ ! -f "$WRAPPER_JAR" ] || [ $(stat -c%s "$WRAPPER_JAR" 2>/dev/null || echo 0) -lt 1000 ]; then
-            echo "Wrapper jar missing/invalid, downloading Gradle directly..."
-            wget -q "https://services.gradle.org/distributions/gradle-7.6-bin.zip" -O /tmp/g.zip
-            unzip -q /tmp/g.zip -d /tmp/
-            export PATH="/tmp/gradle-7.6/bin:$PATH"
-            echo "/tmp/gradle-7.6/bin" >> $GITHUB_PATH
-            echo "Direct gradle: $(gradle --version | head -3)"
-          fi
-
-      - name: Build Release APK
+      - name: Build APK
         working-directory: android
-        run: |
-          echo "=== Checking gradle ==="
-          which gradle || echo "no system gradle"
-          ls -la gradlew 2>/dev/null || echo "no gradlew"
-          ls -la gradle/wrapper/gradle-wrapper.jar 2>/dev/null || echo "no wrapper jar"
-          
-          echo "=== Trying gradlew first ==="
-          if [ -x "./gradlew" ] && [ -f "gradle/wrapper/gradle-wrapper.jar" ] && [ $(stat -c%s "gradle/wrapper/gradle-wrapper.jar" 2>/dev/null || echo 0) -gt 1000 ]; then
-            echo "Using gradlew..."
-            ./gradlew assembleRelease --no-daemon -x lint --stacktrace 2>&1 | tee /tmp/build.log
-          else
-            echo "Using system gradle..."
-            gradle assembleRelease --no-daemon -x lint --stacktrace 2>&1 | tee /tmp/build.log
-          fi
-          
-          echo "=== Checking output ==="
-          find app/build/outputs/apk -name "*.apk" 2>/dev/null || echo "NO APK FOUND"
+        run: /opt/gradle-7.6/bin/gradle assembleRelease --no-daemon -x lint
 
-      - name: Upload build log on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gradle-build-log
-          path: /tmp/build.log
-          if-no-files-found: ignore
-
-      - name: Sign & package APK
+      - name: Sign APK
         run: |
           APK=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
-          echo "Found: $APK ($(du -h "$APK" | cut -f1))"
+          echo "APK: $APK"
           SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -1)
           "$SIGNER" sign \
             --ks $HOME/dom.ks --ks-key-alias dom \
@@ -100,7 +59,7 @@ jobs:
             --out public/dominex-arena.apk "$APK"
           ls -lh public/dominex-arena.apk
 
-      - name: Commit APK to repo
+      - name: Commit APK
         run: |
           git config user.email "ci@dominex.app"
           git config user.name "CI Bot"
