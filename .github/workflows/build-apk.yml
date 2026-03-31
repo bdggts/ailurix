@@ -32,11 +32,6 @@ jobs:
           fi
           echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '7.6'
-
       - name: Generate keystore
         run: |
           keytool -genkey -v -keystore $HOME/dom.ks -alias dom \
@@ -44,12 +39,47 @@ jobs:
             -dname "CN=Dominex,O=Dominex,C=IN" \
             -storepass Dom2026 -keypass Dom2026 2>/dev/null
 
+      - name: Download and setup Gradle
+        run: |
+          cd android
+          # Download gradle wrapper jar
+          WRAPPER_JAR="gradle/wrapper/gradle-wrapper.jar"
+          mkdir -p gradle/wrapper
+          echo "Downloading gradle-wrapper.jar..."
+          curl -sL "https://github.com/gradle/gradle/raw/v7.6.0/gradle/wrapper/gradle-wrapper.jar" -o "$WRAPPER_JAR" || \
+          curl -sL "https://repo.maven.apache.org/maven2/org/gradle/gradle-wrapper/7.6/gradle-wrapper-7.6.jar" -o "$WRAPPER_JAR" || true
+          ls -la "$WRAPPER_JAR" 2>/dev/null || echo "Wrapper jar not found, using system gradle"
+          chmod +x gradlew 2>/dev/null || true
+          
+          # Also download gradle directly as fallback
+          if [ ! -f "$WRAPPER_JAR" ] || [ $(stat -c%s "$WRAPPER_JAR" 2>/dev/null || echo 0) -lt 1000 ]; then
+            echo "Wrapper jar missing/invalid, downloading Gradle directly..."
+            wget -q "https://services.gradle.org/distributions/gradle-7.6-bin.zip" -O /tmp/g.zip
+            unzip -q /tmp/g.zip -d /tmp/
+            export PATH="/tmp/gradle-7.6/bin:$PATH"
+            echo "/tmp/gradle-7.6/bin" >> $GITHUB_PATH
+            echo "Direct gradle: $(gradle --version | head -3)"
+          fi
+
       - name: Build Release APK
         working-directory: android
         run: |
-          echo "=== Building ==="
-          gradle assembleRelease --no-daemon -x lint --stacktrace 2>&1 | tee /tmp/build.log
-          echo "=== Build Complete ==="
+          echo "=== Checking gradle ==="
+          which gradle || echo "no system gradle"
+          ls -la gradlew 2>/dev/null || echo "no gradlew"
+          ls -la gradle/wrapper/gradle-wrapper.jar 2>/dev/null || echo "no wrapper jar"
+          
+          echo "=== Trying gradlew first ==="
+          if [ -x "./gradlew" ] && [ -f "gradle/wrapper/gradle-wrapper.jar" ] && [ $(stat -c%s "gradle/wrapper/gradle-wrapper.jar" 2>/dev/null || echo 0) -gt 1000 ]; then
+            echo "Using gradlew..."
+            ./gradlew assembleRelease --no-daemon -x lint --stacktrace 2>&1 | tee /tmp/build.log
+          else
+            echo "Using system gradle..."
+            gradle assembleRelease --no-daemon -x lint --stacktrace 2>&1 | tee /tmp/build.log
+          fi
+          
+          echo "=== Checking output ==="
+          find app/build/outputs/apk -name "*.apk" 2>/dev/null || echo "NO APK FOUND"
 
       - name: Upload build log on failure
         if: failure()
@@ -62,9 +92,8 @@ jobs:
       - name: Sign & package APK
         run: |
           APK=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
-          echo "Found: $APK ($(du -h $APK | cut -f1))"
+          echo "Found: $APK ($(du -h "$APK" | cut -f1))"
           SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -1)
-          echo "Signer: $SIGNER"
           "$SIGNER" sign \
             --ks $HOME/dom.ks --ks-key-alias dom \
             --ks-pass pass:Dom2026 --key-pass pass:Dom2026 \
