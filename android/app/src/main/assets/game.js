@@ -272,7 +272,7 @@ function hudUpdate(gs){
   $('btn-special').className='atk atk-special'+(p1.energy>=100?' glow':'');
   $('timer').textContent=Math.max(0,gs.timer);
   $('timer').style.color=gs.timer<=10?'#ef4444':'#f59e0b';
-  $('round-info').textContent='R'+gs.round+' \u00B7 '+gs.p1r+'-'+gs.p2r;
+  $('round-info').textContent='STAGE '+G.stage+' \u00B7 R'+gs.round+' \u00B7 '+gs.p1r+'-'+gs.p2r;
 }
 
 // =========================================================
