@@ -74,8 +74,8 @@ jobs:
           gradle --version | head -1
 
           # Build (--info for verbose output)
-          # Build debug first to test (no signing needed)
-          gradle assembleDebug --no-daemon -x lint --stacktrace 2>&1
+          gradle assembleRelease --no-daemon -x lint --stacktrace 2>&1
+
 
 
 
