@@ -400,7 +400,7 @@ function initFight(){
       p2:{ch:opp,x:W*0.72,y:FLOOR,vy:0,onGround:true,hp:Math.round(opp.hp*eHpMult),maxHp:Math.round(opp.hp*eHpMult),energy:0,state:'idle',af:0,cd:0,dir:-1,H:Math.round(SC*70),dmgTaken:0},
       timer:120,lastSec:Date.now(),
       p1r:0,p2r:0,round:1,
-      parts:[],shake:0,
+      parts:[],shake:0,floatTexts:[],
       phase:'roundAnnounce',roundAnnTimer:90,
       cd:3,cdTick:60,
       frame:0,W:W,H:H,FLOOR:FLOOR,SC:SC,
@@ -459,6 +459,15 @@ function doAttack(attacker,defender,type,gs){
       spawnParts(gs.parts,defender.x,defender.y-defender.H*0.5,blocked?'#3b82f6':'#fff',pCount);
       spawnParts(gs.parts,defender.x,defender.y-defender.H*0.3,defender.ch.color,pCount>>1);
       snd(blocked?'block':'hit');
+      // KNOCKBACK
+      var kb=blocked?3:(type==='special'?18:type==='kick'?12:6);
+      defender.x+=attacker.dir*kb;
+      defender.x=Math.max(30,Math.min(gs.W-30,defender.x));
+      // FLOATING DAMAGE TEXT
+      var ftxt=blocked?'BLOCKED!':dmg+' DMG';
+      var fcol=blocked?'#60a5fa':(type==='special'?'#fbbf24':'#fff');
+      if(COMBO.count>=3)ftxt=dmg+' COMBO x'+COMBO.count+'!';
+      gs.floatTexts.push({x:defender.x,y:defender.y-defender.H*0.7,text:ftxt,color:fcol,life:60,vy:-1.5});
       if(gs.finishHim&&defender.hp<=0){
         gs.finishHim=false;
         announce(attacker.ch.name+' wins',100);
@@ -489,10 +498,10 @@ function cpuThink(gs){
   var dist=Math.abs(p2.x-p1.x);
   var p1Attacking=['punch','kick','special'].indexOf(p1.state)>=0;
 
-  // DODGE: if player attacking and close, back away
-  if(canAct2 && p2.cd<=0 && p1Attacking && dist<150){
+  // DODGE: only 20% chance, not every time
+  if(canAct2 && p2.cd<=0 && p1Attacking && dist<120 && Math.random()<0.15+G.stage*0.01){
     var escDir=p2.x>p1.x?1:-1;
-    p2.x+=escDir*p2.ch.spd*1.8*gs.SC;
+    p2.x+=escDir*p2.ch.spd*1.2*gs.SC;
     p2.x=Math.max(30,Math.min(gs.W-30,p2.x));
     p2.state='walk';
     return;
@@ -536,7 +545,7 @@ function cpuThink(gs){
       p2.state=act;p2.af=0;p2.cd={punch:16,kick:22,special:28}[act]||16;
       if(act==='special')p2.energy=0;snd(act);doAttack(p2,p1,act,gs);
       // After attack, retreat
-      G.cpuRetreat=Math.floor(8+Math.random()*12);
+      G.cpuRetreat=Math.floor(3+Math.random()*4);
     }
   }
 }
@@ -672,6 +681,22 @@ function fightLoop(){
   drawParts(ctx,gs.parts);
   drawFighter(ctx,p1,gs.frame);
   drawFighter(ctx,p2,gs.frame);
+
+  // FLOATING DAMAGE TEXTS
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  for(var fi=gs.floatTexts.length-1;fi>=0;fi--){
+    var ft=gs.floatTexts[fi];
+    ft.y+=ft.vy;ft.life--;
+    var alpha=Math.min(1,ft.life/20);
+    ctx.globalAlpha=alpha;
+    ctx.font='bold '+Math.round(H*0.06)+'px Rajdhani,Impact,sans-serif';
+    ctx.strokeStyle='rgba(0,0,0,0.8)';ctx.lineWidth=3;
+    ctx.strokeText(ft.text,ft.x,ft.y);
+    ctx.fillStyle=ft.color;
+    ctx.fillText(ft.text,ft.x,ft.y);
+    if(ft.life<=0)gs.floatTexts.splice(fi,1);
+  }
+  ctx.globalAlpha=1;
 
   // ROUND ANNOUNCE overlay
   if(gs.phase==='roundAnnounce'){
