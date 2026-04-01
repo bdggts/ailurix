@@ -48,18 +48,55 @@ var KEYS={left:false,right:false,jump:false};
 var AC_ctx=null;
 function AC(){if(!AC_ctx)try{AC_ctx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}if(AC_ctx&&AC_ctx.state==='suspended')AC_ctx.resume().catch(function(){});return AC_ctx;}
 function beep(freq,type,dur,vol,delay){var ac=AC();if(!ac)return;var o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+(delay||0);o.type=type||'sine';o.frequency.value=freq;g.gain.setValueAtTime(vol||0.2,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+dur);}
+// Generate noise buffer for impact sounds
+var _noiseBuf=null;
+function getNoise(){
+  var ac=AC();if(!ac)return null;
+  if(!_noiseBuf){
+    _noiseBuf=ac.createBuffer(1,ac.sampleRate*0.3,ac.sampleRate);
+    var d=_noiseBuf.getChannelData(0);
+    for(var i=0;i<d.length;i++)d[i]=(Math.random()*2-1);
+  }
+  return _noiseBuf;
+}
+function playNoise(dur,vol,freq){
+  var ac=AC();if(!ac)return;
+  var buf=getNoise();if(!buf)return;
+  var src=ac.createBufferSource();src.buffer=buf;
+  var flt=ac.createBiquadFilter();flt.type='bandpass';flt.frequency.value=freq||800;flt.Q.value=1;
+  var g=ac.createGain();g.gain.setValueAtTime(vol||0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+dur);
+  src.connect(flt);flt.connect(g);g.connect(ac.destination);src.start();src.stop(ac.currentTime+dur);
+}
 function snd(type){try{
-  if(type==='punch'){beep(200,'sawtooth',0.08,0.3);beep(90,'square',0.06,0.15);}
-  else if(type==='kick'){beep(100,'square',0.15,0.35);}
-  else if(type==='block'){beep(900,'triangle',0.05,0.15);}
-  else if(type==='special'){beep(100,'sawtooth',0.1,0.3);beep(500,'sawtooth',0.3,0.25,0.1);beep(300,'square',0.1,0.2,0.35);}
-  else if(type==='hit'){beep(260,'sawtooth',0.1,0.22);}
-  else if(type==='ko'){beep(400,'sawtooth',0.08,0.4);beep(100,'sawtooth',0.9,0.3,0.08);}
+  if(type==='punch'){
+    beep(150,'sawtooth',0.06,0.35);beep(80,'square',0.04,0.2);
+    playNoise(0.08,0.25,1200);
+  }
+  else if(type==='kick'){
+    beep(80,'square',0.12,0.4);beep(60,'sawtooth',0.08,0.25);
+    playNoise(0.1,0.3,600);
+  }
+  else if(type==='block'){
+    beep(1200,'triangle',0.03,0.15);beep(800,'sine',0.05,0.1);
+    playNoise(0.04,0.12,3000);
+  }
+  else if(type==='special'){
+    beep(120,'sawtooth',0.08,0.3);beep(400,'sawtooth',0.25,0.3,0.08);
+    beep(600,'sine',0.15,0.2,0.2);playNoise(0.15,0.2,1500);
+  }
+  else if(type==='hit'){
+    beep(200,'sawtooth',0.08,0.3);playNoise(0.1,0.28,1000);
+    beep(100,'square',0.05,0.15);
+  }
+  else if(type==='ko'){
+    beep(300,'sawtooth',0.06,0.4);beep(80,'sawtooth',0.8,0.35,0.06);
+    playNoise(0.3,0.25,400);
+  }
   else if(type==='select'){beep(523,'sine',0.06,0.1);beep(659,'sine',0.06,0.08,0.07);}
-  else if(type==='start'){beep(400,'square',0.08,0.3);beep(600,'square',0.08,0.3,0.12);beep(800,'square',0.12,0.25,0.24);}
+  else if(type==='start'){beep(400,'square',0.06,0.3);beep(600,'square',0.06,0.3,0.1);beep(800,'square',0.1,0.25,0.2);}
   else if(type==='cd'){beep(440,'sine',0.1,0.15);}
-  else if(type==='fight'){beep(300,'square',0.05,0.4);beep(500,'square',0.05,0.35,0.06);beep(700,'square',0.15,0.3,0.12);}
-  else if(type==='finishhim'){beep(150,'sawtooth',0.2,0.4);beep(100,'square',0.4,0.35,0.2);beep(80,'sawtooth',0.3,0.3,0.5);}
+  else if(type==='fight'){beep(300,'square',0.04,0.4);beep(500,'square',0.04,0.35,0.05);beep(700,'square',0.12,0.3,0.1);playNoise(0.15,0.2,2000);}
+  else if(type==='finishhim'){beep(150,'sawtooth',0.15,0.4);beep(100,'square',0.3,0.35,0.15);beep(80,'sawtooth',0.25,0.3,0.4);playNoise(0.4,0.2,300);}
   else if(type==='combo'){beep(600,'sine',0.04,0.15);beep(800,'sine',0.04,0.12,0.05);}
 }catch(e){}}
 
@@ -430,8 +467,56 @@ function stopFight(){
   stopBGMusic();
 }
 
-// BG music
-function startBGMusic(){stopBGMusic();G.bgInt=setInterval(function(){try{var ac=AC();if(!ac)return;var o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=55+Math.random()*8;g.gain.setValueAtTime(0.025,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.22);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+0.22);}catch(e){}},550);}
+// BG FIGHT MUSIC - dark synth loop with drums
+var _bgNodes=[];
+function startBGMusic(){
+  stopBGMusic();
+  var ac=AC();if(!ac)return;
+  var bpm=130,beat=60/bpm;
+  // Bass line pattern (notes in Hz)
+  var bassNotes=[55,55,65,55, 55,55,73,65, 55,55,65,55, 73,65,55,49];
+  var melNotes=[220,0,330,0, 293,0,220,262, 220,0,330,0, 349,330,293,0];
+  var step=0;
+  G.bgInt=setInterval(function(){
+    try{
+      var ac2=AC();if(!ac2)return;
+      var t=ac2.currentTime;
+      // KICK DRUM (every 4 steps)
+      if(step%4===0){
+        var ko=ac2.createOscillator(),kg=ac2.createGain();
+        ko.type='sine';ko.frequency.setValueAtTime(150,t);ko.frequency.exponentialRampToValueAtTime(30,t+0.12);
+        kg.gain.setValueAtTime(0.3,t);kg.gain.exponentialRampToValueAtTime(0.001,t+0.15);
+        ko.connect(kg);kg.connect(ac2.destination);ko.start(t);ko.stop(t+0.15);
+      }
+      // HI-HAT (every 2 steps)
+      if(step%2===0){
+        var nb=getNoise();if(nb){
+          var hs=ac2.createBufferSource();hs.buffer=nb;
+          var hf=ac2.createBiquadFilter();hf.type='highpass';hf.frequency.value=8000;
+          var hg=ac2.createGain();hg.gain.setValueAtTime(0.06,t);hg.gain.exponentialRampToValueAtTime(0.001,t+0.05);
+          hs.connect(hf);hf.connect(hg);hg.connect(ac2.destination);hs.start(t);hs.stop(t+0.05);
+        }
+      }
+      // BASS
+      var bn=bassNotes[step%bassNotes.length];
+      if(bn){
+        var bo=ac2.createOscillator(),bg2=ac2.createGain();
+        bo.type='sawtooth';bo.frequency.value=bn;
+        bg2.gain.setValueAtTime(0.08,t);bg2.gain.exponentialRampToValueAtTime(0.001,t+beat*0.8);
+        bo.connect(bg2);bg2.connect(ac2.destination);bo.start(t);bo.stop(t+beat*0.8);
+      }
+      // MELODY (soft synth pad)
+      var mn=melNotes[step%melNotes.length];
+      if(mn){
+        var mo=ac2.createOscillator(),mg=ac2.createGain();
+        mo.type='triangle';mo.frequency.value=mn;
+        mg.gain.setValueAtTime(0.04,t);mg.gain.exponentialRampToValueAtTime(0.001,t+beat*0.6);
+        mo.connect(mg);mg.connect(ac2.destination);mo.start(t);mo.stop(t+beat*0.6);
+      }
+      step++;
+    }catch(e){}
+  },Math.round(beat*1000/2));
+}
 function stopBGMusic(){if(G.bgInt){clearInterval(G.bgInt);G.bgInt=null;}}
 
 function hbox(f){return{x:f.x-26,y:f.y-f.H,w:52,h:f.H};}
