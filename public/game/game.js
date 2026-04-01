@@ -300,6 +300,16 @@ function drawFighter(ctx,f,t){
   ctx.shadowBlur=0;ctx.restore();
 }
 
+// Draw character preview on a canvas element
+function drawCharPreview(canvas,ch,size){
+  var w=size||60,h=Math.round(w*1.6);
+  canvas.width=w;canvas.height=h;
+  var ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,w,h);
+  var fakeF={x:w/2,y:h-4,dir:1,ch:ch,H:h*0.85,state:'idle',af:0,vy:0};
+  drawFighter(ctx,fakeF,Date.now()*0.01);
+}
+
 
 
 // =========================================================
@@ -819,7 +829,15 @@ function initSelect(){
     d.style.setProperty('--cc',c.color);
     d.style.setProperty('--cb',c.color+'22');
     d.style.setProperty('--cs',c.color+'55');
-    d.innerHTML='<div class="cem">'+c.em+'</div><div class="cnm">'+c.name.split(' ')[0]+'</div><div class="char-dot"></div>';
+    var cv=document.createElement('canvas');
+    cv.className='cem-canvas';
+    cv.style.cssText='display:block;margin:0 auto;';
+    drawCharPreview(cv,c,40);
+    d.appendChild(cv);
+    var nm=document.createElement('div');nm.className='cnm';nm.textContent=c.name.split(' ')[0];
+    d.appendChild(nm);
+    var dot=document.createElement('div');dot.className='char-dot';
+    d.appendChild(dot);
     d.addEventListener('pointerdown',function(){G.selIdx=i;snd('select');updatePreview();updateGrid();});
     grid.appendChild(d);
   });
@@ -835,7 +853,14 @@ function updateGrid(){
 }
 function updatePreview(){
   var c=PLAYABLE[G.selIdx];
-  $('prev-emoji').textContent=c.em;
+  // Draw character preview on canvas
+  var pEl=$('prev-emoji');
+  if(!$('prev-char-canvas')){
+    var cv=document.createElement('canvas');cv.id='prev-char-canvas';
+    cv.style.cssText='display:block;margin:0 auto 6px;';
+    pEl.innerHTML='';pEl.appendChild(cv);
+  }
+  drawCharPreview($('prev-char-canvas'),c,70);
   $('prev-name').textContent=c.name;$('prev-name').style.color=c.color;
   $('prev-title').textContent=c.title;
   var rEl=$('prev-rarity');rEl.textContent=c.rarity;rEl.style.color=c.color;rEl.style.background=c.color+'22';rEl.style.border='1px solid '+c.color+'44';
@@ -848,8 +873,15 @@ function updatePreview(){
 // VS
 function initVS(){
   var opp=TOWER[Math.min(G.stage-1,TOWER.length-1)];
-  $('vs-p1-emoji').textContent=G.player.em;$('vs-p1-name').textContent=G.player.name;$('vs-p1-name').style.color=G.player.color;
-  $('vs-p2-emoji').textContent=opp.em;$('vs-p2-name').textContent=opp.name;$('vs-p2-name').style.color=opp.color;
+  // Draw VS character previews
+  var vsE1=$('vs-p1-emoji');vsE1.innerHTML='';
+  var vc1=document.createElement('canvas');vc1.style.cssText='display:block;margin:0 auto;';
+  drawCharPreview(vc1,G.player,55);vsE1.appendChild(vc1);
+  $('vs-p1-name').textContent=G.player.name;$('vs-p1-name').style.color=G.player.color;
+  var vsE2=$('vs-p2-emoji');vsE2.innerHTML='';
+  var vc2=document.createElement('canvas');vc2.style.cssText='display:block;margin:0 auto;';
+  drawCharPreview(vc2,opp,55);vsE2.appendChild(vc2);
+  $('vs-p2-name').textContent=opp.name;$('vs-p2-name').style.color=opp.color;
   $('vs-p2-role').textContent=opp.boss?'Ã¢Å¡Â Ã¯Â¸Â FINAL BOSS':'STAGE '+G.stage+' Ã‚Â· CPU';
   $('vs-stage-label').textContent='STAGE '+G.stage+'/15';
   $('vs-bg-l').style.setProperty('--c1',G.player.color+'33');
