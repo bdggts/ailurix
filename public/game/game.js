@@ -164,14 +164,25 @@ function save(){try{localStorage.setItem('dnx_stage',G.stage);}catch(e){}}
 function load(){try{var s=parseInt(localStorage.getItem('dnx_stage')||'1',10);G.stage=isNaN(s)||s<1?1:Math.min(s,15);}catch(e){}}
 
 // =========================================================
-// CANVAS DRAWING - ARTICULATED MK-STYLE CHARACTERS
+// CANVAS DRAWING - PREMIUM MK-STYLE CHARACTERS
 // =========================================================
-function drawLimb(ctx,x1,y1,x2,y2,w,col){
+function drawLimb(ctx,x1,y1,x2,y2,w,col,highlight){
+  // Thick limb with subtle 3D effect
   ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineCap='round';
   ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  // Highlight edge for 3D
+  if(highlight){
+    ctx.strokeStyle=highlight;ctx.lineWidth=Math.max(1,w*0.3);
+    ctx.beginPath();ctx.moveTo(x1-1,y1);ctx.lineTo(x2-1,y2);ctx.stroke();
+  }
 }
 function drawJoint(ctx,x,y,r,col){
   ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+}
+function lighter(col,amt){
+  // Simple hex lighten
+  try{var r=parseInt(col.slice(1,3),16),g=parseInt(col.slice(3,5),16),b=parseInt(col.slice(5,7),16);
+  return'rgb('+Math.min(255,r+amt)+','+Math.min(255,g+amt)+','+Math.min(255,b+amt)+')';}catch(e){return col;}
 }
 
 function drawFighter(ctx,f,t){
@@ -200,12 +211,13 @@ function drawFighter(ctx,f,t){
   var hipY=-H*0.42+by;
   var kneeY=-H*0.2+by;
   var footY=by+2;
-  var shoulderW=14*bwM;
-  var limbW=Math.max(5,7*bwM);
+  var shoulderW=18*bwM;
+  var limbW=Math.max(7,9*bwM);
   var skinCol=ac;
+  var hi=lighter(c,50);
 
-  // SHADOW
-  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(0,4,20*bwM,5,0,0,Math.PI*2);ctx.fill();
+  // SHADOW (bigger)
+  ctx.fillStyle='rgba(0,0,0,0.35)';ctx.beginPath();ctx.ellipse(0,5,24*bwM,6,0,0,Math.PI*2);ctx.fill();
 
   // AURA
   if(id==='raiden'){ctx.strokeStyle='rgba(139,92,246,0.25)';ctx.lineWidth=1;for(var li=0;li<3;li++){var lx=(Math.random()-0.5)*30;ctx.beginPath();ctx.moveTo(lx,-H*1.1+by);ctx.lineTo(lx+(Math.random()-0.5)*15,-H*0.2+by);ctx.stroke();}}
@@ -213,14 +225,16 @@ function drawFighter(ctx,f,t){
   if(id==='noob'){ctx.fillStyle='rgba(100,116,139,0.12)';ctx.fillRect(-22,-H*1.05+by,44,H*1.1);}
   if(id==='subzero'){ctx.fillStyle='rgba(125,211,252,0.1)';for(var ii=0;ii<3;ii++){ctx.beginPath();ctx.arc((Math.random()-0.5)*24,-Math.random()*H*0.4-H*0.4+by,2+Math.random()*2,0,Math.PI*2);ctx.fill();}}
 
-  // BACK LEG
+  // BACK LEG (thicker)
   var blegSwing=walkCyc*0.4;
-  var bkneeX=-4-blegSwing*8,bkneeY2=kneeY+Math.abs(blegSwing)*4,bfootX=-6-blegSwing*12;
-  ctx.globalAlpha=0.7;
-  drawLimb(ctx,-4,hipY,bkneeX,bkneeY2,limbW,c+'cc');
-  drawLimb(ctx,bkneeX,bkneeY2,bfootX,footY,limbW-1,c+'cc');
-  drawJoint(ctx,bkneeX,bkneeY2,limbW*0.35,c);
-  ctx.fillStyle=ac+'aa';ctx.fillRect(bfootX-5,footY-1,12,5);
+  var bkneeX=-5-blegSwing*8,bkneeY2=kneeY+Math.abs(blegSwing)*4,bfootX=-7-blegSwing*12;
+  ctx.globalAlpha=0.65;
+  drawLimb(ctx,-5,hipY,bkneeX,bkneeY2,limbW+1,c+'cc');
+  drawLimb(ctx,bkneeX,bkneeY2,bfootX,footY,limbW,c+'cc');
+  drawJoint(ctx,bkneeX,bkneeY2,limbW*0.4,c);
+  // Boot (bigger)
+  ctx.fillStyle=ac+'aa';
+  ctx.beginPath();ctx.moveTo(bfootX-7,footY-2);ctx.lineTo(bfootX+8,footY-2);ctx.lineTo(bfootX+10,footY+4);ctx.lineTo(bfootX-7,footY+4);ctx.closePath();ctx.fill();
   ctx.globalAlpha=1;
 
   // BACK ARM
@@ -235,69 +249,100 @@ function drawFighter(ctx,f,t){
     drawJoint(ctx,barmSX-2-walkCyc*8,waistY-4,3,skinCol+'aa');
   }
 
-  // TORSO
+  // TORSO (wider, muscular)
   ctx.fillStyle=c;
-  ctx.beginPath();ctx.moveTo(-shoulderW-2,shoulderY);ctx.lineTo(shoulderW+2,shoulderY);ctx.lineTo(shoulderW*0.7,waistY);ctx.lineTo(-shoulderW*0.7,waistY);ctx.closePath();ctx.fill();
-  ctx.strokeStyle=ac+'66';ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(-shoulderW-3,shoulderY);
+  ctx.lineTo(shoulderW+3,shoulderY);
+  ctx.lineTo(shoulderW+1,shoulderY+(waistY-shoulderY)*0.4);
+  ctx.lineTo(shoulderW*0.65,waistY);
+  ctx.lineTo(-shoulderW*0.65,waistY);
+  ctx.lineTo(-shoulderW-1,shoulderY+(waistY-shoulderY)*0.4);
+  ctx.closePath();ctx.fill();
+  // 3D highlight on torso
+  ctx.fillStyle=hi+'22';
+  ctx.beginPath();ctx.moveTo(-shoulderW*0.3,shoulderY+2);ctx.lineTo(shoulderW*0.1,shoulderY+2);ctx.lineTo(shoulderW*0.05,chestY);ctx.lineTo(-shoulderW*0.25,chestY);ctx.closePath();ctx.fill();
+  // Muscle lines
+  ctx.strokeStyle=ac+'44';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(0,shoulderY+4);ctx.lineTo(0,waistY-2);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(-shoulderW*0.4,shoulderY+8);ctx.quadraticCurveTo(0,chestY+4,shoulderW*0.4,shoulderY+8);ctx.stroke();
-  ctx.fillStyle=ac;ctx.fillRect(-shoulderW*0.75,waistY-3,shoulderW*1.5,5);
-  ctx.fillStyle=c;ctx.fillRect(-3,waistY-3,6,5);
+  ctx.beginPath();ctx.moveTo(-shoulderW*0.45,shoulderY+8);ctx.quadraticCurveTo(0,chestY+6,shoulderW*0.45,shoulderY+8);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-shoulderW*0.3,chestY+2);ctx.quadraticCurveTo(0,chestY+10,shoulderW*0.3,chestY+2);ctx.stroke();
+  // Belt (wider)
+  ctx.fillStyle=ac;ctx.fillRect(-shoulderW*0.7,waistY-4,shoulderW*1.4,6);
+  ctx.fillStyle=c;ctx.fillRect(-4,waistY-4,8,6);
   if(id==='scorpion'){ctx.fillStyle='#000';ctx.fillRect(-shoulderW*0.4,shoulderY+6,shoulderW*0.8,3);}
   if(id==='subzero'){ctx.fillStyle='rgba(56,189,248,0.25)';ctx.fillRect(-shoulderW,shoulderY,shoulderW*2,waistY-shoulderY);}
   if(id==='liukang'){ctx.fillStyle='#000';ctx.fillRect(-8,shoulderY+4,16,waistY-shoulderY-6);}
   if(id==='jaxon'){ctx.fillStyle='#a8a29e';ctx.fillRect(-shoulderW-3,shoulderY-2,6,8);ctx.fillRect(shoulderW-3,shoulderY-2,6,8);}
   if(id==='goro'){ctx.fillStyle='#92400e';ctx.fillRect(-shoulderW*0.6,shoulderY+5,shoulderW*1.2,6);}
-  drawJoint(ctx,-shoulderW,shoulderY,limbW*0.45,c);
-  drawJoint(ctx,shoulderW,shoulderY,limbW*0.45,c);
+  // Shoulder pads (bigger)
+  drawJoint(ctx,-shoulderW,shoulderY,limbW*0.55,c);
+  drawJoint(ctx,shoulderW,shoulderY,limbW*0.55,c);
+  drawJoint(ctx,-shoulderW,shoulderY,limbW*0.3,hi);  
+  drawJoint(ctx,shoulderW,shoulderY,limbW*0.3,hi);
 
   // FRONT LEG
   var flegSwing=-walkCyc*0.4;
   var fkneeX=6+flegSwing*8,fkneeY2=kneeY+Math.abs(flegSwing)*4,ffootX=8+flegSwing*12;
   if(kickF>0){
-    fkneeX=8+kickF*25;fkneeY2=kneeY-kickF*20;ffootX=12+kickF*45;var ffootYk=footY-kickF*35;
-    drawLimb(ctx,6,hipY,fkneeX,fkneeY2,limbW,c);drawLimb(ctx,fkneeX,fkneeY2,ffootX,ffootYk,limbW-1,c);
-    drawJoint(ctx,fkneeX,fkneeY2,limbW*0.4,ac);ctx.fillStyle=ac;ctx.fillRect(ffootX-3,ffootYk-2,14,5);
+    fkneeX=8+kickF*28;fkneeY2=kneeY-kickF*22;ffootX=14+kickF*48;var ffootYk=footY-kickF*38;
+    drawLimb(ctx,6,hipY,fkneeX,fkneeY2,limbW+1,c,hi);drawLimb(ctx,fkneeX,fkneeY2,ffootX,ffootYk,limbW,c);
+    drawJoint(ctx,fkneeX,fkneeY2,limbW*0.45,ac);
+    // Kick boot
+    ctx.fillStyle=ac;ctx.beginPath();ctx.moveTo(ffootX-3,ffootYk-3);ctx.lineTo(ffootX+14,ffootYk-1);ctx.lineTo(ffootX+16,ffootYk+4);ctx.lineTo(ffootX-3,ffootYk+4);ctx.closePath();ctx.fill();
   } else {
-    drawLimb(ctx,6,hipY,fkneeX,fkneeY2,limbW,c);drawLimb(ctx,fkneeX,fkneeY2,ffootX,footY,limbW-1,c);
-    drawJoint(ctx,fkneeX,fkneeY2,limbW*0.4,ac);ctx.fillStyle=ac;ctx.fillRect(ffootX-5,footY-1,13,5);
+    drawLimb(ctx,6,hipY,fkneeX,fkneeY2,limbW+1,c,hi);drawLimb(ctx,fkneeX,fkneeY2,ffootX,footY,limbW,c);
+    drawJoint(ctx,fkneeX,fkneeY2,limbW*0.45,ac);
+    // Front boot
+    ctx.fillStyle=ac;ctx.beginPath();ctx.moveTo(ffootX-6,footY-2);ctx.lineTo(ffootX+9,footY-2);ctx.lineTo(ffootX+11,footY+4);ctx.lineTo(ffootX-6,footY+4);ctx.closePath();ctx.fill();
   }
   if(id==='goro'){ctx.globalAlpha=0.8;drawLimb(ctx,-12,hipY,-16,kneeY+5,limbW-2,c+'cc');drawLimb(ctx,-16,kneeY+5,-18,footY,limbW-3,c+'cc');drawLimb(ctx,14,hipY,18,kneeY+5,limbW-2,c+'cc');drawLimb(ctx,18,kneeY+5,20,footY,limbW-3,c+'cc');ctx.globalAlpha=1;}
 
   // FRONT ARM
   var farmSX=shoulderW;
   if(block){
-    drawLimb(ctx,farmSX,shoulderY,4,chestY-6,limbW,c);drawLimb(ctx,4,chestY-6,-6,shoulderY+6,limbW-1,skinCol);drawJoint(ctx,-6,shoulderY+6,4,skinCol);
+    drawLimb(ctx,farmSX,shoulderY,4,chestY-6,limbW+1,c);drawLimb(ctx,4,chestY-6,-6,shoulderY+6,limbW,skinCol);drawJoint(ctx,-6,shoulderY+6,5,skinCol);
+    // Block shield effect
+    ctx.strokeStyle=c+'66';ctx.lineWidth=2;ctx.beginPath();ctx.arc(-2,chestY-2,16,0,Math.PI*2);ctx.stroke();
   } else if(punchF>0){
-    var pEX=farmSX+punchF*12,pEY=shoulderY+6,pHX=farmSX+punchF*40,pHY=shoulderY+10;
-    drawLimb(ctx,farmSX,shoulderY,pEX,pEY,limbW,c);drawLimb(ctx,pEX,pEY,pHX,pHY,limbW-1,skinCol);
-    drawJoint(ctx,pEX,pEY,limbW*0.35,ac);drawJoint(ctx,pHX,pHY,5,skinCol);
-    ctx.strokeStyle=c;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(pHX,pHY,5,0,Math.PI*2);ctx.stroke();
+    var pEX=farmSX+punchF*14,pEY=shoulderY+6,pHX=farmSX+punchF*44,pHY=shoulderY+10;
+    drawLimb(ctx,farmSX,shoulderY,pEX,pEY,limbW+1,c,hi);drawLimb(ctx,pEX,pEY,pHX,pHY,limbW,skinCol);
+    drawJoint(ctx,pEX,pEY,limbW*0.4,ac);
+    // Big fist
+    drawJoint(ctx,pHX,pHY,6,skinCol);
+    ctx.strokeStyle=c;ctx.lineWidth=2;ctx.beginPath();ctx.arc(pHX,pHY,6,0,Math.PI*2);ctx.stroke();
   } else if(specF>0){
-    var sHX=farmSX+specF*50,sHY=shoulderY+6;
-    drawLimb(ctx,farmSX,shoulderY,farmSX+specF*16,shoulderY+4,limbW,c);drawLimb(ctx,farmSX+specF*16,shoulderY+4,sHX,sHY,limbW-1,c);
-    ctx.fillStyle=c+'88';ctx.beginPath();ctx.arc(sHX,sHY,10,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=ac;ctx.beginPath();ctx.arc(sHX,sHY,5,0,Math.PI*2);ctx.fill();
+    var sHX=farmSX+specF*52,sHY=shoulderY+6;
+    drawLimb(ctx,farmSX,shoulderY,farmSX+specF*18,shoulderY+4,limbW+1,c);drawLimb(ctx,farmSX+specF*18,shoulderY+4,sHX,sHY,limbW,c);
+    // Bigger energy orb
+    ctx.fillStyle=c+'66';ctx.beginPath();ctx.arc(sHX,sHY,14,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=c+'aa';ctx.beginPath();ctx.arc(sHX,sHY,8,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=ac;ctx.beginPath();ctx.arc(sHX,sHY,4,0,Math.PI*2);ctx.fill();
   } else {
-    var eX=farmSX+6+walkCyc*5,eY=(shoulderY+chestY)*0.5,hX=farmSX+10+walkCyc*3,hY=shoulderY+6;
-    drawLimb(ctx,farmSX,shoulderY,eX,eY,limbW,c);drawLimb(ctx,eX,eY,hX,hY,limbW-1,skinCol);
-    drawJoint(ctx,eX,eY,limbW*0.3,ac);drawJoint(ctx,hX,hY,3.5,skinCol);
+    var eX=farmSX+6+walkCyc*5,eY=(shoulderY+chestY)*0.5,hX=farmSX+12+walkCyc*3,hY=shoulderY+6;
+    drawLimb(ctx,farmSX,shoulderY,eX,eY,limbW+1,c,hi);drawLimb(ctx,eX,eY,hX,hY,limbW,skinCol);
+    drawJoint(ctx,eX,eY,limbW*0.35,ac);drawJoint(ctx,hX,hY,4.5,skinCol);
   }
   if(id==='goro'&&!block){ctx.globalAlpha=0.85;var g2sy=shoulderY+10;drawLimb(ctx,-shoulderW-4,g2sy,-shoulderW-10+punchF*15,g2sy+12,limbW-2,c+'dd');drawLimb(ctx,shoulderW+4,g2sy,shoulderW+10+punchF*15,g2sy+12,limbW-2,c+'dd');ctx.globalAlpha=1;}
   if(id==='jaxon'&&!block){ctx.strokeStyle='#d6d3d1';ctx.lineWidth=limbW+3;ctx.lineCap='round';if(punchF>0){ctx.beginPath();ctx.moveTo(farmSX,shoulderY);ctx.lineTo(farmSX+punchF*40,shoulderY+10);ctx.stroke();}else{ctx.beginPath();ctx.moveTo(farmSX,shoulderY);ctx.lineTo(farmSX+10,shoulderY+6);ctx.stroke();}}
   if(id==='baraka'&&!block){ctx.strokeStyle='#fff';ctx.lineWidth=2;var bx=punchF>0?farmSX+punchF*40:farmSX+10,bby=punchF>0?shoulderY+10:shoulderY+6;ctx.beginPath();ctx.moveTo(bx,bby);ctx.lineTo(bx+30,bby-2);ctx.stroke();}
 
-  // NECK
-  drawLimb(ctx,0,neckY,0,shoulderY-2,5*bwM,skinCol);
+  // NECK (thicker)
+  drawLimb(ctx,0,neckY,0,shoulderY-2,7*bwM,skinCol);
 
-  // HEAD
+  // HEAD (bigger with 3D)
   ctx.shadowBlur=0;
-  var headR=H*0.11*Math.max(bwM,0.95);
+  var headR=H*0.13*Math.max(bwM,0.95);
   var isNinja=id==='scorpion'||id==='subzero'||id==='reptile'||id==='smoke'||id==='noob';
   var isRobot=id==='cyrax'||id==='sektor';
+  // Head base
   ctx.fillStyle=isNinja?c:isRobot?'#555':skinCol;
   ctx.beginPath();ctx.arc(0,headY,headR,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle=c;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,headY,headR,0,Math.PI*2);ctx.stroke();
+  // Head outline
+  ctx.strokeStyle=c;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,headY,headR,0,Math.PI*2);ctx.stroke();
+  // 3D head highlight
+  ctx.fillStyle='rgba(255,255,255,0.12)';
+  ctx.beginPath();ctx.arc(-headR*0.2,headY-headR*0.25,headR*0.45,0,Math.PI*2);ctx.fill();
 
   if(isNinja){
     ctx.fillStyle=c;ctx.fillRect(-headR*0.85,headY-1,headR*1.7,headR*0.9);
