@@ -44,31 +44,39 @@ var G={
 var SPRITES={};
 var SPRITE_BASE='sprites/';
 function removeBlackBG(img){
-  var cv=document.createElement('canvas');
-  cv.width=img.width;cv.height=img.height;
-  var cx=cv.getContext('2d');
-  cx.drawImage(img,0,0);
-  var d=cx.getImageData(0,0,cv.width,cv.height);
-  var px=d.data;
-  for(var i=0;i<px.length;i+=4){
-    var r=px[i],g=px[i+1],b=px[i+2];
-    // Make black/near-black pixels transparent
-    if(r+g+b<80){px[i+3]=0;}
-    // Make dark pixels semi-transparent (smooth edges)
-    else if(r+g+b<140){px[i+3]=Math.floor((r+g+b-80)/60*255);}
+  try{
+    var cv=document.createElement('canvas');
+    cv.width=img.width;cv.height=img.height;
+    var cx=cv.getContext('2d');
+    cx.drawImage(img,0,0);
+    var d=cx.getImageData(0,0,cv.width,cv.height);
+    var px=d.data;
+    for(var i=0;i<px.length;i+=4){
+      var r=px[i],g=px[i+1],b=px[i+2];
+      var brightness=r*0.299+g*0.587+b*0.114;
+      // Pure black and very dark pixels = transparent
+      if(brightness<35){px[i+3]=0;}
+      // Dark pixels = fade out smoothly
+      else if(brightness<70){px[i+3]=Math.floor((brightness-35)/35*255);}
+    }
+    cx.putImageData(d,0,0);
+    var cleaned=new Image();
+    cleaned.src=cv.toDataURL();
+    return cleaned;
+  }catch(e){
+    console.log('BG remove failed:',e);
+    return img;
   }
-  cx.putImageData(d,0,0);
-  var cleaned=new Image();
-  cleaned.src=cv.toDataURL();
-  return cleaned;
 }
 function loadSprite(charId,pose){
   var key=charId+'_'+pose;
   if(SPRITES[key])return;
   var img=new Image();
-  img.crossOrigin='anonymous';
   img.src=SPRITE_BASE+key+'.png';
-  img.onload=function(){SPRITES[key]=removeBlackBG(img);};
+  img.onload=function(){
+    // Small delay to ensure image is fully decoded
+    setTimeout(function(){SPRITES[key]=removeBlackBG(img);},50);
+  };
   img.onerror=function(){SPRITES[key]=null;};
 }
 function initSprites(){
