@@ -244,15 +244,111 @@ function drawFighter(ctx,f,t){
     var sprW=sprH*(spr.width/spr.height);
     ctx.translate(x,y);
     if(dir<0)ctx.scale(-1,1);
+
+    // IDLE BREATHING BOB
+    var bob=0;
+    if(st==='idle'){bob=Math.sin(t*0.06)*2;}
+    if(st==='walk'){bob=Math.sin(t*0.3)*3;}
+
     // Shadow
-    ctx.fillStyle='rgba(0,0,0,0.35)';ctx.beginPath();ctx.ellipse(0,5,sprW*0.35,6,0,0,Math.PI*2);ctx.fill();
-    // Hurt flash
-    if(st==='hurt'&&Math.floor(af/2)%2===0){ctx.globalAlpha=0.5;}
-    // Draw sprite
-    ctx.drawImage(spr,-sprW/2,-sprH,sprW,sprH);
-    ctx.globalAlpha=1;
-    // Special glow
-    if(st==='special'){ctx.fillStyle=c+'44';ctx.beginPath();ctx.arc(sprW*0.4,-sprH*0.45,14,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle='rgba(0,0,0,0.4)';ctx.beginPath();ctx.ellipse(0,5,sprW*0.38,7,0,0,Math.PI*2);ctx.fill();
+
+    // HURT EFFECTS
+    if(st==='hurt'){
+      ctx.save();
+      ctx.translate(Math.sin(af*2)*4,0); // shake
+      if(Math.floor(af/2)%2===0){ctx.globalAlpha=0.4;}
+      ctx.drawImage(spr,-sprW/2,-sprH+bob,sprW,sprH);
+      ctx.globalAlpha=0.3;ctx.fillStyle='#ff0000';
+      ctx.fillRect(-sprW/2,-sprH+bob,sprW,sprH);
+      ctx.globalAlpha=1;
+      ctx.restore();
+    }
+    // BLOCK EFFECTS
+    else if(st==='block'){
+      ctx.drawImage(spr,-sprW/2,-sprH+bob,sprW,sprH);
+      // Shield glow rings
+      ctx.strokeStyle=c+'88';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-sprH*0.45,sprW*0.45,0,Math.PI*2);ctx.stroke();
+      ctx.strokeStyle=c+'44';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-sprH*0.45,sprW*0.55,0,Math.PI*2);ctx.stroke();
+      ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,-sprH*0.45,sprW*0.35,0,Math.PI*2);ctx.stroke();
+    }
+    // PUNCH EFFECTS
+    else if(st==='punch'){
+      var pF=Math.sin(af/14*Math.PI);
+      ctx.drawImage(spr,-sprW/2,-sprH+bob,sprW,sprH);
+      // Punch impact trail / speed lines
+      if(pF>0.3){
+        ctx.strokeStyle=c+'66';ctx.lineWidth=2;
+        for(var pl=0;pl<4;pl++){
+          var py=-sprH*0.42+pl*6;
+          ctx.beginPath();ctx.moveTo(sprW*0.3,py);ctx.lineTo(sprW*0.3+pF*20+pl*4,py);ctx.stroke();
+        }
+        // Impact flash at fist
+        ctx.fillStyle='#fff';ctx.globalAlpha=pF*0.6;
+        ctx.beginPath();ctx.arc(sprW*0.35+pF*15,-sprH*0.38,6+pF*8,0,Math.PI*2);ctx.fill();
+        ctx.globalAlpha=1;
+      }
+    }
+    // KICK EFFECTS
+    else if(st==='kick'){
+      var kF=Math.sin(af/18*Math.PI);
+      ctx.drawImage(spr,-sprW/2,-sprH+bob,sprW,sprH);
+      // Kick arc trail
+      if(kF>0.3){
+        ctx.strokeStyle=c+'55';ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(sprW*0.1,-sprH*0.15,sprW*0.4*kF,-0.5,1.2);ctx.stroke();
+        // Impact at foot
+        ctx.fillStyle='#fff';ctx.globalAlpha=kF*0.5;
+        ctx.beginPath();ctx.arc(sprW*0.3+kF*10,-sprH*0.1,5+kF*6,0,Math.PI*2);ctx.fill();
+        ctx.globalAlpha=1;
+      }
+    }
+    // SPECIAL EFFECTS
+    else if(st==='special'){
+      var sF=Math.sin(af/24*Math.PI);
+      // Character glow outline
+      ctx.shadowColor=c;ctx.shadowBlur=20;
+      ctx.drawImage(spr,-sprW/2,-sprH+bob,sprW,sprH);
+      ctx.shadowBlur=0;
+      // BIG fire/energy orb
+      ctx.fillStyle=c+'55';ctx.beginPath();ctx.arc(sprW*0.4+sF*15,-sprH*0.42,20+sF*10,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=c+'99';ctx.beginPath();ctx.arc(sprW*0.4+sF*15,-sprH*0.42,12+sF*6,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(sprW*0.4+sF*15,-sprH*0.42,4,0,Math.PI*2);ctx.fill();
+      // Fire particles
+      for(var sp=0;sp<6;sp++){
+        ctx.fillStyle=c+'88';
+        ctx.beginPath();ctx.arc(
+          sprW*0.4+sF*15+(Math.random()-0.5)*20,
+          -sprH*0.42+(Math.random()-0.5)*20,
+          2+Math.random()*4,0,Math.PI*2);ctx.fill();
+      }
+    }
+    // IDLE + WALK
+    else {
+      ctx.drawImage(spr,-sprW/2,-sprH+bob,sprW,sprH);
+    }
+
+    // SCORPION IDLE FIRE on hands
+    if(id==='scorpion'&&(st==='idle'||st==='walk')){
+      ctx.fillStyle='rgba(245,158,11,0.5)';
+      for(var fi=0;fi<3;fi++){
+        ctx.beginPath();ctx.arc(
+          sprW*0.25+(Math.random()-0.5)*8,
+          -sprH*0.38-Math.random()*10,
+          2+Math.random()*3,0,Math.PI*2);ctx.fill();
+      }
+    }
+    // SUB-ZERO ICE idle
+    if(id==='subzero'&&(st==='idle'||st==='walk')){
+      ctx.fillStyle='rgba(56,189,248,0.4)';
+      for(var ic=0;ic<3;ic++){
+        ctx.beginPath();ctx.arc(
+          sprW*0.25+(Math.random()-0.5)*8,
+          -sprH*0.38-Math.random()*10,
+          1+Math.random()*2,0,Math.PI*2);ctx.fill();
+      }
+    }
+
     ctx.restore();
     return;
   }
