@@ -51,13 +51,31 @@ function removeBlackBG(img){
     cx.drawImage(img,0,0);
     var d=cx.getImageData(0,0,cv.width,cv.height);
     var px=d.data;
-    for(var i=0;i<px.length;i+=4){
-      var r=px[i],g=px[i+1],b=px[i+2];
-      var brightness=r*0.299+g*0.587+b*0.114;
-      // Only pure black background = transparent
-      if(brightness<15){px[i+3]=0;}
-      // Very near-black edge pixels = soft fade
-      else if(brightness<30){px[i+3]=Math.floor((brightness-15)/15*255);}
+    var w=cv.width,h=cv.height;
+    // Mark which pixels are "background" using flood fill from edges
+    var bg=new Uint8Array(w*h);
+    var stack=[];
+    // Seed from all edge pixels
+    for(var ex=0;ex<w;ex++){stack.push(ex);stack.push(0);stack.push(ex);stack.push(h-1);}
+    for(var ey=0;ey<h;ey++){stack.push(0);stack.push(ey);stack.push(w-1);stack.push(ey);}
+    while(stack.length>0){
+      var sy=stack.pop(),sx=stack.pop();
+      if(sx<0||sx>=w||sy<0||sy>=h)continue;
+      var idx=sy*w+sx;
+      if(bg[idx])continue;
+      var pi=idx*4;
+      var bright=px[pi]*0.299+px[pi+1]*0.587+px[pi+2]*0.114;
+      if(bright<22){
+        bg[idx]=1;
+        stack.push(sx-1);stack.push(sy);
+        stack.push(sx+1);stack.push(sy);
+        stack.push(sx);stack.push(sy-1);
+        stack.push(sx);stack.push(sy+1);
+      }
+    }
+    // Now only make bg-marked pixels transparent
+    for(var i=0;i<w*h;i++){
+      if(bg[i]){px[i*4+3]=0;}
     }
     cx.putImageData(d,0,0);
     var cleaned=new Image();
@@ -245,9 +263,13 @@ function drawFighter(ctx,f,t){
     ctx.translate(x,y);
     if(dir<0)ctx.scale(-1,1);
 
-    // IDLE BREATHING BOB
-    var bob=0;
-    if(st==='idle'){bob=Math.sin(t*0.06)*2;}
+    // FIGHTING STANCE ANIMATION (combat-ready sway)
+    var bob=0,lean=0,breathe=1;
+    if(st==='idle'){
+      bob=Math.sin(t*0.06)*2;
+      lean=Math.sin(t*0.04)*0.03; // slight body lean
+      breathe=1+Math.sin(t*0.08)*0.015; // breathing scale
+    }
     if(st==='walk'){bob=Math.sin(t*0.3)*3;}
 
     // Shadow
@@ -310,10 +332,42 @@ function drawFighter(ctx,f,t){
       ctx.shadowColor=c;ctx.shadowBlur=20;
       ctx.drawImage(spr,-sprW/2,-sprH+bob,sprW,sprH);
       ctx.shadowBlur=0;
-      // BIG fire/energy orb
-      ctx.fillStyle=c+'55';ctx.beginPath();ctx.arc(sprW*0.4+sF*15,-sprH*0.42,20+sF*10,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle=c+'99';ctx.beginPath();ctx.arc(sprW*0.4+sF*15,-sprH*0.42,12+sF*6,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(sprW*0.4+sF*15,-sprH*0.42,4,0,Math.PI*2);ctx.fill();
+
+      // SCORPION SPEAR CHAIN - "GET OVER HERE!"
+      if(id==='scorpion'){
+        var chainLen=sF*120;
+        var chainY=-sprH*0.42;
+        // Chain links
+        ctx.strokeStyle='#a8a29e';ctx.lineWidth=2;
+        ctx.beginPath();ctx.moveTo(sprW*0.3,chainY);ctx.lineTo(sprW*0.3+chainLen,chainY);ctx.stroke();
+        // Chain link dots
+        for(var cl=0;cl<chainLen;cl+=8){
+          ctx.fillStyle=cl%16<8?'#78716c':'#a8a29e';
+          ctx.beginPath();ctx.arc(sprW*0.3+cl,chainY,2,0,Math.PI*2);ctx.fill();
+        }
+        // Spear tip
+        if(sF>0.3){
+          var tipX=sprW*0.3+chainLen;
+          ctx.fillStyle='#fbbf24';
+          ctx.beginPath();ctx.moveTo(tipX,chainY-6);ctx.lineTo(tipX+14,chainY);ctx.lineTo(tipX,chainY+6);ctx.closePath();ctx.fill();
+          ctx.strokeStyle='#f59e0b';ctx.lineWidth=1;ctx.stroke();
+          // Fire trail behind spear
+          for(var ft=0;ft<5;ft++){
+            ctx.fillStyle='rgba(245,158,11,'+(0.6-ft*0.1)+')';
+            ctx.beginPath();ctx.arc(tipX-ft*10+(Math.random()-0.5)*4,chainY+(Math.random()-0.5)*8,2+Math.random()*3,0,Math.PI*2);ctx.fill();
+          }
+        }
+        // "GET OVER HERE!" text
+        if(sF>0.5){
+          ctx.font='bold 10px Arial';ctx.fillStyle='#fbbf24';ctx.textAlign='center';
+          ctx.fillText('GET OVER HERE!',sprW*0.3+chainLen*0.5,chainY-14);
+        }
+      } else {
+        // Default energy orb for non-Scorpion
+        ctx.fillStyle=c+'55';ctx.beginPath();ctx.arc(sprW*0.4+sF*15,-sprH*0.42,20+sF*10,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=c+'99';ctx.beginPath();ctx.arc(sprW*0.4+sF*15,-sprH*0.42,12+sF*6,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(sprW*0.4+sF*15,-sprH*0.42,4,0,Math.PI*2);ctx.fill();
+      }
       // Fire particles
       for(var sp=0;sp<6;sp++){
         ctx.fillStyle=c+'88';
@@ -323,20 +377,43 @@ function drawFighter(ctx,f,t){
           2+Math.random()*4,0,Math.PI*2);ctx.fill();
       }
     }
-    // IDLE + WALK
+    // IDLE + WALK (fighting stance ready)
     else {
+      ctx.save();
+      ctx.rotate(lean||0);
+      ctx.scale(breathe||1,breathe||1);
       ctx.drawImage(spr,-sprW/2,-sprH+bob,sprW,sprH);
+      ctx.restore();
+      // Fist bob effect (hands moving up/down ready to fight)
+      if(st==='idle'){
+        var fistBob=Math.sin(t*0.12)*3;
+        ctx.fillStyle=c+'44';
+        ctx.beginPath();ctx.arc(sprW*0.28,-sprH*0.4+fistBob,4,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(-sprW*0.15,-sprH*0.42-fistBob,3,0,Math.PI*2);ctx.fill();
+      }
     }
 
-    // SCORPION IDLE FIRE on hands
+    // SCORPION IDLE FIRE on hands + body heat
     if(id==='scorpion'&&(st==='idle'||st==='walk')){
-      ctx.fillStyle='rgba(245,158,11,0.5)';
-      for(var fi=0;fi<3;fi++){
+      // Hand fire
+      ctx.fillStyle='rgba(245,158,11,0.6)';
+      for(var fi=0;fi<4;fi++){
         ctx.beginPath();ctx.arc(
-          sprW*0.25+(Math.random()-0.5)*8,
-          -sprH*0.38-Math.random()*10,
-          2+Math.random()*3,0,Math.PI*2);ctx.fill();
+          sprW*0.25+(Math.random()-0.5)*10,
+          -sprH*0.38-Math.random()*12,
+          2+Math.random()*4,0,Math.PI*2);ctx.fill();
       }
+      // Small fire on other hand
+      ctx.fillStyle='rgba(245,158,11,0.35)';
+      for(var fi2=0;fi2<2;fi2++){
+        ctx.beginPath();ctx.arc(
+          -sprW*0.15+(Math.random()-0.5)*6,
+          -sprH*0.42-Math.random()*8,
+          1+Math.random()*3,0,Math.PI*2);ctx.fill();
+      }
+      // Heat shimmer below
+      ctx.fillStyle='rgba(245,158,11,0.08)';
+      ctx.beginPath();ctx.arc(0,-sprH*0.15,sprW*0.3,0,Math.PI*2);ctx.fill();
     }
     // SUB-ZERO ICE idle
     if(id==='subzero'&&(st==='idle'||st==='walk')){
