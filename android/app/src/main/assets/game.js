@@ -68,12 +68,7 @@ function initSprites(){
     var parts=k.split('_');
     loadSpriteFrames(parts[0],parts[1],SPRITE_FRAMES[k]);
   }
-  // Load block/hurt as single (if available)
-  ['block','hurt'].forEach(function(p){
-    var img=new Image();
-    img.src=SPRITE_BASE+'scorpion_'+p+'.png';
-    img.onload=function(){SPRITES['scorpion_'+p]=img;};
-  });
+  // block/hurt will use canvas fallback (no PixelLab sprites yet)
 }
 initSprites();
 var KEYS={left:false,right:false,jump:false};
