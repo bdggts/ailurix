@@ -233,7 +233,12 @@ function drawFighter(ctx,f,t){
     spr=frames[frameIdx]||frames[0];
   }
   if(!spr)spr=SPRITES[sprKey];
-  if(!spr&&st==='walk')spr=SPRITES[id+'_idle']; // walk fallback to idle
+  // Fallback: block/hurt/walk use idle sprite to avoid canvas character
+  if(!spr){
+    var idleFrames=SPRITE_ANIMS[id+'_idle'];
+    if(idleFrames&&idleFrames.length>0)spr=idleFrames[0];
+    if(!spr)spr=SPRITES[id+'_idle'];
+  }
   if(spr){
     ctx.save();
     var sprH=H*1.15;
