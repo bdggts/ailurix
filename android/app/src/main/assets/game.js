@@ -5,22 +5,22 @@
 // DATA
 // =========================================================
 var CHARS=[
-  {id:'scorpion',name:'SCORPION',title:'Hell Ninja',    color:'#f59e0b',accent:'#fbbf24',hp:100,spd:8,pow:9, def:7, rarity:'Common',   spl:'Spear Pull',  em:'\uD83D\uDD25',bW:1.0,bH:1.0},
-  {id:'subzero', name:'SUB-ZERO',title:'Ice Warrior',   color:'#38bdf8',accent:'#7dd3fc',hp:95, spd:7,pow:8, def:9, rarity:'Common',   spl:'Ice Freeze',  em:'\u2744\uFE0F',bW:1.05,bH:1.0},
-  {id:'liukang', name:'LIU KANG',title:'Shaolin Monk',  color:'#ef4444',accent:'#fca5a5',hp:90, spd:9,pow:9, def:7, rarity:'Rare',     spl:'Flying Kick', em:'\uD83E\uDD4B',bW:0.9,bH:1.05},
-  {id:'raiden',  name:'RAIDEN',  title:'Thunder God',   color:'#8b5cf6',accent:'#c4b5fd',hp:95, spd:6,pow:10,def:9, rarity:'Legendary',spl:'Lightning',   em:'\u26A1',bW:1.15,bH:1.1},
-  {id:'reptile', name:'REPTILE', title:'Hidden Fighter', color:'#22c55e',accent:'#86efac',hp:88, spd:9,pow:8, def:7, rarity:'Rare',     spl:'Acid Spit',   em:'\uD83E\uDD8E',bW:0.85,bH:0.92},
-  {id:'kitana',  name:'KITANA',  title:'Fan Assassin',  color:'#06b6d4',accent:'#67e8f9',hp:85, spd:10,pow:8,def:6, rarity:'Epic',     spl:'Fan Throw',   em:'\uD83E\uDEAD',bW:0.8,bH:0.95},
-  {id:'mileena', name:'MILEENA', title:'Evil Twin',     color:'#f472b6',accent:'#f9a8d4',hp:82, spd:10,pow:9,def:5, rarity:'Rare',     spl:'Sai Throw',   em:'\uD83D\uDDE1\uFE0F',bW:0.8,bH:0.95},
-  {id:'jaxon',   name:'JAXON',   title:'Metal Arms',    color:'#78716c',accent:'#d6d3d1',hp:110,spd:5, pow:10,def:10,rarity:'Epic',     spl:'Ground Pound',em:'\uD83E\uDDBE',bW:1.35,bH:1.12},
-  {id:'baraka',  name:'BARAKA',  title:'Blade Fighter', color:'#fb923c',accent:'#fdba74',hp:92, spd:7, pow:10,def:8, rarity:'Epic',     spl:'Blade Fury',  em:'\u2694\uFE0F',bW:1.0,bH:1.05},
-  {id:'smoke',   name:'SMOKE',   title:'Gray Ninja',    color:'#a78bfa',accent:'#c4b5fd',hp:80, spd:10,pow:9, def:5, rarity:'Rare',     spl:'Smoke Screen', em:'\uD83D\uDCA8',bW:0.88,bH:0.95},
-  {id:'cyrax',   name:'CYRAX',   title:'Yellow Robot',  color:'#a3e635',accent:'#d9f99d',hp:88, spd:8, pow:8, def:8, rarity:'Common',   spl:'Net Trap',    em:'\uD83E\uDD16',bW:1.1,bH:1.0},
-  {id:'sektor',  name:'SEKTOR',  title:'Red Robot',     color:'#dc2626',accent:'#fca5a5',hp:90, spd:8, pow:9, def:8, rarity:'Epic',     spl:'Missiles',    em:'\uD83D\uDE80',bW:1.1,bH:1.0},
-  {id:'kunglao', name:'KUNG LAO',title:'Hat Fighter',   color:'#e2e8f0',accent:'#f1f5f9',hp:88, spd:9, pow:8, def:7, rarity:'Legendary',spl:'Hat Throw',   em:'\uD83C\uDFA9',bW:0.95,bH:1.0},
-  {id:'nightwolf',name:'NIGHTWOLF',title:'Spirit Warrior',color:'#84cc16',accent:'#bef264',hp:92,spd:7,pow:9,def:8,rarity:'Mythic',  spl:'Spirit Arrow',em:'\uD83C\uDFF9',bW:1.1,bH:1.05},
-  {id:'noob',    name:'NOOB',    title:'Dark Shadow',   color:'#64748b',accent:'#94a3b8',hp:85, spd:9, pow:10,def:6, rarity:'Mythic',   spl:'Shadow Clone',em:'\uD83D\uDC64',bW:0.92,bH:1.0},
-  {id:'goro',    name:'GORO',    title:'Final Boss',    color:'#d97706',accent:'#fbbf24',hp:220,spd:4, pow:10,def:10,rarity:'BOSS',     spl:'Stomp Quake', em:'\uD83D\uDC79',boss:true,bW:1.6,bH:1.3},
+  {id:'scorpion', name:'HEATBLAST',    title:'Fire Alien',      color:'#f59e0b',accent:'#fbbf24',hp:100,spd:8, pow:9, def:7, rarity:'Common',   spl:'Inferno Strike', em:'\uD83D\uDD25',bW:1.0, bH:1.0},
+  {id:'subzero',  name:'BIG CHILL',    title:'Ice Ghost',       color:'#38bdf8',accent:'#7dd3fc',hp:95, spd:7, pow:8, def:9, rarity:'Common',   spl:'Freeze Breath',  em:'\u2744\uFE0F',bW:1.05,bH:1.0},
+  {id:'liukang',  name:'SWAMPFIRE',    title:'Plant Warrior',   color:'#ef4444',accent:'#fca5a5',hp:90, spd:9, pow:9, def:7, rarity:'Rare',     spl:'Fire Kick',      em:'\uD83E\uDD4B',bW:0.9, bH:1.05},
+  {id:'raiden',   name:'SHOCKSQUATCH', title:'Thunder Beast',   color:'#8b5cf6',accent:'#c4b5fd',hp:95, spd:6, pow:10,def:9, rarity:'Legendary',spl:'Thunder Slam',   em:'\u26A1',bW:1.15,bH:1.1},
+  {id:'reptile',  name:'RIPJAWS',      title:'Aqua Predator',   color:'#22c55e',accent:'#86efac',hp:88, spd:9, pow:8, def:7, rarity:'Rare',     spl:'Hydro Bite',     em:'\uD83E\uDD8E',bW:0.85,bH:0.92},
+  {id:'kitana',   name:'UPGRADE',      title:'Tech Symbiote',   color:'#06b6d4',accent:'#67e8f9',hp:85, spd:10,pow:8, def:6, rarity:'Epic',     spl:'Weapon Morph',   em:'\uD83E\uDEAD',bW:0.8, bH:0.95},
+  {id:'mileena',  name:'CHROMASTONE',  title:'Crystal Fighter', color:'#f472b6',accent:'#f9a8d4',hp:82, spd:10,pow:9, def:5, rarity:'Rare',     spl:'Prism Strike',   em:'\uD83D\uDDE1\uFE0F',bW:0.8,bH:0.95},
+  {id:'jaxon',    name:'FOUR ARMS',    title:'Tetramand',       color:'#78716c',accent:'#d6d3d1',hp:110,spd:5, pow:10,def:10,rarity:'Epic',     spl:'Ground Pound',   em:'\uD83E\uDDBE',bW:1.35,bH:1.12},
+  {id:'baraka',   name:'WILDMUTT',     title:'Feral Hunter',    color:'#fb923c',accent:'#fdba74',hp:92, spd:7, pow:10,def:8, rarity:'Epic',     spl:'Savage Fury',    em:'\u2694\uFE0F',bW:1.0, bH:1.05},
+  {id:'smoke',    name:'GHOSTFREAK',   title:'Phantom Fighter', color:'#a78bfa',accent:'#c4b5fd',hp:80, spd:10,pow:9, def:5, rarity:'Rare',     spl:'Phase Strike',   em:'\uD83D\uDCA8',bW:0.88,bH:0.95},
+  {id:'cyrax',    name:'NANOMECH',     title:'Nano Bot',        color:'#a3e635',accent:'#d9f99d',hp:88, spd:8, pow:8, def:8, rarity:'Common',   spl:'Nano Swarm',     em:'\uD83E\uDD16',bW:1.1, bH:1.0},
+  {id:'sektor',   name:'CANNONBOLT',   title:'Arburian Armor',  color:'#dc2626',accent:'#fca5a5',hp:90, spd:8, pow:9, def:8, rarity:'Epic',     spl:'Roll Crush',     em:'\uD83D\uDE80',bW:1.1, bH:1.0},
+  {id:'kunglao',  name:'FASTTRACK',    title:'Speed Runner',    color:'#e2e8f0',accent:'#f1f5f9',hp:88, spd:9, pow:8, def:7, rarity:'Legendary',spl:'Speed Blitz',    em:'\uD83C\uDFA9',bW:0.95,bH:1.0},
+  {id:'nightwolf',name:'BENWOLF',      title:'Loboan Beast',    color:'#84cc16',accent:'#bef264',hp:92, spd:7, pow:9, def:8, rarity:'Mythic',   spl:'Sonic Howl',     em:'\uD83C\uDFF9',bW:1.1, bH:1.05},
+  {id:'noob',     name:'ECHO ECHO',    title:'Sound Clone',     color:'#64748b',accent:'#94a3b8',hp:85, spd:9, pow:10,def:6, rarity:'Mythic',   spl:'Wall of Sound',  em:'\uD83D\uDC64',bW:0.92,bH:1.0},
+  {id:'goro',     name:'HUMUNGOUSAUR', title:'Final Boss',      color:'#d97706',accent:'#fbbf24',hp:220,spd:4, pow:10,def:10,rarity:'BOSS',     spl:'Dino Stomp',     em:'\uD83D\uDC79',boss:true,bW:1.6,bH:1.3},
 ];
 var PLAYABLE=CHARS.filter(function(c){return !c.boss;});
 var TOWER_ORDER=['cyrax','reptile','liukang','subzero','kitana','mileena','baraka','smoke','scorpion','kunglao','nightwolf','raiden','sektor','noob','goro'];
