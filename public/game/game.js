@@ -693,94 +693,24 @@ function cpuThink(gs){
   var dist=Math.abs(p2.x-p1.x);
   var p1Attacking=['punch','kick','special'].indexOf(p1.state)>=0;
 
-  // === INIT AI STATE ===
-  if(!G.cpuAI)G.cpuAI={pressure:0,pressureTimer:0,state:'engage',stateTimer:0,waitTimer:0};
-  var ai=G.cpuAI;
-
-  // === TRACK PLAYER PRESSURE (spam detection) ===
-  if(p1Attacking&&dist<140){ai.pressure=Math.min(10,ai.pressure+0.5);ai.pressureTimer=45;}
-  if(ai.pressureTimer>0){ai.pressureTimer--;}else{ai.pressure=Math.max(0,ai.pressure-0.5);}
-
-  // === STATE TRANSITIONS ===
-  // Player spamming (6+ hits) → retreat a little
-  if(ai.pressure>=6&&ai.state==='engage'){
-    ai.state='retreat';ai.stateTimer=12+Math.floor(Math.random()*10);ai.waitTimer=0;
-  }
-  // Done retreating → WAIT briefly
-  if(ai.state==='retreat'&&ai.stateTimer<=0){
-    ai.state='wait';ai.waitTimer=20+Math.floor(Math.random()*20);
-  }
-  // Player walks into range while waiting → PUNISH
-  if(ai.state==='wait'&&dist<105){
-    ai.state='punish';ai.stateTimer=20;
-  }
-  // Wait timeout → re-ENGAGE (come back to fight)
-  if(ai.state==='wait'&&ai.waitTimer<=0){
-    ai.state='engage';ai.pressure=Math.max(0,ai.pressure-3);
-  }
-  // Done punishing → RETREAT briefly
-  if(ai.state==='punish'&&ai.stateTimer<=0){
-    ai.state='retreat';ai.stateTimer=20+Math.floor(Math.random()*15);
-  }
-  if(ai.stateTimer>0)ai.stateTimer--;
-  if(ai.waitTimer>0)ai.waitTimer--;
-
-  // === DODGE-AFTER-HURT ===
-  if(p2.state==='hurt'&&p2.af>=8&&Math.random()<0.4){
+  // DODGE-AFTER-HURT: small sidestep only (no retreat)
+  if(p2.state==='hurt'&&p2.af>=8&&Math.random()<0.3){
     var escH=p2.x>p1.x?1:-1;
-    p2.x+=escH*p2.ch.spd*1.5*gs.SC;
+    p2.x+=escH*p2.ch.spd*0.5*gs.SC;
     p2.x=Math.max(30,Math.min(gs.W-30,p2.x));
   }
 
-  // === RETREAT STATE: step back slowly (few steps only) ===
-  if(ai.state==='retreat'&&canAct2&&p2.cd<=0){
-    var rDir=p2.x>p1.x?1:-1;
-    p2.x+=rDir*p2.ch.spd*0.8*gs.SC; // slow small steps back
-    p2.x=Math.max(30,Math.min(gs.W-30,p2.x));
-    p2.state='walk';
-    return;
-  }
-
-  // === WAIT STATE: hold ground, block if attacked ===
-  if(ai.state==='wait'&&canAct2&&p2.cd<=0){
-    if(p1Attacking&&dist<150&&Math.random()<0.55){
-      p2.state='block';p2.cd=12;snd('block');
-    }else{
-      p2.state='idle';
-    }
-    return;
-  }
-
-  // === PUNISH STATE: attack immediately when player walks in ===
-  if(ai.state==='punish'&&canAct2&&p2.cd<=0){
-    var pOpts=['punch','kick'];
-    if(p2.energy>=100)pOpts.push('special');
-    var pAct=pOpts[Math.floor(Math.random()*pOpts.length)];
-    p2.state=pAct;p2.af=0;p2.cd={punch:10,kick:16,special:22}[pAct]||10;
-    if(pAct==='special')p2.energy=0;snd(pAct);doAttack(p2,p1,pAct,gs);
-    ai.state='retreat';ai.stateTimer=25+Math.floor(Math.random()*20);
-    G.cpuRetreat=0;
-    return;
-  }
-
-  // === ENGAGE STATE: normal fighting logic ===
-  // Dodge when player attacks close
-  if(canAct2&&p2.cd<=0&&p1Attacking&&dist<120&&Math.random()<0.18+G.stage*0.012){
+  // DODGE: small sidestep when player attacks very close
+  if(canAct2&&p2.cd<=0&&p1Attacking&&dist<80&&Math.random()<0.15+G.stage*0.01){
     var dDir=p2.x>p1.x?1:-1;
-    p2.x+=dDir*p2.ch.spd*1.4*gs.SC;
+    p2.x+=dDir*p2.ch.spd*0.6*gs.SC; // tiny step only
     p2.x=Math.max(30,Math.min(gs.W-30,p2.x));
     p2.state='walk';return;
   }
-  // Short retreat after attacking
-  if(canAct2&&p2.cd<=0&&G.cpuRetreat>0){
-    var rDir2=p2.x>p1.x?1:-1;
-    p2.x+=rDir2*p2.ch.spd*1.3*gs.SC;
-    p2.x=Math.max(30,Math.min(gs.W-30,p2.x));
-    p2.state='walk';G.cpuRetreat--;return;
-  }
-  // Approach if far
+
+  // APPROACH when far
   if(canAct2&&p2.cd<=0){
-    if(dist>80){
+    if(dist>85){
       var mDir=p2.x>p1.x?-1:1;
       p2.x+=mDir*p2.ch.spd*1.2*gs.SC;
       p2.state='walk';
@@ -792,18 +722,21 @@ function cpuThink(gs){
   var react=Math.max(12,55-G.stage*3)+Math.floor(Math.random()*18);
   G.cpuTick=react;
   var r=Math.random();
-  var aggr=0.35+G.stage*0.04;var blk=0.10+G.stage*0.025;
+  var aggr=0.40+G.stage*0.04;
+  var blk=0.12+G.stage*0.02;
   if(dist<200){
-    if(p1Attacking&&r<blk+0.12){p2.state='block';p2.cd=10;snd('block');return;}
-    if(p2.state==='block'&&Math.random()<0.45){
+    // BLOCK when player attacks
+    if(p1Attacking&&r<blk){p2.state='block';p2.cd=10;snd('block');return;}
+    // Counter after block
+    if(p2.state==='block'&&Math.random()<0.55){
       p2.state='punch';p2.af=0;p2.cd=12;snd('punch');doAttack(p2,p1,'punch',gs);return;
     }
+    // ATTACK
     if(r<aggr){
       var opts=['punch','kick'];if(p2.energy>=100)opts.push('special');
       var act=opts[Math.floor(Math.random()*opts.length)];
       p2.state=act;p2.af=0;p2.cd={punch:12,kick:18,special:24}[act]||12;
       if(act==='special')p2.energy=0;snd(act);doAttack(p2,p1,act,gs);
-      G.cpuRetreat=Math.floor(2+Math.random()*3);
     }
   }
 }
