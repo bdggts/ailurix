@@ -531,7 +531,7 @@ function initFight(){
   var eHpMult=1+(G.stage-1)*0.15;
   $('hud-p1-name').textContent=G.player.name;$('hud-p1-name').style.color=G.player.color;
   $('hud-p2-name').textContent=opp.name;$('hud-p2-name').style.color=opp.color;
-  G.cpuTick=0;G.cpuRetreat=0;
+  G.cpuTick=0;G.cpuRetreat=0;G.aiData=null; // reset adaptive AI for new fight
 
   function waitAndInit(attempts) {
     var cv=$('game-canvas');
@@ -688,24 +688,57 @@ function playerAttack(type){
 }
 window._atk=playerAttack;
 
-// CPU AI - smart fighter with dodge, block, hit-and-run
+// CPU AI - Adaptive System (learns user's fighting style)
+// Tracks: punch/kick/special count to counter-play
 function cpuThink(gs){
   var p1=gs.p1,p2=gs.p2;
   var canAct2=['idle','walk'].indexOf(p2.state)>=0;
   var dist=Math.abs(p2.x-p1.x);
   var p1Attacking=['punch','kick','special'].indexOf(p1.state)>=0;
 
-  // DODGE-AFTER-HURT: small sidestep only (no retreat)
+  // === ADAPTIVE SCORING SYSTEM ===
+  // Init player pattern tracker
+  if(!G.aiData)G.aiData={punch:0,kick:0,special:0,block:0,hits:0,lastState:'',comboHits:0};
+  var ai=G.aiData;
+
+  // Track player moves
+  if(p1.state!==ai.lastState){
+    ai.lastState=p1.state;
+    if(p1.state==='punch')ai.punch++;
+    else if(p1.state==='kick')ai.kick++;
+    else if(p1.state==='special')ai.special++;
+    else if(p1.state==='block')ai.block++;
+  }
+
+  // Track how many times CPU got hit consecutively
+  if(p2.state==='hurt'){ai.comboHits++;}
+  else if(p2.state!=='block'){ai.comboHits=0;}
+
+  // Calculate player tendency (0-1 weights)
+  var total=ai.punch+ai.kick+ai.special+1;
+  var punchRate=ai.punch/total;   // user punches a lot?
+  var kickRate=ai.kick/total;     // user kicks a lot?
+  var specRate=ai.special/total;  // user spams special?
+
+  // === ADAPTIVE RESPONSE ===
+  // If CPU gets hit 2+ times in a row → BLOCK immediately
+  if(ai.comboHits>=2&&canAct2&&p2.cd<=0&&dist<130){
+    p2.state='block';p2.cd=14;snd('block');ai.comboHits=0;return;
+  }
+
+  // DODGE-AFTER-HURT: small sidestep
   if(p2.state==='hurt'&&p2.af>=8&&Math.random()<0.3){
     var escH=p2.x>p1.x?1:-1;
     p2.x+=escH*p2.ch.spd*0.5*gs.SC;
     p2.x=Math.max(30,Math.min(gs.W-30,p2.x));
   }
 
-  // DODGE: small sidestep when player attacks very close
-  if(canAct2&&p2.cd<=0&&p1Attacking&&dist<80&&Math.random()<0.15+G.stage*0.01){
+  // DODGE: sidestep when player attacks close
+  // Dodge more if player is kick-dominant (kicks have more range)
+  var dodgeChance=0.12+G.stage*0.01+(kickRate*0.15);
+  if(canAct2&&p2.cd<=0&&p1Attacking&&dist<90&&Math.random()<dodgeChance){
     var dDir=p2.x>p1.x?1:-1;
-    p2.x+=dDir*p2.ch.spd*0.6*gs.SC; // tiny step only
+    p2.x+=dDir*p2.ch.spd*0.6*gs.SC;
     p2.x=Math.max(30,Math.min(gs.W-30,p2.x));
     p2.state='walk';return;
   }
@@ -724,19 +757,31 @@ function cpuThink(gs){
   var react=Math.max(12,55-G.stage*3)+Math.floor(Math.random()*18);
   G.cpuTick=react;
   var r=Math.random();
-  var aggr=0.40+G.stage*0.04;
-  var blk=0.12+G.stage*0.02;
+
+  // Adaptive aggression: counter punch-spammers more
+  var aggr=0.38+G.stage*0.04+(punchRate*0.12);
+  // Adaptive block: block more vs special-spammers
+  var blk=0.10+G.stage*0.02+(specRate*0.18)+(punchRate*0.08);
+
   if(dist<200){
-    // BLOCK when player attacks
+    // BLOCK when player attacks (adaptive rate)
     if(p1Attacking&&r<blk){p2.state='block';p2.cd=10;snd('block');return;}
-    // Counter after block
+    // Counter after block - prefer kick vs punch-spammers, punch vs kick-spammers
     if(p2.state==='block'&&Math.random()<0.55){
-      p2.state='punch';p2.af=0;p2.cd=12;snd('punch');doAttack(p2,p1,'punch',gs);return;
+      var counter=punchRate>kickRate?'kick':'punch'; // counter with opposite
+      p2.state=counter;p2.af=0;p2.cd={punch:12,kick:18}[counter];
+      snd(counter);doAttack(p2,p1,counter,gs);return;
     }
-    // ATTACK
+    // ATTACK: prefer special if player blocks a lot, kick if player punches a lot
     if(r<aggr){
-      var opts=['punch','kick'];if(p2.energy>=100)opts.push('special');
-      var act=opts[Math.floor(Math.random()*opts.length)];
+      var opts=['punch','kick'];
+      if(p2.energy>=100)opts.push('special');
+      // Weight attack choice based on player pattern
+      var act;
+      if(ai.block>5&&p2.energy>=100){act='special';} // player blocks → use special
+      else if(punchRate>0.5){act='kick';}             // player punches → counter with kick
+      else if(kickRate>0.5){act='punch';}             // player kicks → counter with punch
+      else{act=opts[Math.floor(Math.random()*opts.length)];}
       p2.state=act;p2.af=0;p2.cd={punch:12,kick:18,special:24}[act]||12;
       if(act==='special')p2.energy=0;snd(act);doAttack(p2,p1,act,gs);
     }
