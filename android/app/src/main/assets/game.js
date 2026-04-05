@@ -662,10 +662,7 @@ function doAttack(attacker,defender,type,gs){
       var kb=blocked?3:(type==='special'?18:type==='kick'?12:6);
       defender.x+=attacker.dir*kb;
       defender.x=Math.max(30,Math.min(gs.W-30,defender.x));
-      // FLOATING DAMAGE TEXT (no combo - combo shown in center)
-      var ftxt=blocked?'BLOCKED!':dmg+' DMG';
-      var fcol=blocked?'#60a5fa':(type==='special'?'#fbbf24':'#fff');
-      gs.floatTexts.push({x:defender.x,y:defender.y-defender.H*0.7,text:ftxt,color:fcol,life:60,vy:-1.5});
+
       if(gs.finishHim&&defender.hp<=0){
         gs.finishHim=false;
         announce(attacker.ch.name+' wins',100);
@@ -889,21 +886,6 @@ function fightLoop(){
   drawFighter(ctx,p1,gs.frame);
   drawFighter(ctx,p2,gs.frame);
 
-  // FLOATING DAMAGE TEXTS
-  ctx.textAlign='center';ctx.textBaseline='middle';
-  for(var fi=gs.floatTexts.length-1;fi>=0;fi--){
-    var ft=gs.floatTexts[fi];
-    ft.y+=ft.vy;ft.life--;
-    var alpha=Math.min(1,ft.life/20);
-    ctx.globalAlpha=alpha;
-    ctx.font='bold '+Math.round(H*0.06)+'px Rajdhani,Impact,sans-serif';
-    ctx.strokeStyle='rgba(0,0,0,0.8)';ctx.lineWidth=3;
-    ctx.strokeText(ft.text,ft.x,ft.y);
-    ctx.fillStyle=ft.color;
-    ctx.fillText(ft.text,ft.x,ft.y);
-    if(ft.life<=0)gs.floatTexts.splice(fi,1);
-  }
-  ctx.globalAlpha=1;
 
   // ROUND ANNOUNCE overlay
   if(gs.phase==='roundAnnounce'){
