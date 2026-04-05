@@ -721,8 +721,10 @@ function cpuThink(gs){
   var specRate=ai.special/total;  // user spams special?
 
   // === ADAPTIVE RESPONSE ===
-  // If CPU gets hit 2+ times in a row → BLOCK immediately
-  if(ai.comboHits>=2&&canAct2&&p2.cd<=0&&dist<130){
+  // Stage-based handicap: early stages CPU makes mistakes
+  var skillLevel=Math.min(1.0, 0.3 + G.stage*0.05); // 0.35 at stage 1, 1.0 at stage 14+
+  // If CPU gets hit 3+ times in a row → BLOCK
+  if(ai.comboHits>=3&&canAct2&&p2.cd<=0&&dist<130){
     p2.state='block';p2.cd=14;snd('block');ai.comboHits=0;return;
   }
 
@@ -758,17 +760,20 @@ function cpuThink(gs){
   G.cpuTick=react;
   var r=Math.random();
 
-  // Adaptive aggression: counter punch-spammers more
-  var aggr=0.38+G.stage*0.04+(punchRate*0.12);
-  // Adaptive block: block more vs special-spammers
-  var blk=0.10+G.stage*0.02+(specRate*0.18)+(punchRate*0.08);
+  // Intentional mistake at low stages - CPU does nothing sometimes
+  if(Math.random()>skillLevel){return;} // CPU hesitates
+
+  // Adaptive aggression CAPPED at 0.60 max
+  var aggr=Math.min(0.60, 0.28+G.stage*0.03+(punchRate*0.10));
+  // Adaptive block CAPPED at 0.25 max so user can land hits
+  var blk=Math.min(0.25, 0.06+G.stage*0.015+(specRate*0.10)+(punchRate*0.06));
 
   if(dist<200){
     // BLOCK when player attacks (adaptive rate)
     if(p1Attacking&&r<blk){p2.state='block';p2.cd=10;snd('block');return;}
-    // Counter after block - prefer kick vs punch-spammers, punch vs kick-spammers
-    if(p2.state==='block'&&Math.random()<0.55){
-      var counter=punchRate>kickRate?'kick':'punch'; // counter with opposite
+    // Counter after block - prefer opposite attack type
+    if(p2.state==='block'&&Math.random()<0.35*skillLevel){
+      var counter=punchRate>kickRate?'kick':'punch';
       p2.state=counter;p2.af=0;p2.cd={punch:12,kick:18}[counter];
       snd(counter);doAttack(p2,p1,counter,gs);return;
     }
