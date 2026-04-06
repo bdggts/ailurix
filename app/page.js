@@ -415,17 +415,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ PRESS ════════════════════════════════════════════════ */}
-      <section style={{ padding: '56px 48px', borderBottom: `1px solid ${C.border}` }}>
-        <div style={{ maxWidth: 1180, margin: '0 auto', textAlign: 'center' }}>
-          <div style={{ fontSize: 9.5, color: C.dim, letterSpacing: 3, fontFamily: orb, fontWeight: 700, marginBottom: 28 }}>AS FEATURED IN</div>
-          <div style={{ display: 'flex', gap: 48, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
-            {PRESS.map(p => (
-              <span key={p} style={{ fontFamily: orb, fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,.18)', letterSpacing: 1.5 }}>{p}</span>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ═══ CTA ══════════════════════════════════════════════════ */}
       <section style={{ padding: '100px 48px', textAlign: 'center', background: 'radial-gradient(ellipse at center,rgba(245,158,11,.05) 0%,transparent 70%)' }}>
