@@ -806,15 +806,20 @@ function endRound(gs){
   var rw=gs.p1.hp>gs.p2.hp?'P1':gs.p2.hp>gs.p1.hp?'P2':'DRAW';
   if(rw==='P1')gs.p1r++;else if(rw==='P2')gs.p2r++;
   var winner=rw==='P1'?gs.p1:gs.p2;
+  var loser=rw==='P1'?gs.p2:gs.p1;
   var flawless=winner.dmgTaken===0;
   if(flawless){
     gs.roundOverText='FLAWLESS VICTORY';
     gs.roundOverColor='#f59e0b';
     announce('Flawless Victory',400);
+  } else if(rw==='DRAW'){
+    gs.roundOverText='DRAW';
+    gs.roundOverColor='#94a3b8';
+    announce('Draw',400);
   } else {
-    gs.roundOverText=winner.ch.name+' WINS';
+    gs.roundOverText=loser.ch.name+' DEFEATED!';
     gs.roundOverColor=winner.ch.color;
-    announce(winner.ch.name+' wins',500);
+    announce(winner.ch.name+' wins. '+loser.ch.name+' defeated!',500);
   }
   setTimeout(function(){
     if(G.stopped)return;
@@ -986,13 +991,13 @@ function fightLoop(){
     ctx.restore();
   }
 
-  // KO / Round Over overlay (MK style)
+  // DEFEATED / Round Over overlay
   if(gs.phase==='roundOver'||gs.phase==='matchOver'){
     ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(0,0,W,H);
     ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.shadowColor='#ef4444';ctx.shadowBlur=50;ctx.fillStyle='#ef4444';
     ctx.font='bold '+Math.round(H*0.2)+'px Rajdhani,Impact,sans-serif';
-    ctx.fillText('K.O.',W/2,H*0.38);
+    ctx.fillText('DEFEATED!',W/2,H*0.38);
     ctx.shadowBlur=0;
     var winText=gs.roundOverText||'ROUND OVER';
     var winCol=gs.roundOverColor||'#fff';
