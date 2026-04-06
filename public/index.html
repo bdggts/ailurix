@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="description" content="Ailurix Studios - Building the future of blockchain gaming. Play, Earn, and Own with $ARX token."/>
+<title>Ailurix Studios | Play. Earn. Own.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#f59e0b;--red:#ef4444;--purple:#8b5cf6;
+  --bg:#030308;--card:rgba(255,255,255,0.04);
+  --border:rgba(255,255,255,0.08);
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:#fff;font-family:'Inter',sans-serif;overflow-x:hidden;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 40px;
+  background:rgba(3,3,8,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);}
+.nav-logo{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;
+  color:var(--gold);letter-spacing:2px;text-decoration:none;}
+.nav-logo span{color:#fff;}
+.nav-links{display:flex;gap:32px;list-style:none;}
+.nav-links a{color:rgba(255,255,255,0.6);text-decoration:none;font-size:14px;font-weight:500;
+  letter-spacing:0.5px;transition:color .2s;}
+.nav-links a:hover{color:#fff;}
+.nav-cta{background:linear-gradient(135deg,var(--gold),var(--red));
+  color:#000;padding:10px 24px;border-radius:25px;
+  font-weight:700;font-size:14px;letter-spacing:1px;text-decoration:none;
+  font-family:'Orbitron',sans-serif;transition:all .2s;}
+.nav-cta:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(245,158,11,0.4);}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;text-align:center;position:relative;overflow:hidden;
+  padding:120px 20px 80px;}
+.hero-bg{position:absolute;inset:0;
+  background:radial-gradient(ellipse at 30% 50%,rgba(245,158,11,0.08) 0%,transparent 60%),
+             radial-gradient(ellipse at 70% 50%,rgba(139,92,246,0.08) 0%,transparent 60%),
+             radial-gradient(ellipse at 50% 100%,rgba(239,68,68,0.05) 0%,transparent 50%);}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;
+  background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);
+  border-radius:20px;padding:6px 16px;margin-bottom:24px;
+  font-size:12px;font-weight:600;color:#ef4444;letter-spacing:2px;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#ef4444;
+  animation:blink 1s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.hero-title{font-family:'Orbitron',sans-serif;
+  font-size:clamp(42px,8vw,96px);font-weight:900;line-height:1;
+  letter-spacing:2px;margin-bottom:12px;}
+.hero-title .gold{
+  background:linear-gradient(135deg,#f59e0b,#fbbf24);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-family:'Orbitron',sans-serif;font-size:clamp(14px,3vw,22px);
+  color:rgba(255,255,255,0.4);letter-spacing:6px;margin-bottom:32px;}
+.hero-tagline{font-size:18px;color:rgba(255,255,255,0.6);
+  margin-bottom:40px;max-width:500px;line-height:1.6;}
+.hero-btns{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--red));
+  color:#000;padding:16px 40px;border-radius:50px;font-weight:900;
+  font-size:16px;letter-spacing:2px;text-decoration:none;
+  font-family:'Orbitron',sans-serif;
+  box-shadow:0 0 30px rgba(245,158,11,0.3);
+  animation:glowPulse 2s ease-in-out infinite;transition:transform .2s;}
+.btn-primary:hover{transform:scale(1.05);}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 30px rgba(245,158,11,0.3);}
+  50%{box-shadow:0 0 50px rgba(245,158,11,0.6);}}
+.btn-secondary{border:1px solid var(--border);color:rgba(255,255,255,0.7);
+  padding:16px 40px;border-radius:50px;font-weight:600;
+  font-size:16px;letter-spacing:1px;text-decoration:none;
+  backdrop-filter:blur(10px);transition:all .2s;}
+.btn-secondary:hover{border-color:rgba(255,255,255,0.3);color:#fff;}
+.hero-stats{display:flex;gap:48px;margin-top:64px;flex-wrap:wrap;justify-content:center;}
+.h-stat-val{font-family:'Orbitron',sans-serif;font-size:32px;font-weight:900;color:var(--gold);}
+.h-stat-lbl{font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:2px;margin-top:4px;}
+
+/* SECTION BASE */
+section{padding:100px 20px;}
+.container{max-width:1100px;margin:0 auto;}
+.section-tag{font-size:10px;font-weight:700;letter-spacing:4px;color:var(--gold);
+  font-family:'Orbitron',sans-serif;margin-bottom:12px;}
+.section-title{font-family:'Orbitron',sans-serif;font-size:clamp(28px,4vw,48px);
+  font-weight:900;line-height:1.1;margin-bottom:16px;}
+.section-sub{font-size:16px;color:rgba(255,255,255,0.5);max-width:500px;line-height:1.7;}
+
+/* GAMES */
+#games{background:rgba(255,255,255,0.01);}
+.games-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:24px;margin-top:48px;}
+.game-card{border-radius:20px;border:1px solid var(--border);
+  background:var(--card);overflow:hidden;position:relative;
+  transition:transform .3s,border-color .3s;}
+.game-card:hover{transform:translateY(-6px);border-color:rgba(245,158,11,0.3);}
+.game-card-img{height:200px;display:flex;align-items:center;justify-content:center;
+  font-size:80px;position:relative;overflow:hidden;}
+.game-arena .game-card-img{
+  background:linear-gradient(135deg,rgba(239,68,68,0.15),rgba(245,158,11,0.15));}
+.game-farm .game-card-img{
+  background:linear-gradient(135deg,rgba(34,197,94,0.15),rgba(16,185,129,0.1));}
+.game-card-body{padding:24px;}
+.game-badge{display:inline-block;padding:3px 10px;border-radius:10px;
+  font-size:9px;font-weight:700;letter-spacing:2px;margin-bottom:10px;}
+.badge-live{background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);}
+.badge-soon{background:rgba(245,158,11,0.1);color:var(--gold);border:1px solid rgba(245,158,11,0.2);}
+.game-name{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;margin-bottom:8px;}
+.game-desc{font-size:14px;color:rgba(255,255,255,0.5);line-height:1.6;margin-bottom:20px;}
+.game-link{display:inline-flex;align-items:center;gap:8px;
+  color:var(--gold);font-weight:700;font-size:14px;text-decoration:none;
+  font-family:'Orbitron',sans-serif;letter-spacing:1px;transition:gap .2s;}
+.game-link:hover{gap:14px;}
+
+/* TOKEN */
+#token{position:relative;overflow:hidden;}
+.token-bg{position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 50%,rgba(139,92,246,0.1),transparent 70%);}
+.token-card{border-radius:24px;border:1px solid rgba(139,92,246,0.2);
+  background:rgba(139,92,246,0.05);padding:48px;
+  display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;}
+.token-symbol{font-family:'Orbitron',sans-serif;font-size:80px;font-weight:900;
+  background:linear-gradient(135deg,var(--purple),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  line-height:1;}
+.token-name{font-family:'Orbitron',sans-serif;font-size:14px;
+  color:rgba(255,255,255,0.4);letter-spacing:4px;margin-top:8px;}
+.token-features{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:32px;}
+.token-feat{background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:14px;padding:16px;}
+.feat-icon{font-size:24px;margin-bottom:8px;}
+.feat-title{font-size:13px;font-weight:700;margin-bottom:4px;font-family:'Orbitron',sans-serif;}
+.feat-desc{font-size:12px;color:rgba(255,255,255,0.4);line-height:1.5;}
+.token-right{}
+.earn-burn{display:flex;flex-direction:column;gap:16px;}
+.eb-item{display:flex;align-items:center;gap:16px;
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  border-radius:14px;padding:16px;}
+.eb-icon{font-size:28px;flex-shrink:0;}
+.eb-title{font-size:13px;font-weight:700;font-family:'Orbitron',sans-serif;}
+.eb-desc{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.earn .eb-title{color:#22c55e;}
+.burn .eb-title{color:#ef4444;}
+
+/* ROADMAP */
+.roadmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:24px;margin-top:48px;position:relative;}
+.rm-card{border-radius:16px;border:1px solid var(--border);
+  background:var(--card);padding:24px;position:relative;}
+.rm-card.active{border-color:rgba(245,158,11,0.4);
+  background:rgba(245,158,11,0.04);}
+.rm-phase{font-size:9px;font-weight:700;letter-spacing:3px;
+  color:rgba(255,255,255,0.3);font-family:'Orbitron',sans-serif;margin-bottom:8px;}
+.rm-card.active .rm-phase{color:var(--gold);}
+.rm-title{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;margin-bottom:12px;}
+.rm-items{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.rm-items li{font-size:13px;color:rgba(255,255,255,0.5);padding-left:16px;position:relative;}
+.rm-items li::before{content:"→";position:absolute;left:0;color:var(--gold);font-weight:700;}
+.rm-card.active .rm-items li{color:rgba(255,255,255,0.8);}
+.rm-status{display:inline-block;margin-top:16px;padding:4px 12px;
+  border-radius:10px;font-size:9px;font-weight:700;letter-spacing:2px;}
+.status-live{background:rgba(34,197,94,0.15);color:#22c55e;}
+.status-build{background:rgba(245,158,11,0.1);color:var(--gold);}
+.status-soon{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3);}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:40px 20px;text-align:center;}
+.footer-logo{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:900;
+  color:var(--gold);letter-spacing:3px;margin-bottom:8px;}
+.footer-sub{font-size:12px;color:rgba(255,255,255,0.25);letter-spacing:1px;}
+.footer-links{display:flex;gap:24px;justify-content:center;margin:20px 0;flex-wrap:wrap;}
+.footer-links a{color:rgba(255,255,255,0.4);text-decoration:none;font-size:13px;
+  transition:color .2s;}
+.footer-links a:hover{color:#fff;}
+
+/* PARTICLES */
+.particle{position:fixed;pointer-events:none;border-radius:50%;
+  background:rgba(245,158,11,0.4);animation:float linear infinite;}
+@keyframes float{
+  0%{transform:translateY(100vh) scale(0);opacity:0;}
+  10%{opacity:1;}
+  90%{opacity:0.3;}
+  100%{transform:translateY(-10vh) scale(1);opacity:0;}
+}
+@media(max-width:768px){
+  nav{padding:14px 20px;}
+  .nav-links{display:none;}
+  .token-card{grid-template-columns:1fr;gap:24px;padding:24px;}
+  .hero-stats{gap:24px;}
+  .token-features{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">AIL<span>URIX</span></a>
+  <ul class="nav-links">
+    <li><a href="#games">Games</a></li>
+    <li><a href="#token">Token</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+  </ul>
+  <a href="game/index.html" class="nav-cta">▶ PLAY NOW</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-badge"><span class="live-dot"></span> SEASON 1 · LIVE NOW</div>
+  <h1 class="hero-title"><span class="gold">AILURIX</span><br>STUDIOS</h1>
+  <div class="hero-sub">PLAY · EARN · OWN</div>
+  <p class="hero-tagline">The future of blockchain gaming.<br>Play games, earn <strong style="color:var(--gold)">$ARX tokens</strong>, build your empire.</p>
+  <div class="hero-btns">
+    <a href="game/index.html" class="btn-primary">⚔️ PLAY AILURIX ARENA</a>
+    <a href="#token" class="btn-secondary">🪙 $ARX TOKEN</a>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <div class="h-stat-val">1M+</div>
+      <div class="h-stat-lbl">PLAYERS</div>
+    </div>
+    <div>
+      <div class="h-stat-val">4.8★</div>
+      <div class="h-stat-lbl">RATING</div>
+    </div>
+    <div>
+      <div class="h-stat-val">#1</div>
+      <div class="h-stat-lbl">FIGHTING GAME</div>
+    </div>
+    <div>
+      <div class="h-stat-val">$ARX</div>
+      <div class="h-stat-lbl">TOKEN · COMING SOON</div>
+    </div>
+  </div>
+</section>
+
+<!-- GAMES -->
+<section id="games">
+  <div class="container">
+    <div class="section-tag">OUR GAMES</div>
+    <h2 class="section-title">Games by Ailurix Studios</h2>
+    <p class="section-sub">Each game earns you $ARX tokens. Spend them in-game or hold for value.</p>
+    <div class="games-grid">
+      <div class="game-card game-arena">
+        <div class="game-card-img">⚔️</div>
+        <div class="game-card-body">
+          <span class="game-badge badge-live">● LIVE NOW</span>
+          <div class="game-name">AILURIX ARENA</div>
+          <p class="game-desc">A pixel-art fighting game with 16 alien fighters. Defeat the tower, earn $ARX, and prove you're the ultimate champion.</p>
+          <a href="game/index.html" class="game-link">PLAY NOW →</a>
+        </div>
+      </div>
+      <div class="game-card game-farm">
+        <div class="game-card-img">🌾</div>
+        <div class="game-card-body">
+          <span class="game-badge badge-soon">COMING SOON</span>
+          <div class="game-name">AILURIX FARM</div>
+          <p class="game-desc">Build and manage your blockchain farm. Harvest crops, trade resources, and earn $ARX tokens through the DeFi farming ecosystem.</p>
+          <a href="#roadmap" class="game-link">SEE ROADMAP →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOKEN -->
+<section id="token">
+  <div class="token-bg"></div>
+  <div class="container" style="position:relative;">
+    <div class="section-tag">BLOCKCHAIN</div>
+    <h2 class="section-title">The $ARX Token</h2>
+    <p class="section-sub" style="margin-bottom:40px;">One token. All games. Real value.</p>
+    <div class="token-card">
+      <div>
+        <div class="token-symbol">$ARX</div>
+        <div class="token-name">AILURIX TOKEN · BASE CHAIN</div>
+        <div class="token-features">
+          <div class="token-feat">
+            <div class="feat-icon">⛓️</div>
+            <div class="feat-title">Base Chain</div>
+            <div class="feat-desc">Ultra-low gas fees. Coinbase backed. EVM compatible.</div>
+          </div>
+          <div class="token-feat">
+            <div class="feat-icon">🔥</div>
+            <div class="feat-title">Deflationary</div>
+            <div class="feat-desc">Burn rate > earn rate. Token value increases over time.</div>
+          </div>
+          <div class="token-feat">
+            <div class="feat-icon">🎮</div>
+            <div class="feat-title">Multi-Game</div>
+            <div class="feat-desc">Works across all Ailurix Studios games.</div>
+          </div>
+          <div class="token-feat">
+            <div class="feat-icon">💎</div>
+            <div class="feat-title">Real Utility</div>
+            <div class="feat-desc">Skins, tournaments, power-ups, NFTs.</div>
+          </div>
+        </div>
+      </div>
+      <div class="token-right">
+        <div style="font-family:'Orbitron',sans-serif;font-size:13px;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-bottom:20px;">HOW IT WORKS</div>
+        <div class="earn-burn">
+          <div class="eb-item earn">
+            <div class="eb-icon">💰</div>
+            <div>
+              <div class="eb-title">EARN $ARX</div>
+              <div class="eb-desc">Win fights · Complete stages · Daily missions · Beat the boss</div>
+            </div>
+          </div>
+          <div class="eb-item burn">
+            <div class="eb-icon">🔥</div>
+            <div>
+              <div class="eb-title">BURN $ARX</div>
+              <div class="eb-desc">Unlock skins · Enter tournaments · Buy power-ups · Mint NFTs</div>
+            </div>
+          </div>
+          <div class="eb-item" style="border-color:rgba(139,92,246,0.3);">
+            <div class="eb-icon">📈</div>
+            <div>
+              <div class="eb-title" style="color:var(--purple);">RESULT</div>
+              <div class="eb-desc">Burn > Earn = Deflationary = $ARX value grows</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="container">
+    <div class="section-tag">ROADMAP</div>
+    <h2 class="section-title">What's Coming</h2>
+    <p class="section-sub">Building the Ailurix gaming ecosystem step by step.</p>
+    <div class="roadmap">
+      <div class="rm-card active">
+        <div class="rm-phase">PHASE 1</div>
+        <div class="rm-title">Arena Launch</div>
+        <ul class="rm-items">
+          <li>16 fighter characters</li>
+          <li>15-stage tower mode</li>
+          <li>Adaptive AI system</li>
+          <li>Studio branding</li>
+        </ul>
+        <span class="rm-status status-live">● LIVE</span>
+      </div>
+      <div class="rm-card">
+        <div class="rm-phase">PHASE 2</div>
+        <div class="rm-title">Token & Earn</div>
+        <ul class="rm-items">
+          <li>$ARX token deploy</li>
+          <li>Wallet connect</li>
+          <li>Win-to-earn system</li>
+          <li>Tournament mode</li>
+        </ul>
+        <span class="rm-status status-build">⚡ BUILDING</span>
+      </div>
+      <div class="rm-card">
+        <div class="rm-phase">PHASE 3</div>
+        <div class="rm-title">Ailurix Farm</div>
+        <ul class="rm-items">
+          <li>Farming game launch</li>
+          <li>Same $ARX token</li>
+          <li>Land NFTs</li>
+          <li>DeFi integration</li>
+        </ul>
+        <span class="rm-status status-soon">SOON</span>
+      </div>
+      <div class="rm-card">
+        <div class="rm-phase">PHASE 4</div>
+        <div class="rm-title">Ecosystem</div>
+        <ul class="rm-items">
+          <li>DEX listing</li>
+          <li>CoinGecko listing</li>
+          <li>New games</li>
+          <li>DAO governance</li>
+        </ul>
+        <span class="rm-status status-soon">2027</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">AILURIX</div>
+  <div class="footer-sub">STUDIOS</div>
+  <div class="footer-links">
+    <a href="game/index.html">🎮 Play Arena</a>
+    <a href="#token">🪙 $ARX Token</a>
+    <a href="#roadmap">📋 Roadmap</a>
+    <a href="mailto:hello@ailurix.com">✉️ Contact</a>
+  </div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.15);margin-top:8px;">
+    © 2026 Ailurix Studios LLC · ailurix.com · All Rights Reserved
+  </div>
+</footer>
+
+<script>
+// Floating particles
+for(var i=0;i<15;i++){
+  var p=document.createElement('div');
+  p.className='particle';
+  var size=Math.random()*4+2;
+  p.style.cssText='width:'+size+'px;height:'+size+'px;left:'+Math.random()*100+'vw;animation-duration:'+(Math.random()*15+10)+'s;animation-delay:'+(-Math.random()*20)+'s;opacity:'+(Math.random()*0.4+0.1);
+  document.body.appendChild(p);
+}
+</script>
+</body>
+</html>
