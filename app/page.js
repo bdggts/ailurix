@@ -35,6 +35,23 @@ const ROADMAP = [
   { n: '04', title: 'Ecosystem', status: 'UPCOMING', color: 'rgba(255,255,255,0.2)', items: ['DEX listing', 'CoinGecko / CMC', 'New game titles', 'DAO governance'] },
 ];
 const PRESS = ['TechCrunch', 'CoinDesk', 'The Block', 'Decrypt', 'GamesBeat', 'Cointelegraph'];
+const TEAM = [
+  { name: 'Alex Rivera',    role: 'CEO & Game Director',    dept: 'Leadership',    initials: 'AR', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+  { name: 'Priya Sharma',   role: 'Chief Technology Officer', dept: 'Engineering',   initials: 'PS', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)' },
+  { name: 'Marcus Chen',    role: 'Blockchain Developer',   dept: 'Web3',          initials: 'MC', color: '#06b6d4', bg: 'rgba(6,182,212,0.12)' },
+  { name: 'Sofia Morano',   role: 'Lead Artist & Animator', dept: 'Art & Design',   initials: 'SM', color: '#ec4899', bg: 'rgba(236,72,153,0.12)' },
+  { name: 'James Kim',      role: 'Game Designer',          dept: 'Game Design',   initials: 'JK', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+  { name: 'Layla Hassan',   role: 'Frontend Developer',     dept: 'Engineering',   initials: 'LH', color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
+  { name: 'Ryan Patel',     role: 'Smart Contract Dev',     dept: 'Web3',          initials: 'RP', color: '#f97316', bg: 'rgba(249,115,22,0.12)' },
+  { name: 'Emma Woods',     role: 'UI / UX Designer',       dept: 'Design',        initials: 'EW', color: '#a855f7', bg: 'rgba(168,85,247,0.12)' },
+  { name: 'Carlos Ruiz',    role: 'Backend Developer',      dept: 'Engineering',   initials: 'CR', color: '#38bdf8', bg: 'rgba(56,189,248,0.12)' },
+  { name: 'Nia Johnson',    role: 'Community Manager',      dept: 'Marketing',     initials: 'NJ', color: '#84cc16', bg: 'rgba(132,204,22,0.12)' },
+  { name: 'David Park',     role: '3D Animator',            dept: 'Art & Design',   initials: 'DP', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+  { name: 'Zara Ahmed',     role: 'Marketing Lead',         dept: 'Marketing',     initials: 'ZA', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+  { name: 'Tom Mitchell',   role: 'QA Lead Engineer',       dept: 'Quality',       initials: 'TM', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)' },
+  { name: 'Yuki Tanaka',    role: 'Sound Designer',         dept: 'Audio',         initials: 'YT', color: '#06b6d4', bg: 'rgba(6,182,212,0.12)' },
+  { name: 'Lucas Ferreira', role: 'DevOps Engineer',        dept: 'Infrastructure',initials: 'LF', color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
+];
 
 const orb = "'Orbitron','Rajdhani',sans-serif";
 const C = { gold: '#f59e0b', red: '#ef4444', border: 'rgba(255,255,255,0.07)', dim: 'rgba(255,255,255,0.42)', card: 'rgba(255,255,255,0.025)' };
@@ -215,6 +232,50 @@ export default function Home() {
                   </div>
                 </div>
               </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ TEAM ═══════════════════════════════════════════════ */}
+      <section id="team" style={{ padding: '120px 0', borderBottom: `1px solid ${C.border}`, overflow: 'hidden' }}>
+        <style>{`
+          @keyframes teamScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+          .team-track { animation: teamScroll 35s linear infinite; }
+          .team-track:hover { animation-play-state: paused; }
+          .team-card:hover .team-card-inner { border-color: var(--tc) !important; background: var(--tb) !important; }
+          .team-card:hover .team-dept { opacity: 1 !important; }
+        `}</style>
+
+        <div style={{ maxWidth: 1180, margin: '0 auto', padding: '0 48px', marginBottom: 56 }}>
+          <Reveal>
+            <div style={{ fontSize: 10, letterSpacing: 4, color: C.gold, fontFamily: orb, fontWeight: 700, marginBottom: 14 }}>THE TEAM</div>
+            <h2 style={{ fontFamily: orb, fontSize: 'clamp(26px,4vw,50px)', fontWeight: 900 }}>The people behind<br />Ailurix Studios.</h2>
+          </Reveal>
+        </div>
+
+        {/* Scrolling strip */}
+        <div style={{ position: 'relative' }}>
+          {/* Left fade */}
+          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 120, background: 'linear-gradient(to right, #020207, transparent)', zIndex: 10, pointerEvents: 'none' }} />
+          {/* Right fade */}
+          <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 120, background: 'linear-gradient(to left, #020207, transparent)', zIndex: 10, pointerEvents: 'none' }} />
+
+          <div className="team-track" style={{ display: 'flex', gap: 20, width: 'fit-content', padding: '8px 0' }}>
+            {[...TEAM, ...TEAM].map((m, i) => (
+              <div key={i} className="team-card" style={{ '--tc': m.color, '--tb': m.bg, flexShrink: 0, width: 220, cursor: 'default' }}>
+                <div className="team-card-inner" style={{ padding: '28px 24px', border: `1px solid ${C.border}`, background: C.card, borderRadius: 4, transition: 'border-color .3s, background .3s', textAlign: 'center' }}>
+                  {/* Avatar */}
+                  <div style={{ width: 68, height: 68, borderRadius: '50%', background: m.bg, border: `2px solid ${m.color}30`, margin: '0 auto 18px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color .3s', position: 'relative' }}>
+                    {/* Glow ring */}
+                    <div style={{ position: 'absolute', inset: -4, borderRadius: '50%', border: `1px solid ${m.color}20`, transition: 'border-color .3s' }} />
+                    <span style={{ fontFamily: orb, fontSize: 18, fontWeight: 900, color: m.color }}>{m.initials}</span>
+                  </div>
+                  <div style={{ fontFamily: orb, fontSize: 12.5, fontWeight: 900, letterSpacing: 1, color: '#fff', marginBottom: 7 }}>{m.name}</div>
+                  <div style={{ fontSize: 11.5, color: C.dim, lineHeight: 1.5, marginBottom: 10 }}>{m.role}</div>
+                  <div className="team-dept" style={{ display: 'inline-block', fontSize: 9, fontFamily: orb, fontWeight: 700, letterSpacing: 2, color: m.color, background: m.bg, border: `1px solid ${m.color}30`, padding: '3px 10px', borderRadius: 20, opacity: 0.6, transition: 'opacity .3s' }}>{m.dept}</div>
+                </div>
+              </div>
             ))}
           </div>
         </div>

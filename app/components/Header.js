@@ -9,6 +9,7 @@ const NAV_LINKS = [
   ['Games', '#games'],
   ['Token', '#token'],
   ['Roadmap', '#roadmap'],
+  ['Team', '#team'],
 ];
 
 export default function Header({ onHover }) {
