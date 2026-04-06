@@ -1,8 +1,8 @@
 {
-  "name": "Dominex Arena — Fight & Earn",
-  "short_name": "Dominex",
-  "description": "The most addictive crypto fighting game. Fight through 15 stages, earn $DMX tokens.",
-  "start_url": "/arena",
+  "name": "Ailurix Arena — Play & Earn $ARX",
+  "short_name": "Ailurix",
+  "description": "The #1 blockchain fighting game by Ailurix Studios. Fight 15 stages, earn $ARX tokens.",
+  "start_url": "/game/",
   "display": "fullscreen",
   "orientation": "landscape",
   "background_color": "#030308",

@@ -1,18 +1,11 @@
-// Dominex Arena Service Worker - Offline Support
-var CACHE_NAME = 'dominex-v4';
+// Ailurix Studios Service Worker
+var CACHE_NAME = 'ailurix-v1';
 var ASSETS = [
-  '/arena',
+  '/',
   '/manifest.json',
+  '/game/',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-  '/chars/scorpion.png',
-  '/chars/subzero.png',
-  '/chars/liukang.png',
-  '/chars/raiden.png',
-  '/chars/reptile.png',
-  '/chars/kitana.png',
-  '/chars/cyrax.png',
-  '/chars/sektor.png',
 ];
 
 self.addEventListener('install', function(e) {
@@ -37,10 +30,8 @@ self.addEventListener('activate', function(e) {
 });
 
 self.addEventListener('fetch', function(e) {
-  // Network first, fallback to cache
   e.respondWith(
     fetch(e.request).then(function(res) {
-      // Cache successful responses
       if (res.status === 200) {
         var clone = res.clone();
         caches.open(CACHE_NAME).then(function(cache) {
