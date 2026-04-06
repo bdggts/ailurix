@@ -20,12 +20,7 @@ function Reveal({ children, delay = 0, y = 34 }) {
 }
 
 /* ─── Data ────────────────────────────────────────── */
-const FIGHTERS = [
-  { name: 'KAEL', type: 'Fire', color: '#ef4444' }, { name: 'VEXIS', type: 'Shadow', color: '#8b5cf6' },
-  { name: 'ZYRA', type: 'Storm', color: '#06b6d4' }, { name: 'DRAX', type: 'Earth', color: '#84cc16' },
-  { name: 'NOVA', type: 'Cosmic', color: '#f59e0b' }, { name: 'FENIX', type: 'Inferno', color: '#f97316' },
-  { name: 'CRYOS', type: 'Ice', color: '#38bdf8' }, { name: 'UMBRA', type: 'Void', color: '#a855f7' },
-];
+
 const GAMES = [
   { id: '01', name: 'AILURIX ARENA', status: 'LIVE NOW', statusColor: '#22c55e', desc: 'A pixel-art fighting game with 16 alien fighters. Battle through a 15-stage tower, master your fighter, and defeat the final boss to earn $ARX.', highlights: ['16 Fighter Roster', '15-Stage Tower Mode', 'Adaptive CPU AI', 'Live Leaderboard'], cta: '/game', ctaLabel: 'PLAY NOW', accent: '#ef4444', comingSoon: false },
   { id: '02', name: 'MORE GAMES', status: 'COMING SOON', statusColor: '#f59e0b', desc: 'Ailurix Studios is actively developing new blockchain games. All upcoming titles will share the $ARX token economy — more details coming in Phase 3.', highlights: ['Shared $ARX Token', 'Cross-game Rewards', 'New Game Mechanics', 'To Be Announced'], cta: '#roadmap', ctaLabel: 'SEE ROADMAP', accent: '#f59e0b', comingSoon: true },
@@ -160,40 +155,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ FIGHTERS SHOWCASE ════════════════════════════════════ */}
-      <section id="fighters" style={{ padding: '120px 48px', borderBottom: `1px solid ${C.border}`, background: 'rgba(0,0,0,0.3)' }}>
-        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-          <Reveal>
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 56, flexWrap: 'wrap', gap: 16 }}>
-              <div>
-                <div style={{ fontSize: 10, letterSpacing: 4, color: C.gold, fontFamily: orb, fontWeight: 700, marginBottom: 14 }}>ROSTER</div>
-                <h2 style={{ fontFamily: orb, fontSize: 'clamp(26px,4vw,50px)', fontWeight: 900 }}>16 Alien Fighters.<br />One Arena.</h2>
-              </div>
-              <Link href="/game" style={{ padding: '12px 28px', borderRadius: 3, border: `1px solid ${C.border}`, background: C.card, color: C.dim, fontSize: 11.5, fontFamily: orb, fontWeight: 700, letterSpacing: 1.5, textDecoration: 'none', transition: 'color .2s, border-color .2s' }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.3)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = C.dim; e.currentTarget.style.borderColor = C.border; }}>
-                VIEW ALL FIGHTERS &#x2192;
-              </Link>
-            </div>
-          </Reveal>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8,1fr)', gap: 1, border: `1px solid ${C.border}` }}>
-            {FIGHTERS.map((f, i) => (
-              <Reveal key={f.name} delay={i * 50}>
-                <div style={{ padding: '28px 16px', textAlign: 'center', borderRight: `1px solid ${C.border}`, background: C.card, transition: 'background .3s', position: 'relative', overflow: 'hidden' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = `${f.color}10`; setHovered(true); }}
-                  onMouseLeave={e => { e.currentTarget.style.background = C.card; setHovered(false); }}>
-                  {/* Fighter avatar circle */}
-                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: `${f.color}18`, border: `1.5px solid ${f.color}40`, margin: '0 auto 14px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color .3s, box-shadow .3s' }}>
-                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: f.color, opacity: 0.8 }} />
-                  </div>
-                  <div style={{ fontFamily: orb, fontSize: 10.5, fontWeight: 900, letterSpacing: 1.5, color: '#fff', marginBottom: 5 }}>{f.name}</div>
-                  <div style={{ fontSize: 10, color: f.color, fontWeight: 600, letterSpacing: 1, opacity: 0.8 }}>{f.type}</div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ═══ TOKEN ════════════════════════════════════════════════ */}
       <section id="token" style={{ padding: '120px 48px', borderBottom: `1px solid ${C.border}`, position: 'relative', overflow: 'hidden' }}>
