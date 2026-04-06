@@ -1,258 +1,388 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
+/* ── Scroll Reveal Hook ─────────────────────────── */
+function useReveal() {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  return [ref, visible];
+}
+
+/* ── Reveal Wrapper ─────────────────────────────── */
+function Reveal({ children, delay = 0, direction = 'up' }) {
+  const [ref, visible] = useReveal();
+  const translateMap = { up: 'translateY(40px)', left: 'translateX(-40px)', right: 'translateX(40px)' };
+  return (
+    <div ref={ref} style={{
+      opacity: visible ? 1 : 0,
+      transform: visible ? 'translate(0,0)' : translateMap[direction],
+      transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+/* ── Data ────────────────────────────────────────── */
 const STATS = [
-  { label: 'Players', value: '1M', suffix: '+' },
-  { label: 'Rating', value: '4.8', suffix: '★' },
-  { label: 'Fighters', value: '16', suffix: '' },
-  { label: '$ARX Supply', value: '1B', suffix: '' },
+  { label: 'Active Players', value: '1M+' },
+  { label: 'User Rating', value: '4.8 / 5' },
+  { label: 'Fighter Roster', value: '16' },
+  { label: 'Token Supply', value: '1B $ARX' },
 ];
 
 const FEATURES = [
-  { icon: '⚔️', title: 'Ailurix Arena', desc: 'Pixel-art 1v1 fighting game with 16 alien fighters. Battle through 15 stages, defeat the boss, earn $ARX tokens.' },
-  { icon: '🌾', title: 'Ailurix Farm', desc: 'Blockchain farming game coming soon. Plant, harvest, trade and earn $ARX while building your farm empire.' },
-  { icon: '🧠', title: 'Adaptive AI', desc: 'Our CPU learns your fighting patterns and counters them. Punch too much? It kicks back. Keep improving to win.' },
-  { icon: '🪙', title: 'Earn $ARX', desc: 'Win fights, complete stages, beat the boss — every victory earns you $ARX tokens redeemable across all games.' },
-  { icon: '🔥', title: 'Burn Mechanics', desc: 'Spend $ARX on skins, tournaments, and power-ups. Burn rate exceeds earn rate — token is deflationary by design.' },
-  { icon: '🏆', title: 'Tournament Mode', desc: 'Enter weekly 1v1 tournaments with $ARX entry fee. 70% of pool goes to winners. 30% burned forever.' },
+  { num: '01', title: 'Ailurix Arena', desc: 'Pixel-art 1v1 fighting game with 16 fighter characters. Battle through 15 stages, defeat the final boss and claim your rewards.' },
+  { num: '02', title: 'Ailurix Farm', desc: 'Blockchain farming game in development. Plant, harvest, trade resources and accumulate $ARX while building your agricultural empire.' },
+  { num: '03', title: 'Adaptive AI', desc: 'The CPU opponent learns your move patterns each round. Punch-heavy? It adapts and counters. Every match demands a new strategy.' },
+  { num: '04', title: 'Earn $ARX', desc: 'Every win, stage clear, and boss defeat generates $ARX. Tokens are credited to your wallet and redeemable across all studio games.' },
+  { num: '05', title: 'Burn Mechanics', desc: 'Spend $ARX on character skins, tournament entries, and power upgrades. Burn rate exceeds earn rate — supply contracts, value rises.' },
+  { num: '06', title: 'Tournament Mode', desc: 'Weekly competitive brackets with $ARX entry fees. 70% of the pool distributes to top finishers. 30% burned from supply permanently.' },
+];
+
+const TOKEN_ITEMS = [
+  { label: 'Network', value: 'Base Chain', sub: 'Sub-cent gas fees · Coinbase backed · EVM compatible' },
+  { label: 'Model', value: 'Deflationary', sub: 'Burn rate exceeds earn rate — net supply contracts over time' },
+  { label: 'Utility', value: 'Multi-Game', sub: 'Single token works across every Ailurix Studios title' },
+  { label: 'Earning', value: 'Play to Earn', sub: 'Win fights, complete stages, refer players — all generate $ARX' },
+];
+
+const EARN_BURN = [
+  { type: 'EARN', color: '#22c55e', items: ['Win a fight round: +2 $ARX', 'Complete a stage: +10 $ARX', 'Beat final boss: +25 $ARX', 'Daily login bonus: +1 $ARX', 'Flawless victory: +5 $ARX bonus'] },
+  { type: 'BURN', color: '#ef4444', items: ['Premium character skin: 50 $ARX', 'Tournament entry fee: 10 $ARX', 'Fight revival (extra life): 20 $ARX', 'Power-up for one match: 8 $ARX', 'NFT character mint: 200 $ARX'] },
 ];
 
 const ROADMAP = [
-  { phase: 'Phase 1', title: 'Arena Launch', status: 'done', items: ['16 Fighter Characters', '15-Stage Tower', 'Adaptive AI', 'Studio Branding'] },
-  { phase: 'Phase 2', title: 'Token & Earn', status: 'active', items: ['$ARX Token Deploy', 'Wallet Connect', 'Win-to-Earn', 'Tournament Mode'] },
-  { phase: 'Phase 3', title: 'Ailurix Farm', status: 'soon', items: ['Farming Game', 'Same $ARX Token', 'Land NFTs', 'DeFi Integration'] },
-  { phase: 'Phase 4', title: 'Ecosystem', status: 'soon', items: ['DEX Listing', 'CoinGecko', 'More Games', 'DAO Governance'] },
+  { phase: 'Phase 01', title: 'Arena Launch', status: 'done', items: ['16 fighter characters', '15-stage tower mode', 'Adaptive AI system', 'Ailurix Studios branding'] },
+  { phase: 'Phase 02', title: 'Token + Earn', status: 'active', items: ['$ARX token deploy on Base', 'Wallet connect integration', 'Win-to-earn reward system', 'Weekly tournament mode'] },
+  { phase: 'Phase 03', title: 'Ailurix Farm', status: 'soon', items: ['Farming game launch', 'Shared $ARX token economy', 'Land and resource NFTs', 'DeFi liquidity integration'] },
+  { phase: 'Phase 04', title: 'Ecosystem', status: 'soon', items: ['DEX listing (Uniswap / Base)', 'CoinGecko + CMC listing', 'Additional game titles', 'DAO governance launch'] },
 ];
 
+/* ── Styles ─────────────────────────────────────── */
+const C = {
+  gold: '#f59e0b', red: '#ef4444', purple: '#8b5cf6', green: '#22c55e',
+  dim: 'rgba(255,255,255,0.45)', border: 'rgba(255,255,255,0.08)',
+  card: 'rgba(255,255,255,0.03)',
+};
+const orbitron = "'Orbitron', 'Rajdhani', sans-serif";
+const sans = "'Inter', 'Rajdhani', sans-serif";
+
+/* ── Page ────────────────────────────────────────── */
 export default function Home() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [scrollY, setScrollY] = useState(0);
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   return (
-    <div style={{ minHeight: '100vh', fontFamily: "'Inter', 'Rajdhani', sans-serif" }}>
-      {/* Nav */}
+    <div style={{ minHeight: '100vh', fontFamily: sans, background: '#030308', color: '#fff' }}>
+
+      {/* ── NAV ── */}
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '14px 32px',
-        background: 'rgba(3,3,8,0.9)', backdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        padding: '14px 40px',
+        background: scrollY > 40 ? 'rgba(3,3,8,0.97)' : 'rgba(3,3,8,0.7)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: `1px solid ${scrollY > 40 ? C.border : 'transparent'}`,
+        transition: 'background .3s, border-color .3s',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
-            width: 36, height: 36, borderRadius: 10,
+            width: 34, height: 34, borderRadius: 8,
             background: 'linear-gradient(135deg,#f59e0b,#ef4444)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 16, fontWeight: 900, color: '#000',
+            fontSize: 15, fontWeight: 900, color: '#000', fontFamily: orbitron,
           }}>A</div>
-          <span style={{ fontFamily: "'Orbitron', 'Rajdhani', sans-serif", fontSize: 18, fontWeight: 900, letterSpacing: 2, color: '#fff' }}>
-            AIL<span style={{ color: '#f59e0b' }}>URIX</span>
+          <span style={{ fontFamily: orbitron, fontSize: 17, fontWeight: 900, letterSpacing: 2 }}>
+            AIL<span style={{ color: C.gold }}>URIX</span>
           </span>
         </div>
-        <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
           {['Games', 'Token', 'Roadmap'].map(l => (
-            <a key={l} href={'#' + l.toLowerCase()} style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}
+            <a key={l} href={'#' + l.toLowerCase()} style={{ color: C.dim, textDecoration: 'none', fontSize: 13, fontWeight: 600, letterSpacing: 0.5, transition: 'color .2s' }}
               onMouseEnter={e => e.target.style.color = '#fff'}
-              onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.5)'}>{l}</a>
+              onMouseLeave={e => e.target.style.color = C.dim}>{l}</a>
           ))}
           <Link href="/game" style={{
-            padding: '9px 22px', borderRadius: 25,
+            padding: '9px 24px', borderRadius: 4,
             background: 'linear-gradient(135deg,#f59e0b,#ef4444)',
-            color: '#000', fontWeight: 900, fontSize: 13, textDecoration: 'none',
-            fontFamily: "'Orbitron', sans-serif", letterSpacing: 1,
-          }}>▶ PLAY NOW</Link>
+            color: '#000', fontWeight: 900, fontSize: 12, textDecoration: 'none',
+            fontFamily: orbitron, letterSpacing: 1.5, textTransform: 'uppercase',
+          }}>Play Now</Link>
         </div>
       </nav>
 
-      {/* Hero */}
+      {/* ── HERO ── */}
       <section style={{
         minHeight: '100vh', display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', textAlign: 'center',
         padding: '120px 24px 80px', position: 'relative', overflow: 'hidden',
       }}>
-        <div style={{ position: 'absolute', width: 800, height: 800, borderRadius: '50%', background: 'radial-gradient(circle, rgba(245,158,11,.08) 0%, transparent 70%)', top: -200, left: -200, pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,.08) 0%, transparent 70%)', bottom: -150, right: -150, pointerEvents: 'none' }} />
+        {/* Parallax orbs */}
+        <div style={{
+          position: 'absolute', width: 900, height: 900, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(245,158,11,.07) 0%, transparent 70%)',
+          top: -300, left: -300, pointerEvents: 'none',
+          transform: `translateY(${scrollY * 0.15}px)`,
+          transition: 'transform 0.1s linear',
+        }} />
+        <div style={{
+          position: 'absolute', width: 700, height: 700, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(139,92,246,.06) 0%, transparent 70%)',
+          bottom: -200, right: -200, pointerEvents: 'none',
+          transform: `translateY(${-scrollY * 0.1}px)`,
+          transition: 'transform 0.1s linear',
+        }} />
+        {/* Subtle grid */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          backgroundImage: `linear-gradient(${C.border} 1px,transparent 1px),linear-gradient(90deg,${C.border} 1px,transparent 1px)`,
+          backgroundSize: '80px 80px',
+          opacity: 0.4,
+        }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: 100, padding: '6px 18px', fontSize: 12, fontWeight: 700, color: '#ef4444', marginBottom: 28, letterSpacing: 2 }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ef4444', animation: 'pulse 1s infinite', display: 'inline-block' }} />
-            SEASON 1 · LIVE NOW
-          </div>
+          <Reveal>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: 'rgba(239,68,68,.08)', border: `1px solid rgba(239,68,68,.25)`,
+              borderRadius: 2, padding: '6px 20px', fontSize: 11, fontWeight: 700,
+              color: C.red, marginBottom: 32, letterSpacing: 3, fontFamily: orbitron,
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: C.red, animation: 'pulse 1s infinite', display: 'inline-block' }} />
+              SEASON 1 — LIVE
+            </div>
+          </Reveal>
 
-          <h1 style={{ fontFamily: "'Orbitron', 'Rajdhani', sans-serif", fontSize: 'clamp(40px,9vw,96px)', fontWeight: 900, lineHeight: 1, letterSpacing: 2, marginBottom: 12 }}>
-            <span style={{ background: 'linear-gradient(135deg,#f59e0b,#fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AILURIX</span>
-            <br />STUDIOS
-          </h1>
+          <Reveal delay={100}>
+            <h1 style={{
+              fontFamily: orbitron, fontSize: 'clamp(44px,9vw,100px)',
+              fontWeight: 900, lineHeight: 1, letterSpacing: 3, marginBottom: 14,
+            }}>
+              <span style={{ background: 'linear-gradient(135deg,#f59e0b,#fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AILURIX</span>
+              <br />STUDIOS
+            </h1>
+          </Reveal>
 
-          <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 'clamp(12px,3vw,18px)', color: 'rgba(255,255,255,0.35)', letterSpacing: 8, marginBottom: 28 }}>PLAY · EARN · OWN</div>
+          <Reveal delay={180}>
+            <div style={{ fontFamily: orbitron, fontSize: 'clamp(11px,2vw,15px)', color: 'rgba(255,255,255,0.25)', letterSpacing: 10, marginBottom: 32 }}>
+              PLAY · EARN · OWN
+            </div>
+          </Reveal>
 
-          <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.6)', maxWidth: 500, margin: '0 auto 40px', lineHeight: 1.7 }}>
-            The future of blockchain gaming. Play games, earn <strong style={{ color: '#f59e0b' }}>$ARX tokens</strong>, build your empire.
-          </p>
+          <Reveal delay={240}>
+            <p style={{ fontSize: 17, color: C.dim, maxWidth: 480, margin: '0 auto 44px', lineHeight: 1.8 }}>
+              The future of blockchain gaming. Play games, earn{' '}
+              <strong style={{ color: C.gold, fontWeight: 700 }}>$ARX tokens</strong>, and build your on-chain empire.
+            </p>
+          </Reveal>
 
-          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/game" style={{
-              padding: '16px 40px', borderRadius: 50, background: 'linear-gradient(135deg,#f59e0b,#ef4444)',
-              color: '#000', fontWeight: 900, fontSize: 16, textDecoration: 'none',
-              fontFamily: "'Orbitron', sans-serif", letterSpacing: 2,
-              boxShadow: '0 0 30px rgba(245,158,11,0.3)',
-            }}>⚔️ PLAY ARENA</Link>
-            <a href="#token" style={{
-              padding: '16px 40px', borderRadius: 50, border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.7)',
-              fontWeight: 700, fontSize: 16, textDecoration: 'none',
-            }}>🪙 $ARX TOKEN</a>
-          </div>
+          <Reveal delay={300}>
+            <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link href="/game" style={{
+                padding: '15px 42px', borderRadius: 3,
+                background: 'linear-gradient(135deg,#f59e0b,#ef4444)', border: 'none',
+                color: '#000', fontWeight: 900, fontSize: 14, textDecoration: 'none',
+                fontFamily: orbitron, letterSpacing: 2,
+                boxShadow: '0 0 32px rgba(245,158,11,0.25)',
+              }}>PLAY ARENA</Link>
+              <a href="#token" style={{
+                padding: '15px 42px', borderRadius: 3,
+                border: `1px solid ${C.border}`, background: 'rgba(255,255,255,0.03)',
+                color: 'rgba(255,255,255,0.65)', fontWeight: 700, fontSize: 14, textDecoration: 'none',
+                fontFamily: orbitron, letterSpacing: 1,
+              }}>$ARX TOKEN</a>
+            </div>
+          </Reveal>
 
-          <div style={{ display: 'flex', gap: 48, marginTop: 64, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {STATS.map(s => (
-              <div key={s.label} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 30, fontWeight: 900, color: '#f59e0b', fontFamily: "'Orbitron', sans-serif" }}>{s.value}{s.suffix}</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 2, marginTop: 4 }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
+          <Reveal delay={400}>
+            <div style={{ display: 'flex', gap: 0, marginTop: 72, justifyContent: 'center', flexWrap: 'wrap', borderTop: `1px solid ${C.border}`, paddingTop: 40 }}>
+              {STATS.map((s, i) => (
+                <div key={s.label} style={{
+                  textAlign: 'center', padding: '0 40px',
+                  borderRight: i < STATS.length - 1 ? `1px solid ${C.border}` : 'none',
+                }}>
+                  <div style={{ fontSize: 26, fontWeight: 900, color: C.gold, fontFamily: orbitron }}>{s.value}</div>
+                  <div style={{ fontSize: 10, color: C.dim, fontWeight: 600, letterSpacing: 2, marginTop: 6, textTransform: 'uppercase' }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* Games */}
-      <section id="games" style={{ padding: '100px 24px', background: 'rgba(255,255,255,0.01)' }}>
+      {/* ── GAMES / FEATURES ── */}
+      <section id="games" style={{ padding: '120px 24px', borderTop: `1px solid ${C.border}` }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 4, color: '#f59e0b', fontFamily: "'Orbitron', sans-serif", marginBottom: 12 }}>OUR GAMES</div>
-            <h2 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 'clamp(26px,4vw,44px)', fontWeight: 900, marginBottom: 16 }}>Games by Ailurix Studios</h2>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 24 }}>
-            {FEATURES.map(f => (
-              <div key={f.title} style={{
-                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 20, padding: '28px 24px', transition: 'transform .3s, border-color .3s',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(245,158,11,.3)'; e.currentTarget.style.transform = 'translateY(-6px)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-              >
-                <div style={{ fontSize: 36, marginBottom: 16 }}>{f.icon}</div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 10, fontFamily: "'Orbitron', sans-serif" }}>{f.title}</h3>
-                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}>{f.desc}</p>
-              </div>
+          <Reveal>
+            <div style={{ marginBottom: 64 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 4, color: C.gold, fontFamily: orbitron, marginBottom: 14 }}>PLATFORM</div>
+              <h2 style={{ fontFamily: orbitron, fontSize: 'clamp(26px,4vw,44px)', fontWeight: 900, maxWidth: 500 }}>What we are building</h2>
+            </div>
+          </Reveal>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 1, border: `1px solid ${C.border}` }}>
+            {FEATURES.map((f, i) => (
+              <Reveal key={f.num} delay={i * 60}>
+                <div style={{
+                  padding: '36px 32px', borderRight: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`,
+                  background: C.card, transition: 'background .3s',
+                  cursor: 'default',
+                }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.04)'}
+                  onMouseLeave={e => e.currentTarget.style.background = C.card}
+                >
+                  <div style={{ fontSize: 11, color: C.gold, fontFamily: orbitron, fontWeight: 700, letterSpacing: 2, marginBottom: 14 }}>{f.num}</div>
+                  <h3 style={{ fontSize: 17, fontWeight: 900, fontFamily: orbitron, marginBottom: 12 }}>{f.title}</h3>
+                  <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.8 }}>{f.desc}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Token */}
-      <section id="token" style={{ padding: '100px 24px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 50%, rgba(139,92,246,.08), transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 4, color: '#f59e0b', fontFamily: "'Orbitron', sans-serif", marginBottom: 12 }}>BLOCKCHAIN</div>
-            <h2 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 'clamp(26px,4vw,44px)', fontWeight: 900, marginBottom: 16 }}>The $ARX Token</h2>
-            <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', maxWidth: 500, margin: '0 auto' }}>One token. All games. Real value. Built on Base Chain.</p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 16, marginBottom: 32 }}>
-            {[
-              { icon: '⛓️', title: 'Base Chain', desc: 'Ultra-low gas fees. Coinbase backed.' },
-              { icon: '🔥', title: 'Deflationary', desc: 'Burn rate > earn rate. Value grows.' },
-              { icon: '🎮', title: 'Multi-Game', desc: 'Works across all Ailurix games.' },
-              { icon: '💰', title: 'Play to Earn', desc: 'Win fights, earn $ARX instantly.' },
-            ].map(t => (
-              <div key={t.title} style={{ background: 'rgba(139,92,246,.05)', border: '1px solid rgba(139,92,246,.2)', borderRadius: 16, padding: '20px' }}>
-                <div style={{ fontSize: 28, marginBottom: 10 }}>{t.icon}</div>
-                <div style={{ fontWeight: 700, fontFamily: "'Orbitron', sans-serif", fontSize: 13, marginBottom: 6 }}>{t.title}</div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>{t.desc}</div>
-              </div>
+      {/* ── TOKEN ── */}
+      <section id="token" style={{ padding: '120px 24px', borderTop: `1px solid ${C.border}`, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 60% 50%, rgba(139,92,246,.05), transparent 60%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative' }}>
+          <Reveal>
+            <div style={{ marginBottom: 64 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 4, color: C.gold, fontFamily: orbitron, marginBottom: 14 }}>BLOCKCHAIN</div>
+              <h2 style={{ fontFamily: orbitron, fontSize: 'clamp(26px,4vw,44px)', fontWeight: 900 }}>The $ARX Token</h2>
+              <p style={{ fontSize: 15, color: C.dim, marginTop: 12, maxWidth: 500, lineHeight: 1.7 }}>One token. All games. Real on-chain value. Deflationary by design.</p>
+            </div>
+          </Reveal>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 1, border: `1px solid ${C.border}`, marginBottom: 32 }}>
+            {TOKEN_ITEMS.map((t, i) => (
+              <Reveal key={t.label} delay={i * 80}>
+                <div style={{ padding: '32px', borderRight: `1px solid ${C.border}`, background: C.card }}>
+                  <div style={{ fontSize: 10, color: C.dim, fontFamily: orbitron, letterSpacing: 3, marginBottom: 10 }}>{t.label}</div>
+                  <div style={{ fontSize: 20, fontWeight: 900, fontFamily: orbitron, color: '#fff', marginBottom: 10 }}>{t.value}</div>
+                  <div style={{ fontSize: 12, color: C.dim, lineHeight: 1.7 }}>{t.sub}</div>
+                </div>
+              </Reveal>
             ))}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 16 }}>
-            <div style={{ background: 'rgba(34,197,94,.05)', border: '1px solid rgba(34,197,94,.2)', borderRadius: 16, padding: '20px' }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>💰</div>
-              <div style={{ fontWeight: 700, color: '#22c55e', fontFamily: "'Orbitron', sans-serif", fontSize: 13, marginBottom: 6 }}>EARN $ARX</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>Win fights · Stage complete · Beat boss · Daily login · Referrals</div>
-            </div>
-            <div style={{ background: 'rgba(239,68,68,.05)', border: '1px solid rgba(239,68,68,.2)', borderRadius: 16, padding: '20px' }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>🔥</div>
-              <div style={{ fontWeight: 700, color: '#ef4444', fontFamily: "'Orbitron', sans-serif", fontSize: 13, marginBottom: 6 }}>BURN $ARX</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>Unlock skins · Tournaments · Power-ups · NFT minting · Upgrades</div>
-            </div>
-            <div style={{ background: 'rgba(245,158,11,.05)', border: '1px solid rgba(245,158,11,.2)', borderRadius: 16, padding: '20px' }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>📈</div>
-              <div style={{ fontWeight: 700, color: '#f59e0b', fontFamily: "'Orbitron', sans-serif", fontSize: 13, marginBottom: 6 }}>RESULT</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>Burn {'>'} Earn = Deflationary = $ARX value grows over time</div>
-            </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(340px,1fr))', gap: 24 }}>
+            {EARN_BURN.map((eb, i) => (
+              <Reveal key={eb.type} delay={i * 120}>
+                <div style={{
+                  border: `1px solid ${eb.color}22`,
+                  background: `${eb.color}06`,
+                  borderRadius: 4, padding: '32px',
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 900, fontFamily: orbitron, color: eb.color, letterSpacing: 3, marginBottom: 20 }}>{eb.type} $ARX</div>
+                  {eb.items.map(item => (
+                    <div key={item} style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '10px 0', borderBottom: `1px solid ${C.border}`,
+                      fontSize: 13, color: C.dim,
+                    }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: eb.color, flexShrink: 0 }} />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Roadmap */}
-      <section id="roadmap" style={{ padding: '100px 24px', background: 'rgba(255,255,255,0.01)' }}>
-        <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 4, color: '#f59e0b', fontFamily: "'Orbitron', sans-serif", marginBottom: 12 }}>ROADMAP</div>
-            <h2 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 'clamp(26px,4vw,44px)', fontWeight: 900 }}>What&apos;s Coming</h2>
-          </div>
+      {/* ── ROADMAP ── */}
+      <section id="roadmap" style={{ padding: '120px 24px', borderTop: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ marginBottom: 64 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 4, color: C.gold, fontFamily: orbitron, marginBottom: 14 }}>ROADMAP</div>
+              <h2 style={{ fontFamily: orbitron, fontSize: 'clamp(26px,4vw,44px)', fontWeight: 900 }}>What is coming</h2>
+            </div>
+          </Reveal>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {ROADMAP.map((r, i) => (
-              <div key={r.phase} style={{ display: 'flex', gap: 24, paddingBottom: 40 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 44 }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: '50%',
-                    background: r.status === 'done' ? 'linear-gradient(135deg,#f59e0b,#ef4444)' : r.status === 'active' ? 'rgba(245,158,11,.15)' : 'rgba(255,255,255,0.05)',
-                    border: r.status === 'active' ? '2px solid #f59e0b' : '1px solid rgba(255,255,255,0.1)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0,
-                    color: r.status === 'done' ? '#000' : r.status === 'active' ? '#f59e0b' : 'rgba(255,255,255,0.3)',
-                    fontWeight: 900,
-                  }}>
-                    {r.status === 'done' ? '✓' : r.status === 'active' ? '⚡' : (i + 1)}
+              <Reveal key={r.phase} delay={i * 80}>
+                <div style={{
+                  display: 'flex', gap: 0,
+                  borderBottom: i < ROADMAP.length - 1 ? `1px solid ${C.border}` : 'none',
+                  padding: '40px 0',
+                }}>
+                  {/* Phase indicator */}
+                  <div style={{ minWidth: 160, paddingRight: 40 }}>
+                    <div style={{ fontSize: 10, color: C.gold, fontFamily: orbitron, fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>{r.phase}</div>
+                    <div style={{
+                      display: 'inline-block', padding: '3px 10px', borderRadius: 2, fontSize: 9.5, fontWeight: 700, letterSpacing: 2, fontFamily: orbitron,
+                      background: r.status === 'done' ? 'rgba(34,197,94,.1)' : r.status === 'active' ? 'rgba(245,158,11,.1)' : 'rgba(255,255,255,0.05)',
+                      color: r.status === 'done' ? C.green : r.status === 'active' ? C.gold : C.dim,
+                      border: `1px solid ${r.status === 'done' ? C.green + '40' : r.status === 'active' ? C.gold + '40' : C.border}`,
+                    }}>
+                      {r.status === 'done' ? 'COMPLETE' : r.status === 'active' ? 'IN PROGRESS' : 'UPCOMING'}
+                    </div>
                   </div>
-                  {i < ROADMAP.length - 1 && <div style={{ width: 2, flex: 1, background: 'rgba(255,255,255,0.08)', marginTop: 8 }} />}
-                </div>
-                <div style={{ paddingTop: 10 }}>
-                  <div style={{ fontSize: 10, color: '#f59e0b', fontWeight: 700, letterSpacing: 2, marginBottom: 4, fontFamily: "'Orbitron', sans-serif" }}>{r.phase}</div>
-                  <div style={{ fontSize: 20, fontWeight: 900, fontFamily: "'Orbitron', sans-serif", marginBottom: 12 }}>{r.title}</div>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {r.items.map(item => (
-                      <span key={item} style={{
-                        fontSize: 12, padding: '4px 12px', borderRadius: 6,
-                        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                        color: r.status === 'done' ? '#22c55e' : 'rgba(255,255,255,0.5)', fontWeight: 600,
-                      }}>
-                        {r.status === 'done' ? '✓ ' : ''}{item}
-                      </span>
-                    ))}
+                  {/* Content */}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 22, fontWeight: 900, fontFamily: orbitron, marginBottom: 16 }}>{r.title}</div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {r.items.map(item => (
+                        <span key={item} style={{
+                          fontSize: 12, padding: '5px 14px', borderRadius: 2,
+                          background: C.card, border: `1px solid ${C.border}`,
+                          color: r.status === 'done' ? C.green : C.dim, fontWeight: 600,
+                        }}>{item}</span>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section style={{ padding: '100px 24px', textAlign: 'center', background: 'radial-gradient(ellipse at center, rgba(245,158,11,.06) 0%, transparent 70%)' }}>
-        <h2 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 'clamp(28px,6vw,64px)', fontWeight: 900, letterSpacing: 1, marginBottom: 20 }}>
-          Your empire<br /><span style={{ background: 'linear-gradient(135deg,#f59e0b,#ef4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>awaits.</span>
-        </h2>
-        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 18, marginBottom: 40, maxWidth: 440, margin: '0 auto 40px' }}>
-          Season 1 is open. Early players earn bonus $ARX tokens and whitelist access.
-        </p>
-        <Link href="/game" style={{
-          padding: '18px 56px', borderRadius: 50, background: 'linear-gradient(135deg,#f59e0b,#ef4444)',
-          color: '#000', fontWeight: 900, fontSize: 18, textDecoration: 'none',
-          fontFamily: "'Orbitron', sans-serif", letterSpacing: 2,
-          boxShadow: '0 0 40px rgba(245,158,11,0.3)', display: 'inline-block',
-        }}>⚔️ PLAY AILURIX ARENA</Link>
+      {/* ── CTA ── */}
+      <section style={{ padding: '120px 24px', textAlign: 'center', borderTop: `1px solid ${C.border}`, background: 'radial-gradient(ellipse at center, rgba(245,158,11,.05) 0%, transparent 70%)' }}>
+        <Reveal>
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 4, color: C.gold, fontFamily: orbitron, marginBottom: 24 }}>GET STARTED</p>
+          <h2 style={{ fontFamily: orbitron, fontSize: 'clamp(28px,6vw,64px)', fontWeight: 900, letterSpacing: 1, marginBottom: 20 }}>
+            Your empire<br />
+            <span style={{ background: 'linear-gradient(135deg,#f59e0b,#ef4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>awaits.</span>
+          </h2>
+          <p style={{ color: C.dim, fontSize: 16, marginBottom: 48, maxWidth: 440, margin: '0 auto 48px', lineHeight: 1.8 }}>
+            Season 1 is open. Early players earn bonus $ARX and priority access to upcoming features.
+          </p>
+          <Link href="/game" style={{
+            padding: '17px 56px', borderRadius: 3,
+            background: 'linear-gradient(135deg,#f59e0b,#ef4444)', border: 'none',
+            color: '#000', fontWeight: 900, fontSize: 15, textDecoration: 'none',
+            fontFamily: orbitron, letterSpacing: 2,
+            boxShadow: '0 0 48px rgba(245,158,11,0.25)', display: 'inline-block',
+          }}>ENTER ARENA</Link>
+        </Reveal>
       </section>
 
-      {/* Footer */}
-      <footer style={{ padding: '40px 32px', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 20, fontWeight: 900, color: '#f59e0b', letterSpacing: 2 }}>AILURIX</div>
-        <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: 12 }}>© 2026 Ailurix Studios LLC · ailurix.com · All Rights Reserved</div>
-        <div style={{ display: 'flex', gap: 20, fontSize: 13 }}>
+      {/* ── FOOTER ── */}
+      <footer style={{ padding: '36px 40px', borderTop: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <span style={{ fontFamily: orbitron, fontSize: 17, fontWeight: 900, color: C.gold, letterSpacing: 2 }}>AILURIX</span>
+        <span style={{ color: C.dim, fontSize: 12 }}>© 2026 Ailurix Studios LLC — ailurix.com — All rights reserved</span>
+        <div style={{ display: 'flex', gap: 24, fontSize: 13 }}>
           {['Twitter', 'Discord', 'GitHub'].map(l => (
-            <a key={l} href="#" style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}
+            <a key={l} href="#" style={{ color: C.dim, textDecoration: 'none', fontWeight: 500, transition: 'color .2s' }}
               onMouseEnter={e => e.target.style.color = '#fff'}
-              onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.35)'}>{l}</a>
+              onMouseLeave={e => e.target.style.color = C.dim}>{l}</a>
           ))}
         </div>
       </footer>
