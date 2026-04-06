@@ -2,21 +2,21 @@ import Providers from './providers';
 import './globals.css';
 
 export const metadata = {
-  title: 'Dominex Arena — Fight & Earn $DMX',
-  description: 'The most addictive crypto fighting game on Base. Fight through 15 stages, earn $DMX tokens, dominate the arena.',
+  title: 'Ailurix Studios | Play. Earn. Own.',
+  description: 'The #1 blockchain gaming studio. Play Ailurix Arena, earn $ARX tokens, and build your on-chain empire.',
   manifest: '/manifest.json',
   themeColor: '#f59e0b',
   viewport: {
     width: 'device-width',
     initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
+    maximumScale: 5,
+    userScalable: true,
     viewportFit: 'cover',
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Dominex Arena',
+    title: 'Ailurix Studios',
   },
   other: {
     'mobile-web-app-capable': 'yes',
@@ -35,7 +35,7 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body style={{margin:0,padding:0,overflow:'hidden',background:'#030308'}}>
+      <body style={{margin:0,padding:0,background:'#030308'}}>
         <Providers>{children}</Providers>
       </body>
     </html>
