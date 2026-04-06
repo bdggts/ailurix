@@ -1,8 +1,0 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "app.vercel.dominex_three.twa",
-        "sha256_cert_fingerprints": ["A0:3D:2C:A5:CD:61:45:3E:34:19:03:E7:66:42:6D:3C:9E:A8:B9:1E:63:B9:CA:78:75:02:42:11:E8:BC:86:08"]
-      }
-    }]
