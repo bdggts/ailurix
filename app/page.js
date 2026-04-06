@@ -36,21 +36,21 @@ const ROADMAP = [
 ];
 const PRESS = ['TechCrunch', 'CoinDesk', 'The Block', 'Decrypt', 'GamesBeat', 'Cointelegraph'];
 const TEAM = [
-  { name: 'Alex Rivera',    role: 'CEO & Game Director',    dept: 'Leadership',    initials: 'AR', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-  { name: 'Priya Sharma',   role: 'Chief Technology Officer', dept: 'Engineering',   initials: 'PS', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)' },
-  { name: 'Marcus Chen',    role: 'Blockchain Developer',   dept: 'Web3',          initials: 'MC', color: '#06b6d4', bg: 'rgba(6,182,212,0.12)' },
-  { name: 'Sofia Morano',   role: 'Lead Artist & Animator', dept: 'Art & Design',   initials: 'SM', color: '#ec4899', bg: 'rgba(236,72,153,0.12)' },
-  { name: 'James Kim',      role: 'Game Designer',          dept: 'Game Design',   initials: 'JK', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
-  { name: 'Layla Hassan',   role: 'Frontend Developer',     dept: 'Engineering',   initials: 'LH', color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
-  { name: 'Ryan Patel',     role: 'Smart Contract Dev',     dept: 'Web3',          initials: 'RP', color: '#f97316', bg: 'rgba(249,115,22,0.12)' },
-  { name: 'Emma Woods',     role: 'UI / UX Designer',       dept: 'Design',        initials: 'EW', color: '#a855f7', bg: 'rgba(168,85,247,0.12)' },
-  { name: 'Carlos Ruiz',    role: 'Backend Developer',      dept: 'Engineering',   initials: 'CR', color: '#38bdf8', bg: 'rgba(56,189,248,0.12)' },
-  { name: 'Nia Johnson',    role: 'Community Manager',      dept: 'Marketing',     initials: 'NJ', color: '#84cc16', bg: 'rgba(132,204,22,0.12)' },
-  { name: 'David Park',     role: '3D Animator',            dept: 'Art & Design',   initials: 'DP', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-  { name: 'Zara Ahmed',     role: 'Marketing Lead',         dept: 'Marketing',     initials: 'ZA', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
-  { name: 'Tom Mitchell',   role: 'QA Lead Engineer',       dept: 'Quality',       initials: 'TM', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)' },
-  { name: 'Yuki Tanaka',    role: 'Sound Designer',         dept: 'Audio',         initials: 'YT', color: '#06b6d4', bg: 'rgba(6,182,212,0.12)' },
-  { name: 'Lucas Ferreira', role: 'DevOps Engineer',        dept: 'Infrastructure',initials: 'LF', color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
+  { name: 'Nathan Cole',    role: 'CEO & Game Director',     dept: 'Leadership',     initials: 'NC', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+  { name: 'Ethan Brooks',   role: 'Chief Technology Officer', dept: 'Engineering',    initials: 'EB', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)' },
+  { name: 'Leo Kaufmann',   role: 'Blockchain Developer',    dept: 'Web3',           initials: 'LK', color: '#06b6d4', bg: 'rgba(6,182,212,0.12)' },
+  { name: 'Sofia Moreno',   role: 'Lead Artist & Animator',  dept: 'Art & Design',   initials: 'SM', color: '#ec4899', bg: 'rgba(236,72,153,0.12)' },
+  { name: 'Owen Carter',    role: 'Game Designer',           dept: 'Game Design',    initials: 'OC', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+  { name: 'Mia Laurent',    role: 'Frontend Developer',      dept: 'Engineering',    initials: 'ML', color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
+  { name: 'Jake Nolan',     role: 'Smart Contract Dev',      dept: 'Web3',           initials: 'JN', color: '#f97316', bg: 'rgba(249,115,22,0.12)' },
+  { name: 'Emma Walsh',     role: 'UI / UX Designer',        dept: 'Design',         initials: 'EW', color: '#a855f7', bg: 'rgba(168,85,247,0.12)' },
+  { name: 'Marco Rossi',    role: 'Backend Developer',       dept: 'Engineering',    initials: 'MR', color: '#38bdf8', bg: 'rgba(56,189,248,0.12)' },
+  { name: 'Chloe Bennett',  role: 'Community Manager',       dept: 'Marketing',      initials: 'CB', color: '#84cc16', bg: 'rgba(132,204,22,0.12)' },
+  { name: 'Felix Wagner',   role: '3D Animator',             dept: 'Art & Design',   initials: 'FW', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+  { name: 'Zoe Chambers',   role: 'Marketing Lead',          dept: 'Marketing',      initials: 'ZC', color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+  { name: 'Tyler Hunt',     role: 'QA Lead Engineer',        dept: 'Quality',        initials: 'TH', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)' },
+  { name: 'Kai Nakamura',   role: 'Sound Designer',          dept: 'Audio',          initials: 'KN', color: '#06b6d4', bg: 'rgba(6,182,212,0.12)' },
+  { name: 'Lucas Ferreira', role: 'DevOps Engineer',         dept: 'Infrastructure', initials: 'LF', color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
 ];
 
 const orb = "'Orbitron','Rajdhani',sans-serif";
