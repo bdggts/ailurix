@@ -1,7 +1,9 @@
 'use client';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import ArenaCanvas from './ArenaCanvas';
+import Header from './components/Header';
+import Footer from './components/Footer';
 
 /* ─── Scroll Reveal ───────────────────────────────── */
 function useReveal(t = 0.12) {
@@ -82,7 +84,6 @@ const C = { gold: '#f59e0b', red: '#ef4444', border: 'rgba(255,255,255,0.07)', d
 
 /* ─── Page ────────────────────────────────────────── */
 export default function Home() {
-  const [scroll, setScroll] = useState(0);
   const [progress, setProgress] = useState(0);
   const [cursor, setCursor] = useState({ x: -100, y: -100 });
   const [cursorBig, setCursorBig] = useState({ x: -100, y: -100 });
@@ -93,10 +94,8 @@ export default function Home() {
 
   useEffect(() => {
     const onScroll = () => {
-      const s = window.scrollY;
-      setScroll(s);
       const h = document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(h > 0 ? (s / h) * 100 : 0);
+      setProgress(h > 0 ? (window.scrollY / h) * 100 : 0);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
 
@@ -126,21 +125,7 @@ export default function Home() {
       <div style={{ position: 'fixed', top: 0, left: 0, width: `${progress}%`, height: 2, background: 'linear-gradient(90deg,#f59e0b,#ef4444)', zIndex: 9997, transition: 'width .1s linear' }} />
 
       {/* ═══ HEADER ═══════════════════════════════════════════════ */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 48px', background: scroll > 60 ? 'rgba(2,2,7,0.97)' : 'transparent', backdropFilter: scroll > 60 ? 'blur(24px)' : 'none', borderBottom: `1px solid ${scroll > 60 ? C.border : 'transparent'}`, transition: 'all .4s' }}>
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 11 }} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
-          <div style={{ width: 34, height: 34, borderRadius: 7, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: orb, fontWeight: 900, fontSize: 15, color: '#000' }}>A</div>
-          <span style={{ fontFamily: orb, fontSize: 16, fontWeight: 900, letterSpacing: 2.5, color: '#fff' }}>AIL<span style={{ color: C.gold }}>URIX</span></span>
-        </Link>
-        <nav style={{ display: 'flex', gap: 36 }}>
-          {[['Games', '#games'], ['Fighters', '#fighters'], ['Token', '#token'], ['Roadmap', '#roadmap']].map(([l, h]) => (
-            <a key={l} href={h} style={{ color: C.dim, textDecoration: 'none', fontSize: 13, fontWeight: 500, letterSpacing: .3, transition: 'color .2s' }}
-              onMouseEnter={e => { e.target.style.color = '#fff'; setHovered(true); }}
-              onMouseLeave={e => { e.target.style.color = C.dim; setHovered(false); }}>{l}</a>
-          ))}
-        </nav>
-        <Link href="/game" style={{ padding: '9px 26px', borderRadius: 3, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#000', fontWeight: 900, fontSize: 12, textDecoration: 'none', fontFamily: orb, letterSpacing: 1.5, boxShadow: '0 0 20px rgba(245,158,11,.25)' }}
-          onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>PLAY NOW</Link>
-      </header>
+      <Header onHover={setHovered} />
 
       {/* ═══ HERO ═════════════════════════════════════════════════ */}
       <section style={{ position: 'relative', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
@@ -375,38 +360,7 @@ export default function Home() {
       </section>
 
       {/* ═══ FOOTER ═══════════════════════════════════════════════ */}
-      <footer style={{ borderTop: `1px solid ${C.border}`, background: 'rgba(0,0,0,.45)' }}>
-        <div style={{ maxWidth: 1180, margin: '0 auto', padding: '64px 48px 40px', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 48 }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 18 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 7, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: orb, fontWeight: 900, fontSize: 14, color: '#000' }}>A</div>
-              <span style={{ fontFamily: orb, fontSize: 15, fontWeight: 900, letterSpacing: 2 }}>AIL<span style={{ color: C.gold }}>URIX</span></span>
-            </div>
-            <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.85, maxWidth: 270 }}>Building the future of blockchain gaming. One studio. One token. Multiple worlds.</p>
-            <div style={{ marginTop: 24, fontSize: 11, color: 'rgba(255,255,255,.18)', fontFamily: orb, letterSpacing: 1 }}>ailurix.com</div>
-          </div>
-          {[{ heading: 'GAMES', links: ['Ailurix Arena', 'Ailurix Farm', 'Coming Soon'] }, { heading: 'COMPANY', links: ['About Studio', 'Roadmap', 'Press Kit'] }, { heading: 'COMMUNITY', links: ['Twitter / X', 'Discord', 'GitHub'] }].map(col => (
-            <div key={col.heading}>
-              <div style={{ fontSize: 9.5, fontFamily: orb, fontWeight: 700, letterSpacing: 3, color: C.gold, marginBottom: 20 }}>{col.heading}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
-                {col.links.map(l => (
-                  <a key={l} href="#" style={{ fontSize: 13, color: C.dim, textDecoration: 'none', transition: 'color .2s' }}
-                    onMouseEnter={e => e.target.style.color = '#fff'} onMouseLeave={e => e.target.style.color = C.dim}>{l}</a>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div style={{ borderTop: `1px solid ${C.border}`, padding: '20px 48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,.16)' }}>© 2026 Ailurix Studios LLC — All rights reserved</span>
-          <div style={{ display: 'flex', gap: 24 }}>
-            {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map(l => (
-              <a key={l} href="#" style={{ fontSize: 12, color: 'rgba(255,255,255,.16)', textDecoration: 'none', transition: 'color .2s' }}
-                onMouseEnter={e => e.target.style.color = C.dim} onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,.16)'}>{l}</a>
-            ))}
-          </div>
-        </div>
-      </footer>
+      <Footer onHover={setHovered} />
     </div>
   );
 }
