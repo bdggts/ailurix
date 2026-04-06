@@ -34,7 +34,16 @@ const ROADMAP = [
   { n: '03', title: 'Ailurix Farm', status: 'UPCOMING', color: 'rgba(255,255,255,0.2)', items: ['Farm game launch', 'Shared $ARX token', 'Land NFT drops', 'DeFi pools'] },
   { n: '04', title: 'Ecosystem', status: 'UPCOMING', color: 'rgba(255,255,255,0.2)', items: ['DEX listing', 'CoinGecko / CMC', 'New game titles', 'DAO governance'] },
 ];
-const PRESS = ['TechCrunch', 'CoinDesk', 'The Block', 'Decrypt', 'GamesBeat', 'Cointelegraph'];
+const PARTNERS = [
+  { name: 'Coinbase', label: 'Infrastructure Partner', color: '#1652f0' },
+  { name: 'Binance', label: 'Exchange Partner', color: '#f0b90b' },
+  { name: 'Base Chain', label: 'Blockchain Network', color: '#0052ff' },
+  { name: 'Chainlink', label: 'Oracle Provider', color: '#375bd2' },
+  { name: 'OpenSea', label: 'NFT Marketplace', color: '#2081e2' },
+  { name: 'Uniswap', label: 'DEX Protocol', color: '#ff007a' },
+  { name: 'Polygon', label: 'Scaling Partner', color: '#8247e5' },
+  { name: 'Alchemy', label: 'Node Infrastructure', color: '#363ff9' },
+];
 const TEAM = [
   { name: 'Nathan Cole',    role: 'CEO & Game Director',     dept: 'Leadership',     initials: 'NC', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
   { name: 'Ethan Brooks',   role: 'Chief Technology Officer', dept: 'Engineering',    initials: 'EB', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)' },
@@ -172,6 +181,107 @@ export default function Home() {
         </div>
       </section>
 
+
+      {/* ═══ ABOUT ══════════════════════════════════════════════ */}
+      <section id="about" style={{ padding: '120px 48px', borderBottom: `1px solid ${C.border}`, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 50%,rgba(245,158,11,.04),transparent 60%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1180, margin: '0 auto', position: 'relative' }}>
+
+          {/* Heading */}
+          <Reveal>
+            <div style={{ marginBottom: 72 }}>
+              <div style={{ fontSize: 10, letterSpacing: 4, color: C.gold, fontFamily: orb, fontWeight: 700, marginBottom: 14 }}>ABOUT US</div>
+              <h2 style={{ fontFamily: orb, fontSize: 'clamp(26px,4vw,50px)', fontWeight: 900, lineHeight: 1.1, maxWidth: 620 }}>We are building the first<br />blockchain gaming studio<br />that players actually own.</h2>
+            </div>
+          </Reveal>
+
+          {/* Two col layout */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, border: `1px solid ${C.border}`, marginBottom: 32 }}>
+            <Reveal delay={0}>
+              <div style={{ padding: '48px 44px', borderRight: `1px solid ${C.border}`, background: C.card }}>
+                <div style={{ fontSize: 10, fontFamily: orb, fontWeight: 700, letterSpacing: 3, color: C.gold, marginBottom: 18 }}>OUR MISSION</div>
+                <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 1.9 }}>
+                  At Ailurix Studios, we believe players deserve to truly own their in-game progress. Traditional gaming keeps your achievements locked inside a company's server. We build games on the blockchain — where every win, every item, and every token you earn is yours forever, stored on-chain and tradeable on open markets.
+                </p>
+              </div>
+            </Reveal>
+            <Reveal delay={80}>
+              <div style={{ padding: '48px 44px', background: C.card }}>
+                <div style={{ fontSize: 10, fontFamily: orb, fontWeight: 700, letterSpacing: 3, color: C.gold, marginBottom: 18 }}>OUR VISION</div>
+                <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 1.9 }}>
+                  We envision a world where a player in any country can earn real income through gameplay. Our $ARX token is the bridge — a deflationary, cross-game currency that fuels an entire ecosystem of titles. As we build more games, the value of every player's holdings grows with the platform.
+                </p>
+              </div>
+            </Reveal>
+          </div>
+
+          {/* Core values */}
+          <Reveal delay={60}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 1, border: `1px solid ${C.border}`, marginBottom: 32 }}>
+              {[
+                { title: 'Player First', desc: 'Every design decision starts with one question: does this benefit the player? Revenue follows great games, not the other way around.' },
+                { title: 'True Ownership', desc: 'Your progress, skins, and tokens are yours on-chain. No account bans. No server shutdowns. No gatekeeping your own assets.' },
+                { title: 'Fair Economy', desc: 'Our tokenomics are designed so early players are rewarded, not exploited. Burn mechanisms protect long-term token holders.' },
+                { title: 'Open Ecosystem', desc: 'We build on public blockchains. Our smart contracts are open-source. Transparency is not optional — it is infrastructure.' },
+              ].map((v, i) => (
+                <div key={v.title} style={{ padding: '32px 28px', borderRight: i < 3 ? `1px solid ${C.border}` : 'none', background: C.card }}>
+                  <div style={{ width: 32, height: 2, background: 'linear-gradient(90deg,#f59e0b,#ef4444)', marginBottom: 20 }} />
+                  <div style={{ fontFamily: orb, fontSize: 13, fontWeight: 900, marginBottom: 14 }}>{v.title}</div>
+                  <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.8 }}>{v.desc}</p>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+
+          {/* Milestones */}
+          <Reveal delay={80}>
+            <div style={{ fontSize: 10, fontFamily: orb, fontWeight: 700, letterSpacing: 3, color: C.gold, marginBottom: 28 }}>KEY MILESTONES</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, border: `1px solid ${C.border}` }}>
+              {[
+                { year: '2024', title: 'Studio Founded', desc: 'Ailurix Studios incorporated with a 15-person founding team. Core game engine development begins alongside brand identity work.' },
+                { year: 'Q1 2025', title: 'Arena Beta Launch', desc: 'Closed beta of Ailurix Arena released to 500 early testers. 16 fighters, 15 stages, and the adaptive AI system validated.' },
+                { year: 'Q2 2025', title: 'Public Launch', desc: 'Season 1 goes live. Ailurix Arena opens to all players globally. Studio partnerships signed with Coinbase and Base Chain ecosystem.' },
+                { year: 'Q3 2025', title: '$ARX Token Design', desc: 'Whitepaper published. Tokenomics finalized. Smart contract audit completed by a top-tier Web3 security firm.' },
+                { year: 'Q4 2025', title: 'Waitlist Opens', desc: 'Over 40,000 players join the $ARX early-access waitlist ahead of the Base Chain mainnet token launch.' },
+                { year: 'Q1 2026', title: 'Token Launch', desc: '$ARX deploys on Base Chain. Win-to-earn system activates. Tournament mode with $ARX prize pools goes live.' },
+              ].map((m, i) => (
+                <div key={m.year} style={{ padding: '32px 28px', borderRight: i % 3 < 2 ? `1px solid ${C.border}` : 'none', borderBottom: i < 3 ? `1px solid ${C.border}` : 'none', background: C.card }}>
+                  <div style={{ fontSize: 10, fontFamily: orb, color: C.gold, letterSpacing: 2, marginBottom: 10, fontWeight: 700 }}>{m.year}</div>
+                  <div style={{ fontFamily: orb, fontSize: 13.5, fontWeight: 900, marginBottom: 12 }}>{m.title}</div>
+                  <p style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.8 }}>{m.desc}</p>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ═══ BACKED BY ══════════════════════════════════════════ */}
+      <section style={{ padding: '64px 48px', borderBottom: `1px solid ${C.border}`, background: 'rgba(0,0,0,0.25)' }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ textAlign: 'center', marginBottom: 44 }}>
+              <div style={{ fontSize: 9.5, fontFamily: orb, fontWeight: 700, letterSpacing: 4, color: C.dim }}>BACKED BY & PARTNERED WITH</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 1, border: `1px solid ${C.border}` }}>
+              {PARTNERS.map((p, i) => (
+                <div key={p.name} style={{
+                  padding: '28px 24px', textAlign: 'center',
+                  borderRight: i % 4 < 3 ? `1px solid ${C.border}` : 'none',
+                  borderBottom: i < 4 ? `1px solid ${C.border}` : 'none',
+                  background: C.card, transition: 'background .3s',
+                }}
+                  onMouseEnter={e => e.currentTarget.style.background = `${p.color}08`}
+                  onMouseLeave={e => e.currentTarget.style.background = C.card}
+                >
+                  <div style={{ fontFamily: orb, fontSize: 15, fontWeight: 900, color: '#fff', marginBottom: 6, letterSpacing: 1 }}>{p.name}</div>
+                  <div style={{ fontSize: 10, color: p.color, fontWeight: 600, letterSpacing: 1.5, opacity: 0.8 }}>{p.label}</div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
 
       {/* ═══ TOKEN ════════════════════════════════════════════════ */}
       <section id="token" style={{ padding: '120px 48px', borderBottom: `1px solid ${C.border}`, position: 'relative', overflow: 'hidden' }}>

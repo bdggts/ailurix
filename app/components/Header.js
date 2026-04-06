@@ -7,6 +7,7 @@ const C = { gold: '#f59e0b', border: 'rgba(255,255,255,0.07)', dim: 'rgba(255,25
 
 const NAV_LINKS = [
   ['Games', '#games'],
+  ['About', '#about'],
   ['Token', '#token'],
   ['Roadmap', '#roadmap'],
   ['Team', '#team'],
