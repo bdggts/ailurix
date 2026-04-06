@@ -61,6 +61,16 @@ const TEAM = [
   { name: 'Kai Nakamura',   role: 'Sound Designer',          dept: 'Audio',          initials: 'KN', color: '#06b6d4', bg: 'rgba(6,182,212,0.12)' },
   { name: 'Lucas Ferreira', role: 'DevOps Engineer',         dept: 'Infrastructure', initials: 'LF', color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
 ];
+const FAQ = [
+  { q: 'What is Ailurix Studios?', a: 'Ailurix Studios is a blockchain gaming company building play-to-earn games on Base Chain. Our first title, Ailurix Arena, is a fighting game where players earn $ARX tokens by winning battles.' },
+  { q: 'What is $ARX?', a: '$ARX is the native token of the Ailurix ecosystem, deployed on Base Chain. It is deflationary by design — meaning more tokens are burned through gameplay than are minted, protecting long-term holder value.' },
+  { q: 'How do I earn $ARX?', a: 'You earn $ARX by playing Ailurix Arena — winning fight rounds, completing stages, defeating bosses, and maintaining daily login streaks all generate token rewards directly to your wallet.' },
+  { q: 'Do I need a crypto wallet to play?', a: 'To play Ailurix Arena in Season 1, no wallet is required. However, to receive and withdraw your $ARX token earnings, you will need a Base Chain-compatible wallet such as MetaMask or Coinbase Wallet.' },
+  { q: 'When does the $ARX token launch?', a: 'The $ARX token is planned to launch on Base Chain in Q3 2026. Join the waitlist on this page to receive early access and bonus allocation as a Season 1 player.' },
+  { q: 'What blockchain is Ailurix built on?', a: 'Ailurix is built on Base Chain, a Layer 2 blockchain built by Coinbase on top of Ethereum. Base Chain offers fast transactions, low fees, and a growing ecosystem of users and developers.' },
+  { q: 'Is Ailurix Arena free to play?', a: 'Yes. Ailurix Arena is completely free to play. There are no upfront costs or purchases required to start earning $ARX. Paid features like character skins and tournament entries are optional.' },
+  { q: 'Will more games be added?', a: 'Yes. Ailurix Studios is developing multiple blockchain games that will all share the $ARX token. This means $ARX earned in one game can be used or traded in any future Ailurix title.' },
+];
 
 const orb = "'Orbitron','Rajdhani',sans-serif";
 const C = { gold: '#f59e0b', red: '#ef4444', border: 'rgba(255,255,255,0.07)', dim: 'rgba(255,255,255,0.42)', card: 'rgba(255,255,255,0.025)' };
@@ -415,6 +425,68 @@ export default function Home() {
         </div>
       </section>
 
+
+      {/* ═══ FAQ ═══════════════════════════════════════════════════ */}
+      <section id="faq" style={{ padding: '120px 48px', borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ marginBottom: 64 }}>
+              <div style={{ fontSize: 10, letterSpacing: 4, color: C.gold, fontFamily: orb, fontWeight: 700, marginBottom: 14 }}>FAQ</div>
+              <h2 style={{ fontFamily: orb, fontSize: 'clamp(26px,4vw,50px)', fontWeight: 900 }}>Common Questions</h2>
+            </div>
+          </Reveal>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, border: `1px solid ${C.border}` }}>
+            {FAQ.map((f, i) => (
+              <Reveal key={i} delay={i * 40}>
+                <div style={{
+                  padding: '32px 36px',
+                  borderRight: i % 2 === 0 ? `1px solid ${C.border}` : 'none',
+                  borderBottom: i < FAQ.length - 2 ? `1px solid ${C.border}` : 'none',
+                  background: C.card,
+                  transition: 'background .3s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(245,158,11,0.03)'; setHovered(true); }}
+                  onMouseLeave={e => { e.currentTarget.style.background = C.card; setHovered(false); }}>
+                  <div style={{ fontFamily: orb, fontSize: 12.5, fontWeight: 900, color: '#fff', marginBottom: 14, lineHeight: 1.4 }}>{f.q}</div>
+                  <p style={{ fontSize: 13.5, color: C.dim, lineHeight: 1.85, margin: 0 }}>{f.a}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ COMMUNITY ══════════════════════════════════════════════ */}
+      <section style={{ padding: '100px 48px', borderBottom: `1px solid ${C.border}`, background: 'radial-gradient(ellipse at 50% 100%,rgba(139,92,246,.06),transparent 60%)' }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, border: `1px solid ${C.border}` }}>
+              {/* Left — Discord */}
+              <div style={{ padding: '56px 52px', borderRight: `1px solid ${C.border}`, background: C.card }}>
+                <div style={{ fontSize: 10, fontFamily: orb, fontWeight: 700, letterSpacing: 3, color: '#5865f2', marginBottom: 18 }}>DISCORD</div>
+                <h3 style={{ fontFamily: orb, fontSize: 'clamp(20px,2.5vw,32px)', fontWeight: 900, marginBottom: 16, lineHeight: 1.2 }}>Join the<br />Arena Community</h3>
+                <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.85, marginBottom: 32, maxWidth: 340 }}>Discuss strategies, report bugs, compete in community tournaments, and be the first to hear about $ARX token drops.</p>
+                <a href="#" style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '14px 32px', borderRadius: 3, background: '#5865f2', color: '#fff', fontWeight: 900, fontSize: 12, textDecoration: 'none', fontFamily: orb, letterSpacing: 1.5, transition: 'box-shadow .3s' }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 32px rgba(88,101,242,.4)'; setHovered(true); }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; setHovered(false); }}>
+                  JOIN DISCORD
+                </a>
+              </div>
+              {/* Right — X / Twitter */}
+              <div style={{ padding: '56px 52px', background: C.card }}>
+                <div style={{ fontSize: 10, fontFamily: orb, fontWeight: 700, letterSpacing: 3, color: C.dim, marginBottom: 18 }}>TWITTER / X</div>
+                <h3 style={{ fontFamily: orb, fontSize: 'clamp(20px,2.5vw,32px)', fontWeight: 900, marginBottom: 16, lineHeight: 1.2 }}>Follow for<br />Updates & Drops</h3>
+                <p style={{ fontSize: 14, color: C.dim, lineHeight: 1.85, marginBottom: 32, maxWidth: 340 }}>Stay ahead with Season 2 announcements, $ARX token news, tournament schedules, and fight clip highlights.</p>
+                <a href="#" style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '14px 32px', borderRadius: 3, border: `1px solid ${C.border}`, background: 'rgba(255,255,255,.05)', color: '#fff', fontWeight: 900, fontSize: 12, textDecoration: 'none', fontFamily: orb, letterSpacing: 1.5, transition: 'border-color .3s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,.3)'; setHovered(true); }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; setHovered(false); }}>
+                  FOLLOW ON X
+                </a>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
 
       {/* ═══ CTA ══════════════════════════════════════════════════ */}
       <section style={{ padding: '100px 48px', textAlign: 'center', background: 'radial-gradient(ellipse at center,rgba(245,158,11,.05) 0%,transparent 70%)' }}>

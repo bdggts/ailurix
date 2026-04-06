@@ -11,6 +11,7 @@ const NAV_LINKS = [
   ['Token', '#token'],
   ['Roadmap', '#roadmap'],
   ['Team', '#team'],
+  ['FAQ', '#faq'],
 ];
 
 export default function Header({ onHover }) {
