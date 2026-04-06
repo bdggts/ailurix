@@ -19,45 +19,7 @@ function Reveal({ children, delay = 0, y = 34 }) {
   return <div ref={ref} style={{ opacity: v ? 1 : 0, transform: v ? 'none' : `translateY(${y}px)`, transition: `opacity .7s ease ${delay}ms, transform .7s ease ${delay}ms` }}>{children}</div>;
 }
 
-/* ─── Animated Counter ────────────────────────────── */
-function Counter({ to, suffix = '', duration = 1800 }) {
-  const [val, setVal] = useState(0); const [ref, v] = useReveal(0.5);
-  useEffect(() => {
-    if (!v) return;
-    const num = parseFloat(to.replace(/[^0-9.]/g, ''));
-    const steps = 60; const inc = num / steps; let cur = 0; let frame = 0;
-    const t = setInterval(() => { cur += inc; frame++; setVal(Math.min(cur, num)); if (frame >= steps) clearInterval(t); }, duration / steps);
-    return () => clearInterval(t);
-  }, [v, to, duration]);
-  const fmt = (n) => {
-    if (to.includes('M')) return (n / 1).toFixed(0) === to.replace(/[^0-9]/g, '') ? to.replace(/[0-9.]+/, Math.floor(n)) : Math.floor(n) + 'M';
-    if (to.includes('B')) return Math.floor(n) + 'B';
-    if (to.includes('.')) return n.toFixed(1);
-    return Math.floor(n).toLocaleString();
-  };
-  return <span ref={ref}>{fmt(val)}{suffix}</span>;
-}
-
-/* ─── Ticker ──────────────────────────────────────── */
-const TICK = ['AILURIX STUDIOS', '1M+ PLAYERS', 'SEASON 1 LIVE', '$ARX TOKEN', 'BASE CHAIN', 'AILURIX ARENA', 'PLAY TO EARN', 'PHASE 2 INCOMING', 'AILURIX FARM', 'COMING SOON'];
-function Ticker() {
-  const items = [...TICK, ...TICK];
-  return (
-    <div style={{ overflow: 'hidden', borderTop: '1px solid rgba(245,158,11,0.12)', borderBottom: '1px solid rgba(245,158,11,0.12)', background: 'rgba(245,158,11,0.03)', padding: '9px 0' }}>
-      <style>{`@keyframes tk{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}`}</style>
-      <div style={{ display: 'flex', animation: 'tk 30s linear infinite', width: 'fit-content', whiteSpace: 'nowrap' }}>
-        {items.map((s, i) => (
-          <span key={i} style={{ padding: '0 28px', fontSize: 10, fontWeight: 700, letterSpacing: 3, color: i % 2 === 0 ? 'rgba(245,158,11,0.85)' : 'rgba(255,255,255,0.25)', fontFamily: "'Orbitron',sans-serif" }}>
-            {s}<span style={{ color: 'rgba(245,158,11,0.25)', margin: '0 10px' }}>—</span>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /* ─── Data ────────────────────────────────────────── */
-const STATS = [{ label: 'Active Players', val: '1', sfx: 'M+', raw: '1' }, { label: 'User Rating', val: '4.8', sfx: '/5', raw: '4.8' }, { label: 'Fighters', val: '16', sfx: '', raw: '16' }, { label: '$ARX Supply', val: '1', sfx: 'B', raw: '1' }];
 const FIGHTERS = [
   { name: 'KAEL', type: 'Fire', color: '#ef4444' }, { name: 'VEXIS', type: 'Shadow', color: '#8b5cf6' },
   { name: 'ZYRA', type: 'Storm', color: '#06b6d4' }, { name: 'DRAX', type: 'Earth', color: '#84cc16' },
@@ -65,8 +27,8 @@ const FIGHTERS = [
   { name: 'CRYOS', type: 'Ice', color: '#38bdf8' }, { name: 'UMBRA', type: 'Void', color: '#a855f7' },
 ];
 const GAMES = [
-  { id: '01', name: 'AILURIX ARENA', status: 'LIVE NOW', statusColor: '#22c55e', desc: 'A pixel-art fighting game with 16 alien fighters. Battle through a 15-stage tower, master your fighter, and defeat the final boss to earn $ARX.', highlights: ['16 Fighter Roster', '15-Stage Tower Mode', 'Adaptive CPU AI', 'Live Leaderboard'], cta: '/game', ctaLabel: 'PLAY NOW', accent: '#ef4444' },
-  { id: '02', name: 'AILURIX FARM', status: 'COMING SOON', statusColor: '#f59e0b', desc: 'A blockchain farming simulation. Plant, cultivate, and harvest resources. Trade on the in-game market and earn $ARX through strategic decision-making.', highlights: ['Resource Management', 'On-Chain Marketplace', 'Land NFT System', 'DeFi Yield Integration'], cta: '#roadmap', ctaLabel: 'SEE ROADMAP', accent: '#22c55e' },
+  { id: '01', name: 'AILURIX ARENA', status: 'LIVE NOW', statusColor: '#22c55e', desc: 'A pixel-art fighting game with 16 alien fighters. Battle through a 15-stage tower, master your fighter, and defeat the final boss to earn $ARX.', highlights: ['16 Fighter Roster', '15-Stage Tower Mode', 'Adaptive CPU AI', 'Live Leaderboard'], cta: '/game', ctaLabel: 'PLAY NOW', accent: '#ef4444', comingSoon: false },
+  { id: '02', name: 'MORE GAMES', status: 'COMING SOON', statusColor: '#f59e0b', desc: 'Ailurix Studios is actively developing new blockchain games. All upcoming titles will share the $ARX token economy — more details coming in Phase 3.', highlights: ['Shared $ARX Token', 'Cross-game Rewards', 'New Game Mechanics', 'To Be Announced'], cta: '#roadmap', ctaLabel: 'SEE ROADMAP', accent: '#f59e0b', comingSoon: true },
 ];
 const TOKEN_STATS = [{ label: 'Token Name', v: '$ARX' }, { label: 'Network', v: 'Base Chain' }, { label: 'Total Supply', v: '1,000,000,000' }, { label: 'Model', v: 'Deflationary' }];
 const EARN = ['Win a fight round: +2 $ARX', 'Complete a full stage: +10 $ARX', 'Defeat the final boss: +25 $ARX', 'Daily login streak: +1 $ARX', 'Flawless victory bonus: +5 $ARX', 'Refer a new player: +15 $ARX'];
@@ -143,7 +105,7 @@ export default function Home() {
           </h1>
           <p style={{ fontFamily: orb, fontSize: 'clamp(10px,2vw,13px)', color: 'rgba(255,255,255,.25)', letterSpacing: 9, marginBottom: 32 }}>PLAY · EARN · OWN</p>
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,.58)', lineHeight: 1.85, marginBottom: 44, maxWidth: 520, margin: '0 auto 44px' }}>
-            The future of blockchain gaming. Fight, farm, and earn <strong style={{ color: C.gold, fontWeight: 600 }}>$ARX tokens</strong> across every Ailurix title.
+            The first blockchain fighting game by Ailurix Studios. Fight your way to the top and earn <strong style={{ color: C.gold, fontWeight: 600 }}>$ARX tokens</strong> — more games coming soon.
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/game" style={{ padding: '16px 46px', borderRadius: 3, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#000', fontWeight: 900, fontSize: 13, textDecoration: 'none', fontFamily: orb, letterSpacing: 2, animation: 'gp 3s ease-in-out infinite' }}
@@ -159,27 +121,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ TICKER ═══════════════════════════════════════════════ */}
-      <Ticker />
 
-      {/* ═══ STATS BAR ════════════════════════════════════════════ */}
-      <div style={{ borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'center' }}>
-        <div style={{ maxWidth: 1180, width: '100%', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderLeft: `1px solid ${C.border}` }}>
-          {STATS.map((s, i) => (
-            <div key={s.label} style={{ padding: '36px 32px', borderRight: `1px solid ${C.border}`, textAlign: 'center' }}>
-              <div style={{ fontFamily: orb, fontSize: 'clamp(22px,3vw,34px)', fontWeight: 900, color: C.gold }}>
-                <Counter to={s.val} suffix={s.sfx} />
-              </div>
-              <div style={{ fontSize: 11, color: C.dim, letterSpacing: 2, marginTop: 6, textTransform: 'uppercase', fontWeight: 600 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* ═══ GAMES ════════════════════════════════════════════════ */}
       <section id="games" style={{ padding: '120px 48px', borderBottom: `1px solid ${C.border}` }}>
         <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-          <Reveal><div style={{ marginBottom: 72 }}><div style={{ fontSize: 10, letterSpacing: 4, color: C.gold, fontFamily: orb, fontWeight: 700, marginBottom: 14 }}>PLATFORM</div><h2 style={{ fontFamily: orb, fontSize: 'clamp(26px,4vw,50px)', fontWeight: 900, lineHeight: 1.1 }}>Two games.<br />One token.</h2></div></Reveal>
+          <Reveal><div style={{ marginBottom: 72 }}><div style={{ fontSize: 10, letterSpacing: 4, color: C.gold, fontFamily: orb, fontWeight: 700, marginBottom: 14 }}>PLATFORM</div><h2 style={{ fontFamily: orb, fontSize: 'clamp(26px,4vw,50px)', fontWeight: 900, lineHeight: 1.1 }}>Our Games</h2></div></Reveal>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(440px,1fr))', gap: 2, border: `1px solid ${C.border}` }}>
             {GAMES.map((g, i) => (
               <Reveal key={g.id} delay={i * 90}>
