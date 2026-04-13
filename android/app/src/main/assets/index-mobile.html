@@ -639,6 +639,52 @@ document.addEventListener('touchend', function(){
   }
 }, {passive:true});
 </script>
+<script>
+// ═══════════════════════════════════════════════════════
+// ANDROID TTS POLYFILL
+// window.AndroidTTS is provided by MainActivity.java
+// Overrides unreliable WebView SpeechSynthesis with
+// native Android TextToSpeech for announcer voice
+// ═══════════════════════════════════════════════════════
+(function(){
+  if(!window.AndroidTTS) return; // Only runs inside Android app
+
+  // Polyfill SpeechSynthesisUtterance
+  window.SpeechSynthesisUtterance = function(text){
+    this.text  = text || '';
+    this.rate  = 1;
+    this.pitch = 1;
+    this.volume= 1;
+    this.lang  = 'en-US';
+    this.voice = null;
+  };
+
+  // Polyfill speechSynthesis
+  var ATTS = window.AndroidTTS;
+  window.speechSynthesis = {
+    _voices: [{name:'Android TTS',lang:'en-US',default:true,localService:true}],
+    speak: function(u){
+      if(!u) return;
+      var txt = u.text || String(u);
+      try{ ATTS.speak(txt); }catch(e){}
+    },
+    cancel: function(){ try{ ATTS.stop(); }catch(e){} },
+    pause:  function(){},
+    resume: function(){},
+    getVoices: function(){ return this._voices; },
+    paused:false, speaking:false, pending:false,
+    onvoiceschanged:null
+  };
+
+  // Trigger game.js _loadVoices() after polyfill is ready
+  setTimeout(function(){
+    try{
+      if(window.speechSynthesis.onvoiceschanged)
+        window.speechSynthesis.onvoiceschanged();
+    }catch(e){}
+  }, 200);
+})();
+</script>
 <script>document.write('<scr'+'ipt src="game.js?v='+Date.now()+'"></scr'+'ipt>');</script>
 </body>
 </html>

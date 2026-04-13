@@ -10,6 +10,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebChromeClient;
@@ -17,6 +19,7 @@ import android.webkit.WebViewClient;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import java.util.Locale;
 
 import org.json.JSONObject;
 
@@ -28,14 +31,28 @@ import java.net.URL;
 public class MainActivity extends Activity {
 
     // Current APK version — bump this with every new build
-    private static final int    CURRENT_VERSION_CODE = 5;
+    private static final int    CURRENT_VERSION_CODE = 14;
     private static final String VERSION_CHECK_URL    = "https://dominex-three.vercel.app/game-version.json";
 
     private WebView webView;
 
+    private TextToSpeech tts;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Init native TTS for announcer voice
+        tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    tts.setLanguage(Locale.US);
+                    tts.setSpeechRate(0.85f);
+                    tts.setPitch(0.8f);
+                }
+            }
+        });
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -82,6 +99,9 @@ public class MainActivity extends Activity {
                 return false;
             }
         });
+
+        // Android TTS interface — replaces unreliable WebView SpeechSynthesis
+        webView.addJavascriptInterface(new AndroidTTS(), "AndroidTTS");
 
         // Load mobile-optimized UI (Chrome keeps index.html, app uses index-mobile.html)
         webView.loadUrl("file:///android_asset/index-mobile.html");
@@ -155,8 +175,25 @@ public class MainActivity extends Activity {
         } catch (Exception e) { return false; }
     }
 
-    @Override
-    public void onBackPressed() { /* Block back button */ }
+    @Override public void onBackPressed() { /* Block back button */ }
+
+    // ── ANDROID TTS INTERFACE ────────────────────────────────────────
+    private class AndroidTTS {
+        @JavascriptInterface
+        public void speak(String text) {
+            if (tts == null) return;
+            try { tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "dnx_tts"); }
+            catch (Exception e) {}
+        }
+        @JavascriptInterface
+        public void stop() {
+            if (tts != null) try { tts.stop(); } catch (Exception e) {}
+        }
+        @JavascriptInterface
+        public boolean isReady() {
+            return tts != null;
+        }
+    }
 
     @Override
     protected void onResume() {
@@ -179,6 +216,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         if (webView != null) { webView.stopLoading(); webView.destroy(); }
+        if (tts != null) { tts.stop(); tts.shutdown(); }
         super.onDestroy();
     }
 }

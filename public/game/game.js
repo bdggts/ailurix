@@ -1478,7 +1478,7 @@ function initVS(){
   var vc2=document.createElement('canvas');vc2.style.cssText='display:block;margin:0 auto;';
   drawCharPreview(vc2,opp,55);vsE2.appendChild(vc2);
   $('vs-p2-name').textContent=opp.name;$('vs-p2-name').style.color=opp.color;
-  $('vs-p2-role').textContent=opp.boss?'Ã¢Å¡Â Ã¯Â¸Â FINAL BOSS':'STAGE '+G.stage+' Ã‚Â· CPU';
+  $('vs-p2-role').textContent=opp.boss?'⚠️ FINAL BOSS':'STAGE '+G.stage+' · CPU';
   $('vs-stage-label').textContent='STAGE '+G.stage+'/15';
   $('vs-bg-l').style.setProperty('--c1',G.player.color+'33');
   $('vs-bg-r').style.setProperty('--c2',opp.color+'33');
