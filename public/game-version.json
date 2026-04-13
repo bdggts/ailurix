@@ -1,6 +1,1 @@
-{
-  "versionCode": 6,
-  "versionName": "3.2",
-  "apkUrl": "https://dominex-three.vercel.app/Ailurix-Arena-v3.apk",
-  "changelog": "Performance boost, floor fixes, clean code, no scanline bug"
-}
+﻿{"versionCode":6,"versionName":"3.2","apkUrl":"https://dominex-three.vercel.app/Ailurix-Arena-v3.apk","changelog":"Mobile UI redesign: bigger controls, full-screen character select, native app feel"}
