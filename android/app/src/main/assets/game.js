@@ -1733,8 +1733,16 @@ function _mkVoiceEffect(durationMs){
 
 // MK ANNOUNCER — exact Mortal Kombat style
 function announce(text,delayMs){
-  // Direct Android TTS bypass (most reliable on Android WebView)
-  if(window.AndroidTTS){setTimeout(function(){try{window.AndroidTTS.speak(String(toSpeech(text)));}catch(e){}},delayMs||0);return;}
+  // Direct Android TTS bypass - toSpeech inlined (toSpeech is inside IIFE, inaccessible here)
+  if(window.AndroidTTS){
+    setTimeout(function(){
+      try{
+        var _t=String(text).replace(/\b[A-Z]+\b/g,function(w){return w.charAt(0)+w.slice(1).toLowerCase();});
+        window.AndroidTTS.speak(_t);
+      }catch(e){}
+    },delayMs||0);
+    return;
+  }
   setTimeout(function(){
     try{
       if(!window.speechSynthesis)return;

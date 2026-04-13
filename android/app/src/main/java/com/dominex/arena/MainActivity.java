@@ -48,8 +48,8 @@ public class MainActivity extends Activity {
             public void onInit(int status) {
                 if (status == TextToSpeech.SUCCESS) {
                     tts.setLanguage(Locale.US);
-                    tts.setSpeechRate(0.85f);
-                    tts.setPitch(0.8f);
+                    tts.setSpeechRate(0.72f);   // slower = more dramatic
+                    tts.setPitch(0.5f);          // deep male announcer voice
                 }
             }
         });
