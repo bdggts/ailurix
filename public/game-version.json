@@ -1,1 +1,1 @@
-﻿{"versionCode":16,"versionName":"4.2","apkUrl":"https://dominex-three.vercel.app/Ailurix-Arena-v3.apk","changelog":"Voice fixed: Android TTS now runs on UI thread, polyfill v3 with retry. Text bug STAGE 1 Ã· CPU fixed."}
+﻿{"versionCode":17,"versionName":"4.3","apkUrl":"https://dominex-three.vercel.app/Ailurix-Arena-v3.apk","changelog":"Voice FIXED: announce() directly calls AndroidTTS.speak() bypassing all SpeechSynthesis complexity"}

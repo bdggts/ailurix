@@ -1733,6 +1733,8 @@ function _mkVoiceEffect(durationMs){
 
 // MK ANNOUNCER — exact Mortal Kombat style
 function announce(text,delayMs){
+  // Direct Android TTS bypass (most reliable on Android WebView)
+  if(window.AndroidTTS){setTimeout(function(){try{window.AndroidTTS.speak(String(toSpeech(text)));}catch(e){}},delayMs||0);return;}
   setTimeout(function(){
     try{
       if(!window.speechSynthesis)return;
