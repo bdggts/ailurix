@@ -88,85 +88,90 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
 
 .char-card{
   position:relative;touch-action:manipulation;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  border:1px solid rgba(255,255,255,.05);overflow:hidden;
-  transition:background .1s;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding-top:4px;
+  border:1px solid rgba(255,255,255,.06);overflow:hidden;
+  transition:background .15s;
+  background:rgba(255,255,255,.02);
 }
-.char-card.sel{border-color:var(--cc);background:rgba(0,0,0,.4);}
-.char-card.sel::after{content:'';position:absolute;top:0;left:5%;right:5%;
-  height:2px;background:var(--cc);box-shadow:0 0 8px var(--cc);}
+.char-card:active{background:rgba(255,255,255,.05);}
+.char-card.sel{
+  border-color:var(--cc);
+  background:linear-gradient(160deg,var(--cb,rgba(245,158,11,.08)),rgba(0,0,0,.5));
+  box-shadow:inset 0 0 20px var(--cs,rgba(245,158,11,.06));
+}
+.char-card.sel::after{content:'';position:absolute;top:0;left:0;right:0;
+  height:2px;background:var(--cc);box-shadow:0 0 10px var(--cc),0 0 20px var(--cc);}
 .char-card .cem-canvas{
   display:block;margin:0 auto;flex-shrink:0;
-  /* Scale down the 80px canvas to fit card */
+  /* scale UP to fill card — origin top so char grows down */
   transform-origin:top center;
 }
 .char-card .cnm{
-  font-size:clamp(5px,1.6vmax,8px);color:rgba(255,255,255,.28);
+  font-size:clamp(5px,1.5vmax,7px);color:rgba(255,255,255,.25);
   letter-spacing:1px;text-transform:uppercase;line-height:1;
-  padding:2px 0 3px;text-align:center;width:100%;
+  padding:2px 0 2px;text-align:center;width:100%;margin-top:auto;
 }
-.char-card.sel .cnm{color:var(--cc);}
+.char-card.sel .cnm{color:var(--cc);opacity:.9;}
 .char-dot{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);
   width:4px;height:4px;border-radius:50%;display:none;}
 .char-card.sel .char-dot{display:block;background:var(--cc);box-shadow:0 0 6px var(--cc);}
 
-/* Bottom info (all game.js IDs here — MUST BE VISIBLE) */
+/* Bottom info — COMPACT (all game.js IDs must be VISIBLE) */
 #sel-bottom{
   width:100%;flex-shrink:0;
-  background:rgba(3,1,14,.97);
-  border-top:2px solid rgba(245,158,11,.25);
+  background:rgba(2,1,12,.97);
+  border-top:2px solid rgba(245,158,11,.3);
 }
 #sel-info-row{
   display:flex;align-items:center;gap:10px;
-  padding:8px 12px 6px;
+  padding:6px 12px 4px;
 }
-/* prev-emoji: game.js puts prev-char-canvas INSIDE this */
+/* prev-emoji: game.js injects prev-char-canvas INSIDE this */
 #prev-emoji{
-  width:44px;min-width:44px;height:70px;
+  width:48px;min-width:48px;height:76px;
   display:flex;align-items:center;justify-content:center;
-  overflow:hidden;flex-shrink:0;
+  overflow:visible;flex-shrink:0;
 }
 #prev-emoji canvas{display:block !important;}
 #prev-color-block{flex:1;min-width:0;}
 #prev-name{
-  font-size:clamp(14px,4vmax,19px);font-weight:900;letter-spacing:2px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1;
+  font-size:clamp(13px,3.8vmax,18px);font-weight:900;letter-spacing:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1;
 }
-#prev-title{
-  font-size:clamp(8px,2vmax,10px);color:rgba(255,255,255,.38);
-  letter-spacing:1.5px;margin-top:2px;
-}
+/* title — hidden visually but kept in DOM */
+#prev-title{font-size:8px;color:rgba(255,255,255,.32);letter-spacing:1px;margin-top:1px;}
 #prev-rarity{
-  display:inline-block;padding:2px 9px;border-radius:20px;
-  font-size:clamp(7px,1.8vmax,9px);font-weight:900;letter-spacing:2px;
-  margin-top:3px;margin-bottom:4px;
+  display:inline-block;padding:1px 8px;border-radius:20px;
+  font-size:7px;font-weight:900;letter-spacing:2px;
+  margin-top:2px;margin-bottom:3px;
 }
-/* Stats — game.js injects .stat-row HTML here */
-#prev-stats{width:100%;}
-.stat-row{margin-bottom:3px;width:100%;}
+/* Stats — 2×2 grid (game.js injects 4 .stat-row items) */
+#prev-stats{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:2px 8px;width:100%;
+}
+.stat-row{width:100%;}
 .stat-lbl{display:flex;justify-content:space-between;align-items:center;
-  font-size:7px;color:rgba(255,255,255,.3);margin-bottom:2px;letter-spacing:.5px;}
-.stat-val{font-weight:900;font-size:7px;color:rgba(255,255,255,.6);}
-.stat-bg{height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}
+  font-size:6px;color:rgba(255,255,255,.28);margin-bottom:1px;letter-spacing:.3px;}
+.stat-val{font-weight:900;font-size:6px;color:rgba(255,255,255,.55);}
+.stat-bg{height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}
 .stat-fill{height:100%;border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1);}
-/* Special move line */
-#prev-spl-row{
-  font-size:8px;color:rgba(255,255,255,.25);letter-spacing:.5px;
-  margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
+/* Special move — hidden in compact mode (DOM present for game.js) */
+#prev-spl-row{display:none;}
 #prev-spl{font-weight:900;font-size:8px;}
 
 /* Hide unused legacy elements */
 .prev-divider,.prev-special{display:none !important;}
 
-/* SELECT button */
-#sel-btn-row{padding:0 12px max(8px,env(safe-area-inset-bottom,8px)) 12px;}
+/* SELECT button — compact */
+#sel-btn-row{padding:0 10px max(7px,env(safe-area-inset-bottom,7px)) 10px;}
 #select-btn{
-  width:100%;padding:clamp(10px,2.5vmax,14px);
+  width:100%;padding:clamp(9px,2.2vmax,12px);
   border-radius:10px;border:none;color:#000;font-weight:900;
-  font-size:clamp(12px,3.5vmax,16px);letter-spacing:3px;
+  font-size:clamp(12px,3.2vmax,15px);letter-spacing:3px;
   background:linear-gradient(135deg,#f59e0b,#d97706);
-  box-shadow:0 0 20px rgba(245,158,11,.35);
+  box-shadow:0 0 18px rgba(245,158,11,.4);
   touch-action:manipulation;transition:transform .1s;
 }
 #select-btn:active{transform:scale(.97);}
@@ -502,12 +507,15 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
     cards.forEach(function(card){
       var cv = card.querySelector('.cem-canvas');
       if(!cv) return;
-      // canvas is 80x128 — scale to fit card
-      var scaleX = cardW / 84;
-      var scaleY = cardH / 130;
-      var scale = Math.min(scaleX, scaleY, 1);
+      // canvas is 80x128 — scale UP/DOWN to fill card height
+      var reservedForName = 18; // px for name label below canvas
+      var availH = cardH - reservedForName;
+      var scaleX = cardW / 80;
+      var scaleY = availH / 128;
+      // Allow scaling UP so character fills card
+      var scale = Math.min(scaleX, scaleY);
       cv.style.transform = 'scale('+scale+')';
-      cv.style.transformOrigin = 'center center';
+      cv.style.transformOrigin = 'top center';
     });
   };
   // Watch for canvas injection by game.js
