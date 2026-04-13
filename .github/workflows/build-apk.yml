@@ -1,76 +1,52 @@
-name: Build Dominex Arena APK
+name: Build Android APK
 
 on:
-  workflow_dispatch:
   push:
-    branches: [main]
-    paths:
-      - '.github/workflows/build-apk.yml'
-      - 'android/**'
+    branches: [ main, master ]
+  workflow_dispatch:  # Manual trigger button on GitHub
 
 jobs:
-  build:
+  build-apk:
+    name: Build APK
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          distribution: temurin
           java-version: '17'
+          distribution: 'temurin'
 
-      - name: Setup Android SDK + Gradle
+      - name: Sync latest game files to Android assets
         run: |
-          # SDK
-          SDKMAN=$(find "$ANDROID_HOME" -name sdkmanager -type f 2>/dev/null | head -1)
-          [ -n "$SDKMAN" ] && yes | "$SDKMAN" --licenses > /dev/null 2>&1 || true
-          [ -n "$SDKMAN" ] && "$SDKMAN" "platforms;android-34" "build-tools;33.0.2" > /dev/null 2>&1 || true
-          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
-          
-          # Gradle 7.6
-          wget -q https://services.gradle.org/distributions/gradle-7.6-bin.zip -O /tmp/g.zip
-          unzip -q /tmp/g.zip -d /opt/
-          chmod +x /opt/gradle-7.6/bin/gradle
-          echo "/opt/gradle-7.6/bin" >> $GITHUB_PATH
-          /opt/gradle-7.6/bin/gradle --version | head -3
+          cp public/game/game.js    android/app/src/main/assets/game.js
+          cp public/game/index.html android/app/src/main/assets/index.html
+          cp public/game/bg_*.png   android/app/src/main/assets/ 2>/dev/null || true
+          echo "Assets synced!"
+          ls -lh android/app/src/main/assets/game.js
 
-      - name: Generate keystore
-        run: |
-          keytool -genkey -v -keystore $HOME/dom.ks -alias dom \
-            -keyalg RSA -keysize 2048 -validity 36500 \
-            -dname "CN=Dominex,O=Dominex,C=IN" \
-            -storepass Dom2026 -keypass Dom2026 2>/dev/null
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
 
-      - name: Build APK
+      - name: Accept Android SDK licenses
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+      - name: Build Release APK
         working-directory: android
-        run: /opt/gradle-7.6/bin/gradle assembleRelease --no-daemon -x lint
+        run: ./gradlew assembleRelease --no-daemon
 
-      - name: Sign APK
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ailurix-Arena-APK
+          path: android/app/build/outputs/apk/release/*.apk
+          retention-days: 30
+
+      - name: Show APK info
         run: |
           APK=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
           echo "APK: $APK"
-          SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -1)
-          "$SIGNER" sign \
-            --ks $HOME/dom.ks --ks-key-alias dom \
-            --ks-pass pass:Dom2026 --key-pass pass:Dom2026 \
-            --out public/dominex-arena.apk "$APK"
-          ls -lh public/dominex-arena.apk
-
-      - name: Commit APK
-        run: |
-          git config user.email "ci@dominex.app"
-          git config user.name "CI Bot"
-          git add public/dominex-arena.apk
-          git diff --staged --quiet || git commit -m "ci: APK v3.0 [skip ci]"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dominex-arena-apk
-          path: public/dominex-arena.apk
-          if-no-files-found: error
+          ls -lh "$APK"

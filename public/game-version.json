@@ -1,0 +1,6 @@
+{
+  "versionCode": 5,
+  "versionName": "3.1",
+  "apkUrl": "https://dominex-three.vercel.app/Ailurix-Arena-v3.apk",
+  "changelog": "Performance boost, floor fixes, clean code, no scanline bug"
+}
