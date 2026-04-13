@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -640,49 +640,41 @@ document.addEventListener('touchend', function(){
 }, {passive:true});
 </script>
 <script>
-// ═══════════════════════════════════════════════════════
-// ANDROID TTS POLYFILL
-// window.AndroidTTS is provided by MainActivity.java
-// Overrides unreliable WebView SpeechSynthesis with
-// native Android TextToSpeech for announcer voice
-// ═══════════════════════════════════════════════════════
+// ANDROID TTS POLYFILL v3 (robust - runOnUiThread fix in Java)
 (function(){
-  if(!window.AndroidTTS) return; // Only runs inside Android app
-
-  // Polyfill SpeechSynthesisUtterance
-  window.SpeechSynthesisUtterance = function(text){
-    this.text  = text || '';
-    this.rate  = 1;
-    this.pitch = 1;
-    this.volume= 1;
-    this.lang  = 'en-US';
-    this.voice = null;
-  };
-
-  // Polyfill speechSynthesis
   var ATTS = window.AndroidTTS;
-  window.speechSynthesis = {
-    _voices: [{name:'Android TTS',lang:'en-US',default:true,localService:true}],
-    speak: function(u){
-      if(!u) return;
-      var txt = u.text || String(u);
-      try{ ATTS.speak(txt); }catch(e){}
-    },
-    cancel: function(){ try{ ATTS.stop(); }catch(e){} },
-    pause:  function(){},
-    resume: function(){},
-    getVoices: function(){ return this._voices; },
-    paused:false, speaking:false, pending:false,
-    onvoiceschanged:null
-  };
 
-  // Trigger game.js _loadVoices() after polyfill is ready
-  setTimeout(function(){
+  if(ATTS){
+    // Override SpeechSynthesisUtterance
+    window.SpeechSynthesisUtterance = function(text){
+      this.text = text || '';
+      this.rate = 1; this.pitch = 1; this.volume = 1;
+      this.lang = 'en-US'; this.voice = null;
+    };
+    // Override speechSynthesis with Android native TTS
+    window.speechSynthesis = {
+      _v:[{name:'Android TTS',lang:'en-US',default:true,localService:true}],
+      speak:function(u){
+        var t=(u&&u.text)?u.text:String(u||'');
+        if(!t.trim())return;
+        try{ATTS.speak(t);}catch(e){}
+      },
+      cancel:function(){try{ATTS.stop();}catch(e){}},
+      pause:function(){},resume:function(){},
+      getVoices:function(){return this._v;},
+      paused:false,speaking:false,pending:false,
+      onvoiceschanged:null
+    };
+  }
+
+  // Poke game.js _loadVoices multiple times so _voicesLoaded=true
+  function poke(){
     try{
-      if(window.speechSynthesis.onvoiceschanged)
+      if(window.speechSynthesis&&window.speechSynthesis.onvoiceschanged)
         window.speechSynthesis.onvoiceschanged();
     }catch(e){}
-  }, 200);
+  }
+  [200,600,1200,2500,5000].forEach(function(ms){setTimeout(poke,ms);});
 })();
 </script>
 <script>document.write('<scr'+'ipt src="game.js?v='+Date.now()+'"></scr'+'ipt>');</script>

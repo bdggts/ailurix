@@ -1,1 +1,1 @@
-﻿{"versionCode":15,"versionName":"4.1","apkUrl":"https://dominex-three.vercel.app/Ailurix-Arena-v3.apk","changelog":"Fixed: Stage 1 Ã· CPU text encoding, added Android TTS for announcer voice"}
+﻿{"versionCode":16,"versionName":"4.2","apkUrl":"https://dominex-three.vercel.app/Ailurix-Arena-v3.apk","changelog":"Voice fixed: Android TTS now runs on UI thread, polyfill v3 with retry. Text bug STAGE 1 Ã· CPU fixed."}

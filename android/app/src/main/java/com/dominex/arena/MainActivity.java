@@ -178,21 +178,29 @@ public class MainActivity extends Activity {
     @Override public void onBackPressed() { /* Block back button */ }
 
     // ── ANDROID TTS INTERFACE ────────────────────────────────────────
+    // NOTE: @JavascriptInterface runs on BG thread — must runOnUiThread!
     private class AndroidTTS {
         @JavascriptInterface
-        public void speak(String text) {
-            if (tts == null) return;
-            try { tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "dnx_tts"); }
-            catch (Exception e) {}
+        public void speak(final String text) {
+            runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    if (tts == null) return;
+                    try {
+                        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "dnx_" + text.hashCode());
+                    } catch (Exception e) {}
+                }
+            });
         }
         @JavascriptInterface
         public void stop() {
-            if (tts != null) try { tts.stop(); } catch (Exception e) {}
+            runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    if (tts != null) try { tts.stop(); } catch (Exception e) {}
+                }
+            });
         }
         @JavascriptInterface
-        public boolean isReady() {
-            return tts != null;
-        }
+        public boolean isReady() { return tts != null; }
     }
 
     @Override
