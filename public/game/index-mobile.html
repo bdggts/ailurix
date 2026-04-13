@@ -605,12 +605,12 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
 // AC() gets called, also unlock BGM + voices
 // ═══════════════════════════════════════════
 document.addEventListener('touchstart', function(){
-  // 1) Trigger game.js click handler → inits AudioContext
+  // 1) Unlock AudioContext on first touch
   try{
-    document.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));
-  }catch(e){}
-
-  // 2) Unlock BGM audio element (Android needs gesture)
+    var _ac=new(window.AudioContext||window.webkitAudioContext)();
+    if(_ac.state==='suspended') _ac.resume();
+    window._sharedAC=_ac;
+  }catch(e){} // 2) Unlock BGM audio element (Android needs gesture)
   if(window.MK_AUDIO){
     try{
       window.MK_AUDIO.load();
@@ -678,5 +678,64 @@ document.addEventListener('touchend', function(){
 })();
 </script>
 <script>document.write('<scr'+'ipt src="game.js?v='+Date.now()+'"></scr'+'ipt>');</script>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// FASTCLICK - zero delay tap for onclick buttons
+// game.js assigns onclick handlers AFTER DOMContentLoaded
+// We poll and patch: play-btn, select-btn, res-retry, res-menu
+// ═══════════════════════════════════════════════════════
+(function(){
+  var _blocked = false;
+
+  function patchEl(el){
+    if(!el || el._fc || typeof el.onclick !== 'function') return;
+    el._fc = true;
+    el.style.touchAction = 'manipulation';
+    el.addEventListener('touchstart', function(e){
+      if(e.cancelable) e.preventDefault();
+      if(_blocked) return;
+      _blocked = true;
+      setTimeout(function(){ _blocked = false; }, 400);
+      try{
+        el.onclick(new MouseEvent('click',{bubbles:true,cancelable:true}));
+      }catch(ex){}
+    }, {passive:false});
+    // suppress the delayed ghost click
+    el.addEventListener('click', function(e){
+      if(_blocked){ e.stopImmediatePropagation(); e.preventDefault(); }
+    }, true);
+  }
+
+  var IDS = ['play-btn','select-btn','res-retry','res-menu'];
+  var _tries = 0;
+  function poll(){
+    IDS.forEach(function(id){
+      var el = document.getElementById(id);
+      if(el && !el._fc && typeof el.onclick === 'function') patchEl(el);
+    });
+    if(++_tries < 30) setTimeout(poll, 400);
+  }
+  setTimeout(poll, 200);
+
+  // MutationObserver so newly-visible buttons get patched instantly
+  var obs = new MutationObserver(function(){ poll(); });
+  document.addEventListener('DOMContentLoaded',function(){
+    obs.observe(document.body,{subtree:true,attributes:true,attributeFilter:['onclick']});
+  });
+})();
+
+// ═══════════════════════════════════════════════════════
+// TTS TEST — speaks 1 second after first user touch
+// Proves Android TTS interface is connected
+// ═══════════════════════════════════════════════════════
+document.addEventListener('touchstart', function(){
+  setTimeout(function(){
+    if(window.AndroidTTS){
+      try{ window.AndroidTTS.speak('Arena'); }catch(e){}
+    }
+  }, 1000);
+}, {once:true, passive:true});
+</script>
 </body>
 </html>
