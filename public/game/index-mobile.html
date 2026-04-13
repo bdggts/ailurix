@@ -535,9 +535,41 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
 
 </div>
 <script>
-// Scale character grid canvas to fit cards without overflow
+// ═══════════════════════════════════════════
+// BGM SETUP — game.js uses window.MK_AUDIO,
+// window.MK_CAN_PLAY, window.MK_PLAY
+// ═══════════════════════════════════════════
 (function(){
-  var _scaleGridCanvases = function(){
+  var aud = document.createElement('audio');
+  aud.id = 'mk-bgm-el';
+  aud.loop = true;
+  aud.preload = 'none';
+  aud.volume = 0.55;
+  document.body.appendChild(aud);
+
+  window.MK_AUDIO    = aud;
+  window.MK_CAN_PLAY = false;
+  window._bgmKey     = 'menu';
+
+  window.MK_PLAY = function(){
+    if(!window.MK_CAN_PLAY || !window.MK_AUDIO) return;
+    var src = 'music/' + (window._bgmKey||'menu') + '.mp3';
+    try{
+      if(window.MK_AUDIO.src.indexOf(window._bgmKey) < 0){
+        window.MK_AUDIO.src = src;
+        window.MK_AUDIO.load();
+      }
+      var p = window.MK_AUDIO.play();
+      if(p && p.catch) p.catch(function(){});
+    }catch(e){}
+  };
+})();
+
+// ═══════════════════════════════════════════
+// Character grid canvas auto-scale
+// ═══════════════════════════════════════════
+(function(){
+  var _scale = function(){
     var grid = document.getElementById('char-grid');
     if(!grid) return;
     var cards = grid.querySelectorAll('.char-card');
@@ -547,32 +579,65 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
     cards.forEach(function(card){
       var cv = card.querySelector('.cem-canvas');
       if(!cv) return;
-      // canvas is 80x128 — scale UP/DOWN to fill card height
-      var reservedForName = 18; // px for name label below canvas
+      var reservedForName = 18;
       var availH = cardH - reservedForName;
       var scaleX = cardW / 80;
       var scaleY = availH / 128;
-      // Allow scaling UP so character fills card
-      var scale = Math.min(scaleX, scaleY);
+      var scale  = Math.min(scaleX, scaleY);
       cv.style.transform = 'scale('+scale+')';
       cv.style.transformOrigin = 'top center';
     });
   };
-  // Watch for canvas injection by game.js
-  var _obs = new MutationObserver(function(){ _scaleGridCanvases(); });
+  var obs = new MutationObserver(function(){ _scale(); });
   document.addEventListener('DOMContentLoaded', function(){
     var grid = document.getElementById('char-grid');
-    if(grid) _obs.observe(grid, {childList:true, subtree:true});
-    setTimeout(_scaleGridCanvases, 300);
-    setTimeout(_scaleGridCanvases, 800);
+    if(grid) obs.observe(grid, {childList:true, subtree:true});
+    setTimeout(_scale, 300);
+    setTimeout(_scale, 800);
   });
-  window.addEventListener('resize', _scaleGridCanvases);
+  window.addEventListener('resize', _scale);
 })();
 
-// Resume AudioContext on first touch
+// ═══════════════════════════════════════════
+// AUDIO UNLOCK on first touch
+// Android WebView blocks AudioContext until
+// user gesture — dispatch click so game.js
+// AC() gets called, also unlock BGM + voices
+// ═══════════════════════════════════════════
 document.addEventListener('touchstart', function(){
-  try{ if(window.AC_ctx && window.AC_ctx.state==='suspended') window.AC_ctx.resume(); }catch(e){}
+  // 1) Trigger game.js click handler → inits AudioContext
+  try{
+    document.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));
+  }catch(e){}
+
+  // 2) Unlock BGM audio element (Android needs gesture)
+  if(window.MK_AUDIO){
+    try{
+      window.MK_AUDIO.load();
+      var p = window.MK_AUDIO.play();
+      if(p && p.catch) p.catch(function(){});
+      setTimeout(function(){ try{window.MK_AUDIO.pause();}catch(e){} }, 50);
+    }catch(e){}
+  }
+
+  // 3) Preload speech synthesis voices
+  if(window.speechSynthesis){
+    try{ speechSynthesis.getVoices(); }catch(e){}
+    try{
+      // Warm up TTS with silent utterance
+      var u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }
 }, {once:true, passive:true});
+
+// Also re-unlock any time screen is tapped (belt-and-suspenders)
+document.addEventListener('touchend', function(){
+  if(window.MK_AUDIO && window.MK_AUDIO.paused && window.MK_CAN_PLAY){
+    try{ var p=window.MK_AUDIO.play(); if(p&&p.catch)p.catch(function(){}); }catch(e){}
+  }
+}, {passive:true});
 </script>
 <script>document.write('<scr'+'ipt src="game.js?v='+Date.now()+'"></scr'+'ipt>');</script>
 </body>
