@@ -83,8 +83,8 @@ public class MainActivity extends Activity {
             }
         });
 
-        // Always load from bundled assets (latest synced code)
-        webView.loadUrl("file:///android_asset/index.html");
+        // Load mobile-optimized UI (Chrome keeps index.html, app uses index-mobile.html)
+        webView.loadUrl("file:///android_asset/index-mobile.html");
 
         setContentView(webView);
 

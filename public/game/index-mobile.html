@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>Ailurix Arena</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;user-select:none;-webkit-user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;
+  font-family:Impact,'Arial Black',sans-serif;touch-action:none;overscroll-behavior:none;}
+button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;outline:none;}
+
+/* ══════════ APP ══════════ */
+#app{position:fixed;inset:0;background:#000;overflow:hidden;}
+#screens{position:absolute;inset:0;z-index:10;pointer-events:none;}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;}
+.screen.active{opacity:1;pointer-events:all;}
+
+/* ══════════ SPLASH ══════════ */
+#splash{background:#000;}
+#splash-canvas{position:absolute;inset:0;width:100%;height:100%;}
+.splash-content{position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:100%;height:100%;text-align:center;padding:20px;}
+.splash-studio{font-size:9px;letter-spacing:5px;color:rgba(245,158,11,.55);margin-bottom:12px;}
+.splash-logo{font-size:clamp(42px,13vmax,72px);font-weight:900;letter-spacing:5px;color:#fff;
+  line-height:1;text-shadow:0 0 40px rgba(245,158,11,.7),0 0 80px rgba(245,158,11,.3);
+  animation:glow 3s ease-in-out infinite;}
+@keyframes glow{0%,100%{text-shadow:0 0 30px rgba(245,158,11,.5),0 0 60px rgba(245,158,11,.2);}
+  50%{text-shadow:0 0 60px rgba(245,158,11,1),0 0 120px rgba(245,158,11,.5);}}
+.splash-sub{font-size:clamp(11px,3.5vmax,18px);color:rgba(255,255,255,.4);letter-spacing:10px;margin-top:4px;}
+.splash-season{display:inline-flex;align-items:center;gap:6px;
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);
+  border-radius:30px;padding:5px 16px;margin:16px 0 22px;
+  font-size:9px;font-weight:700;letter-spacing:2px;color:#ef4444;
+  animation:sbadge 2s ease-in-out infinite;}
+@keyframes sbadge{0%,100%{border-color:rgba(239,68,68,.4);}50%{border-color:#ef4444;box-shadow:0 0 14px rgba(239,68,68,.4);}}
+.splash-live-dot{width:6px;height:6px;border-radius:50%;background:#ef4444;
+  animation:sdot 1s ease-in-out infinite;flex-shrink:0;}
+@keyframes sdot{0%,100%{opacity:1;}50%{opacity:.1;}}
+.play-btn{padding:clamp(13px,3vmax,18px) clamp(36px,11vmax,72px);
+  border-radius:14px;background:linear-gradient(135deg,#f59e0b,#ef4444);
+  color:#000;font-weight:900;font-size:clamp(15px,4.5vmax,22px);letter-spacing:4px;
+  box-shadow:0 0 50px rgba(245,158,11,.6),0 8px 28px rgba(0,0,0,.5);
+  animation:btnP 2s ease-in-out infinite;touch-action:manipulation;}
+@keyframes btnP{0%,100%{box-shadow:0 0 40px rgba(245,158,11,.5),0 8px 24px rgba(0,0,0,.5);}
+  50%{box-shadow:0 0 70px rgba(245,158,11,.9),0 12px 32px rgba(0,0,0,.5);}}
+.play-btn:active{transform:scale(.93);}
+.splash-stats{display:flex;gap:18px;margin-top:20px;}
+.splash-stat{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.splash-stat-val{font-size:14px;font-weight:900;color:#f59e0b;}
+.splash-stat-lbl{font-size:7px;color:rgba(255,255,255,.3);letter-spacing:2px;}
+.splash-divider{width:1px;height:28px;background:rgba(255,255,255,.1);align-self:center;}
+.splash-footer{position:absolute;bottom:max(12px,env(safe-area-inset-bottom,12px));
+  font-size:8px;color:rgba(255,255,255,.18);letter-spacing:1px;text-align:center;width:100%;}
+#voice-settings-btn{position:absolute;bottom:max(12px,env(safe-area-inset-bottom,12px));right:14px;
+  background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);
+  color:rgba(245,158,11,.55);font-size:8px;font-weight:700;letter-spacing:2px;
+  padding:7px 12px;border-radius:9px;touch-action:manipulation;}
+
+/* ══════════ CHARACTER SELECT ══════════ */
+#select{
+  background:radial-gradient(ellipse at 30% 40%,#0c0418,#020208 70%);
+  flex-direction:column;justify-content:flex-start;overflow:hidden;padding:0;
+}
+/* Top bar */
+#sel-topbar{
+  width:100%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:max(8px,env(safe-area-inset-top,8px)) 14px 8px;
+  background:rgba(0,0,0,.85);border-bottom:1px solid rgba(245,158,11,.2);
+}
+#sel-topbar h2{font-size:clamp(10px,2.8vmax,14px);color:#f59e0b;letter-spacing:3px;}
+#sel-stage-info{font-size:clamp(8px,2.2vmax,11px);color:rgba(255,255,255,.35);letter-spacing:2px;}
+
+/* Character Grid */
+#char-grid{
+  flex:1;width:100%;display:grid;
+  grid-template-columns:repeat(5,1fr);
+  min-height:0;overflow:hidden;
+}
+@media(orientation:portrait){#char-grid{grid-template-columns:repeat(3,1fr);}}
+
+.char-card{
+  position:relative;touch-action:manipulation;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:1px solid rgba(255,255,255,.05);overflow:hidden;
+  transition:background .1s;
+}
+.char-card.sel{border-color:var(--cc);background:rgba(0,0,0,.4);}
+.char-card.sel::after{content:'';position:absolute;top:0;left:5%;right:5%;
+  height:2px;background:var(--cc);box-shadow:0 0 8px var(--cc);}
+.char-card .cem-canvas{
+  display:block;margin:0 auto;flex-shrink:0;
+  /* Scale down the 80px canvas to fit card */
+  transform-origin:top center;
+}
+.char-card .cnm{
+  font-size:clamp(5px,1.6vmax,8px);color:rgba(255,255,255,.28);
+  letter-spacing:1px;text-transform:uppercase;line-height:1;
+  padding:2px 0 3px;text-align:center;width:100%;
+}
+.char-card.sel .cnm{color:var(--cc);}
+.char-dot{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;display:none;}
+.char-card.sel .char-dot{display:block;background:var(--cc);box-shadow:0 0 6px var(--cc);}
+
+/* Bottom info (all game.js IDs here — MUST BE VISIBLE) */
+#sel-bottom{
+  width:100%;flex-shrink:0;
+  background:rgba(3,1,14,.97);
+  border-top:2px solid rgba(245,158,11,.25);
+}
+#sel-info-row{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px 6px;
+}
+/* prev-emoji: game.js puts prev-char-canvas INSIDE this */
+#prev-emoji{
+  width:44px;min-width:44px;height:70px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;flex-shrink:0;
+}
+#prev-emoji canvas{display:block !important;}
+#prev-color-block{flex:1;min-width:0;}
+#prev-name{
+  font-size:clamp(14px,4vmax,19px);font-weight:900;letter-spacing:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1;
+}
+#prev-title{
+  font-size:clamp(8px,2vmax,10px);color:rgba(255,255,255,.38);
+  letter-spacing:1.5px;margin-top:2px;
+}
+#prev-rarity{
+  display:inline-block;padding:2px 9px;border-radius:20px;
+  font-size:clamp(7px,1.8vmax,9px);font-weight:900;letter-spacing:2px;
+  margin-top:3px;margin-bottom:4px;
+}
+/* Stats — game.js injects .stat-row HTML here */
+#prev-stats{width:100%;}
+.stat-row{margin-bottom:3px;width:100%;}
+.stat-lbl{display:flex;justify-content:space-between;align-items:center;
+  font-size:7px;color:rgba(255,255,255,.3);margin-bottom:2px;letter-spacing:.5px;}
+.stat-val{font-weight:900;font-size:7px;color:rgba(255,255,255,.6);}
+.stat-bg{height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}
+.stat-fill{height:100%;border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1);}
+/* Special move line */
+#prev-spl-row{
+  font-size:8px;color:rgba(255,255,255,.25);letter-spacing:.5px;
+  margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#prev-spl{font-weight:900;font-size:8px;}
+
+/* Hide unused legacy elements */
+.prev-divider,.prev-special{display:none !important;}
+
+/* SELECT button */
+#sel-btn-row{padding:0 12px max(8px,env(safe-area-inset-bottom,8px)) 12px;}
+#select-btn{
+  width:100%;padding:clamp(10px,2.5vmax,14px);
+  border-radius:10px;border:none;color:#000;font-weight:900;
+  font-size:clamp(12px,3.5vmax,16px);letter-spacing:3px;
+  background:linear-gradient(135deg,#f59e0b,#d97706);
+  box-shadow:0 0 20px rgba(245,158,11,.35);
+  touch-action:manipulation;transition:transform .1s;
+}
+#select-btn:active{transform:scale(.97);}
+
+/* ══════════ VS SCREEN ══════════ */
+#vs-screen{background:#000;}
+.vs-bg-l,.vs-bg-r{position:absolute;top:0;bottom:0;width:50%;pointer-events:none;}
+.vs-bg-l{left:0;background:radial-gradient(ellipse at 20% 50%,var(--c1),transparent 70%);}
+.vs-bg-r{right:0;background:radial-gradient(ellipse at 80% 50%,var(--c2),transparent 70%);}
+.vs-content{position:relative;z-index:1;
+  display:flex;align-items:center;justify-content:space-around;width:100%;padding:0 14px;}
+.vs-fighter{text-align:center;}
+.vs-fighter.anim-l{animation:vsL .4s ease-out both;}
+.vs-fighter.anim-r{animation:vsR .4s ease-out both;}
+@keyframes vsL{from{transform:translateX(-60px);opacity:0}to{transform:none;opacity:1}}
+@keyframes vsR{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}
+.vs-emoji{font-size:clamp(40px,12vmax,68px);line-height:1;display:block;font-weight:900;}
+.vs-name{font-size:clamp(10px,3vmax,15px);font-weight:900;color:#fff;letter-spacing:2px;margin-top:6px;}
+.vs-role{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:2px;margin-top:3px;}
+.vs-mid{text-align:center;min-width:50px;}
+.vs-text{font-size:clamp(36px,11vmax,68px);font-weight:900;color:#ef4444;
+  text-shadow:0 0 40px rgba(239,68,68,.9);line-height:1;
+  animation:vsF .5s ease-out both .25s;}
+@keyframes vsF{0%{opacity:0;transform:scale(1.6)}100%{opacity:1;transform:scale(1)}}
+.vs-stage{font-size:10px;color:#f59e0b;font-weight:700;letter-spacing:1px;margin-top:5px;}
+.tower-wrap{width:100%;padding:7px 12px;margin-top:8px;}
+.tower-title{text-align:center;font-size:8px;color:#f59e0b;letter-spacing:3px;font-weight:900;margin-bottom:5px;}
+.tower-ladder{display:flex;align-items:center;justify-content:center;gap:2px;}
+.tower-step{display:flex;flex-direction:column;align-items:center;width:18px;}
+.tower-em{font-size:9px;line-height:1;opacity:.3;transition:all .3s;font-weight:900;}
+.tower-step.done .tower-em{opacity:.6;}
+.tower-step.current .tower-em{opacity:1;transform:scale(1.3);}
+.tower-bar{width:100%;height:3px;border-radius:2px;margin-top:2px;background:rgba(255,255,255,.08);}
+.tower-step.done .tower-bar{background:#22c55e;}
+.tower-step.current .tower-bar{background:#f59e0b;animation:tP 1s ease-in-out infinite;}
+.tower-step.boss.current .tower-bar{background:#ef4444;}
+.tower-num{font-size:6px;color:rgba(255,255,255,.2);font-weight:700;margin-top:1px;}
+.tower-step.current .tower-num{color:#f59e0b;}
+.tower-step.done .tower-num{color:#22c55e;}
+@keyframes tP{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ══════════ RESULT ══════════ */
+#result-screen{padding:20px;}
+.res-emoji{font-size:clamp(52px,14vmax,80px);line-height:1;text-align:center;margin-bottom:8px;}
+.res-title{font-size:clamp(28px,9vmax,52px);font-weight:900;text-align:center;line-height:1;}
+.res-sub{font-size:13px;font-weight:700;text-align:center;margin-top:6px;
+  color:rgba(255,255,255,.55);letter-spacing:1px;}
+.res-xp{display:inline-flex;align-items:center;gap:5px;margin-top:10px;
+  padding:5px 18px;border-radius:20px;background:rgba(245,158,11,.08);
+  border:1px solid rgba(245,158,11,.25);font-size:11px;font-weight:900;color:#f59e0b;}
+.res-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px;margin-top:18px;}
+.res-btn{padding:clamp(13px,3vmax,16px);border-radius:12px;font-weight:900;
+  font-size:clamp(14px,4vmax,17px);letter-spacing:2px;
+  font-family:Impact,'Arial Black',sans-serif;touch-action:manipulation;transition:transform .1s;}
+.res-btn:active{transform:scale(.96);}
+.res-btn.primary{background:linear-gradient(135deg,#22c55e,#16a34a);color:#000;}
+.res-btn.danger{background:linear-gradient(135deg,#ef4444,#f59e0b);color:#000;}
+.res-btn.ghost{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  color:#94a3b8;font-size:clamp(11px,3vmax,14px);padding:11px;}
+
+/* ══════════ FIGHT UI ══════════ */
+#fight-ui{position:absolute;inset:0;display:none;flex-direction:column;z-index:5;}
+#hud{
+  height:44px;flex-shrink:0;display:flex;align-items:center;gap:5px;
+  padding:4px max(10px,env(safe-area-inset-left,10px));
+  background:rgba(0,0,0,.93);border-bottom:1px solid rgba(245,158,11,.18);
+}
+.hud-side{flex:1;display:flex;flex-direction:column;gap:3px;}
+.hud-side.right{align-items:flex-end;}
+.char-name{font-size:9px;font-weight:900;letter-spacing:1.5px;line-height:1;}
+.hp-wrap{width:100%;height:10px;background:rgba(255,255,255,.08);
+  border-radius:5px;overflow:hidden;border:1px solid rgba(255,255,255,.08);}
+.hp-bar{height:100%;border-radius:5px;transition:width .1s;
+  background:linear-gradient(90deg,#22c55e,#4ade80);}
+.hp-bar.low{background:linear-gradient(90deg,#ef4444,#f97316);}
+.en-wrap{width:100%;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
+.en-bar{height:100%;border-radius:2px;
+  background:linear-gradient(90deg,#8b5cf6,#a78bfa);transition:width .15s;}
+.en-bar.ready{background:linear-gradient(90deg,#f59e0b,#fbbf24);box-shadow:0 0 6px #f59e0b;}
+.hud-center{text-align:center;min-width:48px;}
+#timer{font-size:clamp(18px,5vmax,22px);font-weight:900;color:#f59e0b;
+  line-height:1;text-shadow:0 0 12px rgba(245,158,11,.7);}
+#round-info{font-size:7px;color:rgba(255,255,255,.3);letter-spacing:.5px;margin-top:1px;}
+
+/* Game canvas */
+#game-area{flex:1;position:relative;overflow:hidden;touch-action:none;}
+#game-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+
+/* D-PAD */
+.ctrl-panel{display:none !important;}
+#ctrl-left{
+  position:absolute;
+  left:max(10px,env(safe-area-inset-left,10px));
+  bottom:max(16px,env(safe-area-inset-bottom,16px));
+  pointer-events:none;z-index:20;
+}
+#ctrl-left *{pointer-events:all;}
+.dpad{position:relative;width:clamp(108px,28vmax,136px);height:clamp(82px,22vmax,104px);}
+.dp{
+  position:absolute;display:flex;align-items:center;justify-content:center;
+  background:rgba(8,6,26,.82);border:2px solid rgba(255,255,255,.18);
+  color:rgba(255,255,255,.9);font-size:clamp(15px,4.5vmax,21px);font-weight:900;
+  touch-action:manipulation;border-radius:11px;
+  box-shadow:0 4px 14px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.1);
+  transition:all .05s;
+}
+.dp:active,.dp.pressed{
+  background:rgba(80,50,190,.8);border-color:rgba(168,85,247,.9);
+  box-shadow:0 0 16px rgba(168,85,247,.5);transform:scale(.88);}
+.dp-up{top:0;left:50%;transform:translateX(-50%);
+  width:clamp(44px,12vmax,56px);height:clamp(36px,9.5vmax,46px);}
+.dp-up:active,.dp-up.pressed{transform:translateX(-50%) scale(.88);}
+.dp-left{top:50%;left:0;transform:translateY(-50%);
+  width:clamp(42px,11vmax,54px);height:clamp(38px,10vmax,48px);}
+.dp-left:active,.dp-left.pressed{transform:translateY(-50%) scale(.88);}
+.dp-right{top:50%;right:0;transform:translateY(-50%);
+  width:clamp(42px,11vmax,54px);height:clamp(38px,10vmax,48px);}
+.dp-right:active,.dp-right.pressed{transform:translateY(-50%) scale(.88);}
+.dp-label{font-size:7px;color:rgba(255,255,255,.15);letter-spacing:2px;
+  font-weight:700;margin-top:4px;text-align:center;}
+
+/* ATTACK BUTTONS */
+#ctrl-right{
+  position:absolute;
+  right:max(10px,env(safe-area-inset-right,10px));
+  bottom:max(14px,env(safe-area-inset-bottom,14px));
+  pointer-events:none;z-index:20;
+}
+#ctrl-right *{pointer-events:all;}
+.atk-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(7px,2vmax,11px);}
+.atk{
+  width:clamp(52px,14vmax,66px);height:clamp(52px,14vmax,66px);
+  border-radius:50%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1px;
+  touch-action:manipulation;font-weight:900;
+  border:2.5px solid transparent;background:rgba(6,4,18,.84);
+  box-shadow:0 4px 18px rgba(0,0,0,.8),inset 0 2px 0 rgba(255,255,255,.08);
+  transition:all .05s;position:relative;overflow:hidden;
+}
+.atk::before{content:'';position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(135deg,rgba(255,255,255,.09),transparent 55%);}
+.atk:active,.atk.pressed{transform:scale(.85);}
+.atk-icon{font-size:clamp(15px,4.5vmax,20px);line-height:1;font-weight:900;}
+.atk-lbl{font-size:clamp(6px,1.8vmax,8px);font-weight:900;letter-spacing:.5px;opacity:.75;}
+.atk-punch{border-color:#22c55e;color:#22c55e;box-shadow:0 4px 16px rgba(34,197,94,.25);}
+.atk-punch:active,.atk-punch.pressed{box-shadow:0 0 22px rgba(34,197,94,.7);}
+.atk-kick{border-color:#f59e0b;color:#f59e0b;box-shadow:0 4px 16px rgba(245,158,11,.25);}
+.atk-kick:active,.atk-kick.pressed{box-shadow:0 0 22px rgba(245,158,11,.7);}
+.atk-block{border-color:#3b82f6;color:#3b82f6;box-shadow:0 4px 16px rgba(59,130,246,.25);}
+.atk-block:active,.atk-block.pressed{box-shadow:0 0 22px rgba(59,130,246,.7);}
+.atk-special{border-color:#ef4444;color:#ef4444;box-shadow:0 4px 16px rgba(239,68,68,.25);}
+.atk-special:active,.atk-special.pressed{box-shadow:0 0 22px rgba(239,68,68,.8);}
+.atk-special.glow{animation:specP .8s ease-in-out infinite;}
+@keyframes specP{0%,100%{box-shadow:0 4px 16px rgba(239,68,68,.25);}
+  50%{box-shadow:0 0 28px rgba(239,68,68,.9),0 0 56px rgba(239,68,68,.45);border-color:#ff6b6b;}}
+.atk-label{margin-top:5px;font-size:7px;color:rgba(255,255,255,.15);
+  letter-spacing:2px;font-weight:700;text-align:center;}
+
+/* ══════════ VOICE PICKER ══════════ */
+#voice-picker-wrap{position:fixed;bottom:0;left:0;right:0;z-index:999;
+  background:linear-gradient(0deg,rgba(0,0,0,.98),rgba(5,3,15,.95));
+  border-top:1px solid rgba(245,158,11,.2);
+  padding:14px 16px max(18px,env(safe-area-inset-bottom,18px));
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+#voice-picker-wrap.open{transform:translateY(0);}
+#voice-picker-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+#voice-picker-header h3{font-size:11px;font-weight:900;color:#f59e0b;letter-spacing:4px;}
+#voice-close-btn{background:none;border:1px solid rgba(255,255,255,.15);color:#94a3b8;
+  font-size:17px;width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;}
+#voice-list{display:flex;flex-wrap:wrap;gap:7px;max-height:120px;overflow-y:auto;}
+.voice-opt{padding:7px 13px;border-radius:9px;font-size:10px;font-weight:700;
+  cursor:pointer;touch-action:manipulation;letter-spacing:1px;
+  border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:#94a3b8;}
+.voice-opt.active{border-color:#f59e0b;color:#000;background:linear-gradient(135deg,#f59e0b,#d97706);}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="screens">
+
+  <!-- SPLASH -->
+  <div class="screen active" id="splash">
+    <canvas id="splash-canvas"></canvas>
+    <div class="splash-content">
+      <div class="splash-studio">AILURIX STUDIOS</div>
+      <div class="splash-logo">AILURIX</div>
+      <div class="splash-sub">A R E N A</div>
+      <div class="splash-season"><span class="splash-live-dot"></span>SEASON 1 · NOW LIVE</div>
+      <button id="play-btn" class="play-btn">⚔️ PLAY NOW</button>
+      <div class="splash-stats">
+        <div class="splash-stat"><div class="splash-stat-val">16</div><div class="splash-stat-lbl">FIGHTERS</div></div>
+        <div class="splash-divider"></div>
+        <div class="splash-stat"><div class="splash-stat-val">15</div><div class="splash-stat-lbl">STAGES</div></div>
+        <div class="splash-divider"></div>
+        <div class="splash-stat"><div class="splash-stat-val">13</div><div class="splash-stat-lbl">ARENAS</div></div>
+      </div>
+      <div class="splash-footer">© 2026 AILURIX STUDIOS · v3.4</div>
+      <button id="voice-settings-btn">🎙 VOICE</button>
+    </div>
+  </div>
+
+  <!-- VOICE PICKER -->
+  <div id="voice-picker-wrap">
+    <div id="voice-picker-header"><h3>ANNOUNCER VOICE</h3><button id="voice-close-btn">✕</button></div>
+    <div id="voice-list"></div>
+  </div>
+
+  <!-- CHARACTER SELECT -->
+  <div class="screen" id="select">
+    <div id="sel-topbar">
+      <h2>CHOOSE FIGHTER</h2>
+      <span id="sel-stage-info">STAGE 1 OF 15</span>
+    </div>
+    <div id="char-grid"></div>
+    <div id="sel-bottom">
+      <div id="sel-info-row">
+        <div id="prev-emoji"></div><!-- game.js appends canvas here -->
+        <div id="prev-color-block">
+          <div id="prev-name">SELECT A FIGHTER</div>
+          <div id="prev-title" class="prev-title">—</div>
+          <div id="prev-rarity" class="prev-rarity"></div>
+          <div id="prev-stats"></div><!-- game.js injects stat bars here -->
+          <div id="prev-spl-row">SPECIAL: <span id="prev-spl">—</span></div>
+        </div>
+      </div>
+      <div id="sel-btn-row">
+        <button id="select-btn">SELECT FIGHTER →</button>
+      </div>
+    </div>
+    <!-- keep hidden legacy refs game.js may reference -->
+    <div style="display:none">
+      <div class="prev-divider"></div>
+      <div class="prev-special"><span class="prev-spl-lbl"></span></div>
+    </div>
+  </div>
+
+  <!-- VS SCREEN -->
+  <div class="screen" id="vs-screen">
+    <div class="vs-bg-l" id="vs-bg-l" style="--c1:rgba(245,158,11,.2)"></div>
+    <div class="vs-bg-r" id="vs-bg-r" style="--c2:rgba(56,189,248,.2)"></div>
+    <div class="vs-content">
+      <div class="vs-fighter anim-l" id="vs-p1">
+        <span class="vs-emoji" id="vs-p1-emoji"></span>
+        <div class="vs-name" id="vs-p1-name">FIGHTER</div>
+        <div class="vs-role">YOU</div>
+      </div>
+      <div class="vs-mid">
+        <div class="vs-text">VS</div>
+        <div class="vs-stage" id="vs-stage-label">STAGE 1/15</div>
+      </div>
+      <div class="vs-fighter anim-r" id="vs-p2">
+        <span class="vs-emoji" id="vs-p2-emoji">❄️</span>
+        <div class="vs-name" id="vs-p2-name">CPU</div>
+        <div class="vs-role" id="vs-p2-role">CPU</div>
+      </div>
+    </div>
+    <div class="tower-wrap">
+      <div class="tower-title">TOWER LADDER</div>
+      <div class="tower-ladder" id="tower-ladder"></div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="result-screen">
+    <div class="res-emoji" id="res-emoji" style="display:none"></div>
+    <div class="res-title" id="res-title">YOU WIN!</div>
+    <div class="res-sub" id="res-sub">Stage Complete!</div>
+    <div class="res-xp" id="res-xp" style="display:none">+250 XP</div>
+    <div class="res-btns">
+      <button class="res-btn primary" id="res-next">NEXT STAGE ▶</button>
+      <button class="res-btn danger"  id="res-retry">↺ RETRY</button>
+      <button class="res-btn ghost"   id="res-menu">MAIN MENU</button>
+    </div>
+  </div>
+
+</div><!-- /screens -->
+
+<!-- FIGHT UI -->
+<div id="fight-ui">
+  <div id="hud">
+    <div class="hud-side left">
+      <div class="char-name" id="hud-p1-name" style="color:#f59e0b">PLAYER</div>
+      <div class="hp-wrap"><div class="hp-bar" id="hud-p1-hp" style="width:100%"></div></div>
+      <div class="en-wrap"><div class="en-bar" id="hud-p1-en" style="width:0%"></div></div>
+    </div>
+    <div class="hud-center">
+      <div id="timer">99</div>
+      <div id="round-info">R1·0-0</div>
+    </div>
+    <div class="hud-side right">
+      <div class="char-name" id="hud-p2-name" style="color:#38bdf8;text-align:right">CPU</div>
+      <div class="hp-wrap" style="direction:rtl"><div class="hp-bar" id="hud-p2-hp" style="width:100%"></div></div>
+      <div class="en-wrap" style="direction:rtl"><div class="en-bar" id="hud-p2-en" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div id="game-area">
+    <canvas id="game-canvas"></canvas>
+
+    <div id="ctrl-left">
+      <div class="dpad">
+        <button class="dp dp-up"    id="dp-up"    data-action="jump">↑</button>
+        <button class="dp dp-left"  id="dp-left"  data-action="left">◀</button>
+        <button class="dp dp-right" id="dp-right" data-action="right">▶</button>
+      </div>
+      <div class="dp-label">MOVE</div>
+    </div>
+
+    <div id="ctrl-right">
+      <div class="atk-grid">
+        <button class="atk atk-punch"   id="btn-punch"   data-action="punch"><span class="atk-icon">P</span><span class="atk-lbl">HIT</span></button>
+        <button class="atk atk-kick"    id="btn-kick"    data-action="kick"><span class="atk-icon">K</span><span class="atk-lbl">KICK</span></button>
+        <button class="atk atk-block"   id="btn-block"   data-action="block"><span class="atk-icon">B</span><span class="atk-lbl">BLK</span></button>
+        <button class="atk atk-special" id="btn-special" data-action="special"><span class="atk-icon">S</span><span class="atk-lbl">SPEC</span></button>
+      </div>
+      <div class="atk-label">ATTACK</div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+// Scale character grid canvas to fit cards without overflow
+(function(){
+  var _scaleGridCanvases = function(){
+    var grid = document.getElementById('char-grid');
+    if(!grid) return;
+    var cards = grid.querySelectorAll('.char-card');
+    if(!cards.length) return;
+    var cardW = cards[0].offsetWidth;
+    var cardH = cards[0].offsetHeight;
+    cards.forEach(function(card){
+      var cv = card.querySelector('.cem-canvas');
+      if(!cv) return;
+      // canvas is 80x128 — scale to fit card
+      var scaleX = cardW / 84;
+      var scaleY = cardH / 130;
+      var scale = Math.min(scaleX, scaleY, 1);
+      cv.style.transform = 'scale('+scale+')';
+      cv.style.transformOrigin = 'center center';
+    });
+  };
+  // Watch for canvas injection by game.js
+  var _obs = new MutationObserver(function(){ _scaleGridCanvases(); });
+  document.addEventListener('DOMContentLoaded', function(){
+    var grid = document.getElementById('char-grid');
+    if(grid) _obs.observe(grid, {childList:true, subtree:true});
+    setTimeout(_scaleGridCanvases, 300);
+    setTimeout(_scaleGridCanvases, 800);
+  });
+  window.addEventListener('resize', _scaleGridCanvases);
+})();
+
+// Resume AudioContext on first touch
+document.addEventListener('touchstart', function(){
+  try{ if(window.AC_ctx && window.AC_ctx.state==='suspended') window.AC_ctx.resume(); }catch(e){}
+}, {once:true, passive:true});
+</script>
+<script>document.write('<scr'+'ipt src="game.js?v='+Date.now()+'"></scr'+'ipt>');</script>
+</body>
+</html>

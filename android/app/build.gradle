@@ -7,8 +7,8 @@ android {
     applicationId 'com.dominex.arena'
     minSdkVersion 21
     targetSdkVersion 34
-    versionCode 6
-    versionName '3.2'
+    versionCode 9
+    versionName '3.5'
   }
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8
@@ -17,7 +17,6 @@ android {
   buildTypes {
     release {
       minifyEnabled false
-      // Use debug signing so APK is always generated
       signingConfig signingConfigs.debug
     }
   }
