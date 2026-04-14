@@ -1514,20 +1514,31 @@ function showResult(win,gs){
   stopFight();
   var opp=TOWER[Math.min(G.stage-1,TOWER.length-1)];
   var champion=win&&G.stage>=15;
-  $('res-emoji').textContent='';
+  var em=$('res-emoji');
+  em.textContent=champion?'👑':win?'🏆':'💀';
+  em.style.display='block';
   var title=champion?'CHAMPION!':win?'YOU WIN!':'YOU LOSE!';
   var col=champion?'#f59e0b':win?'#22c55e':'#ef4444';
   $('res-title').textContent=title;$('res-title').style.color=col;
-  $('res-sub').textContent=win?'Stage '+G.stage+' Complete'+(champion?' - All 15 done!':'')+'!':'Stage '+G.stage+' Failed';
+  $('res-title').style.textShadow='0 0 40px '+col+',0 0 80px '+col;
+  $('res-sub').textContent=win?'STAGE '+G.stage+(champion?' • ALL 15 COMPLETE':' COMPLETE'):'STAGE '+G.stage+' FAILED';
+  var sp=document.getElementById('res-stage-progress');
+  if(sp){var dh='';for(var d=0;d<15;d++){var dc=d<G.stage-1?'done':d===G.stage-1?'current':'';dh+='<div class="res-stage-dot '+dc+'"></div>';}sp.innerHTML=dh;}
+  var rs=document.getElementById('result-screen');
+  var rc=champion?'rgba(245,158,11,':win?'rgba(34,197,94,':'rgba(239,68,68,';
+  rs.style.background=champion?'radial-gradient(ellipse at 30% 20%,#1a0e00,#000)':win?'radial-gradient(ellipse at 30% 20%,#001a08,#000)':'radial-gradient(ellipse at 30% 20%,#1a0000,#000)';
+  var rings=rs.querySelectorAll('.res-ring');
+  if(rings[0])rings[0].style.borderColor=rc+'.25)';
+  if(rings[1])rings[1].style.borderColor=rc+'.12)';
+  if(rings[2])rings[2].style.borderColor=rc+'.06)';
   if(champion)announce('You Win!',200);
   else if(win)announce('You Win!',200);
   else announce('You lose',200);
   var nb=$('res-next'),rb=$('res-retry');
-  if(win&&!champion){nb.style.display='block';nb.textContent='NEXT STAGE \u25B6 ('+(G.stage+1)+'/15)';}
-  else if(champion){nb.style.display='block';nb.textContent='PLAY AGAIN';}
+  if(win&&!champion){nb.style.display='block';nb.textContent='⚔ NEXT STAGE ('+(G.stage+1)+'/15)';}
+  else if(champion){nb.style.display='block';nb.textContent='👑 PLAY AGAIN';}
   else{nb.style.display='none';}
-  rb.style.display=win?'none':'block';rb.textContent='RETRY';
-  document.getElementById('result-screen').style.background=champion?'radial-gradient(ellipse at center,#1a1000,#000)':win?'radial-gradient(ellipse at center,#001400,#000)':'radial-gradient(ellipse at center,#140000,#000)';
+  rb.style.display=win?'none':'block';rb.textContent='↺ RETRY';
   G.screen='result';showScreen('result');
   $('res-next').onclick=function(){
     if(win&&!champion){
