@@ -1,1 +1,1 @@
-﻿{"versionCode":32,"versionName":"5.8","apkUrl":"https://dominex-three.vercel.app/Ailurix-Arena-v3.apk","changelog":"v5.8: Fix play button after menu re-entry - double-call guard, touchend once:true, loadingActive reset"}
+﻿{"versionCode":33,"versionName":"5.9","apkUrl":"https://dominex-three.vercel.app/Ailurix-Arena-v3.apk","changelog":"v5.9: Direct navigation - removed loading overlay complexity, instant character select on PLAY"}

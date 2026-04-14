@@ -1352,24 +1352,24 @@ function fightLoop(now){
 // SPLASH
 function initSplash(){
   // Export navigation function globally for HTML onclick fallback
-  _loadingActive=false; // reset on every splash init
+  // Simple navigation - direct goto select
   window._playNow = function(){
-    if(_loadingActive)return;
-    try{
-      snd('start');
-      _showLoadingThenSelect();
-    }catch(e){
-      _loadingActive=false;
-      try{bgmPlay('select');}catch(ex){}
-      G.screen='select';showScreen('select');
-      try{initSelect();}catch(ex){}
-    }
+    if(window._navBusy)return;
+    window._navBusy=true;
+    cancelAnimationFrame(window._splashRaf);
+    snd('start');
+    bgmPlay('select');
+    G.screen='select';
+    showScreen('select');
+    initSelect();
+    setTimeout(function(){window._navBusy=false;},1000);
   };
   var cv=$('splash-canvas');
   cv.width=cv.offsetWidth;cv.height=cv.offsetHeight;
-  var ctx=cv.getContext('2d');var t=0;var raf;
+  var ctx=cv.getContext('2d');var t=0;
+  window._splashRaf=0;
   function frame(){
-    raf=requestAnimationFrame(frame);t++;
+    window._splashRaf=requestAnimationFrame(frame);t++;
     var W=cv.offsetWidth,H=cv.offsetHeight;
     if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
     // Transparent canvas — BG slideshow shows through
@@ -1385,62 +1385,20 @@ function initSplash(){
   _btn.style.opacity='1';
   var _oldPb=$('sprite-pb-wrap');
   if(_oldPb)_oldPb.parentNode.removeChild(_oldPb);
-  $('play-btn').onclick=function(e){
-    e && e.preventDefault && e.preventDefault();
-    cancelAnimationFrame(raf);
-    window._playNow();
+  var _pbBtn=$('play-btn');
+  _pbBtn.onclick=function(e){
+    e&&e.preventDefault&&e.preventDefault();
+    window._playNow&&window._playNow();
   };
-  // Touchend with {once:true} so it auto-removes after first fire
-  function _pbTouch(e){
+  _pbBtn.ontouchend=function(e){
     e.preventDefault();
-    cancelAnimationFrame(raf);
-    window._playNow();
-  }
-  $('play-btn').removeEventListener('touchend',_pbTouch);
-  $('play-btn').addEventListener('touchend',_pbTouch,{passive:false,once:true});
+    window._playNow&&window._playNow();
+  };
 }
 
 // CHARACTER SELECT
 // ── PREMIUM LOADING SCREEN ──────────────────────────────────
-var _loadingActive=false;
-function _showLoadingThenSelect(){
-  if(_loadingActive)return; // prevent double-call
-  _loadingActive=true;
-  // Build overlay inside #splash
-  var splash=document.getElementById('splash');
-  var ov=document.createElement('div');
-  ov.id='_load-ov';
-  ov.style.cssText='position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.88);transition:opacity .4s;';
-  ov.innerHTML=
-    '<div style="font-size:clamp(11px,3vmax,15px);letter-spacing:6px;color:#f59e0b;margin-bottom:20px;text-shadow:0 0 20px rgba(245,158,11,.6)">LOADING FIGHTERS</div>'+
-    '<div id="_lp-wrap" style="width:min(280px,70vw);height:6px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;border:1px solid rgba(245,158,11,.2)">'+
-    '<div id="_lp-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#f59e0b,#ef4444);border-radius:4px;transition:width .15s;box-shadow:0 0 8px rgba(245,158,11,.6)"></div></div>'+
-    '<div id="_lp-pct" style="font-size:11px;color:rgba(255,255,255,.35);letter-spacing:2px;margin-top:10px">0%</div>'+
-    '<div style="font-size:8px;color:rgba(255,255,255,.2);letter-spacing:3px;margin-top:28px">AILURIX ARENA</div>';
-  splash.appendChild(ov);
-  var fill=document.getElementById('_lp-fill');
-  var pct=document.getElementById('_lp-pct');
-  var ticks=0;
-  var iv=setInterval(function(){
-    ticks++;
-    var p=SPRITES_TOTAL>0?Math.min(99,Math.round(SPRITES_LOADED/SPRITES_TOTAL*100)):ticks*2;
-    if(fill)fill.style.width=p+'%';
-    if(pct)pct.textContent=p+'%';
-    // Ready: either sprites done OR forced after 6s
-    if((SPRITES_READY&&p>=99)||ticks>=30){
-      clearInterval(iv);
-      if(fill)fill.style.width='100%';
-      if(pct)pct.textContent='100%';
-      setTimeout(function(){
-        ov.style.opacity='0';
-        setTimeout(function(){
-          _loadingActive=false;
-          bgmPlay('select');G.screen='select';showScreen('select');initSelect();
-        },420);
-      },300);
-    }
-  },100);
-}
+// No complex loading screen - direct navigation
 
 function initSelect(){
   var grid=$('char-grid');
