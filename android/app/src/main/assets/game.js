@@ -1352,12 +1352,14 @@ function fightLoop(now){
 // SPLASH
 function initSplash(){
   // Export navigation function globally for HTML onclick fallback
+  _loadingActive=false; // reset on every splash init
   window._playNow = function(){
+    if(_loadingActive)return;
     try{
       snd('start');
       _showLoadingThenSelect();
     }catch(e){
-      // Fallback: direct navigate
+      _loadingActive=false;
       try{bgmPlay('select');}catch(ex){}
       G.screen='select';showScreen('select');
       try{initSelect();}catch(ex){}
@@ -1388,17 +1390,22 @@ function initSplash(){
     cancelAnimationFrame(raf);
     window._playNow();
   };
-  // Also touchend for Android WebView 300ms delay bypass
-  $('play-btn').addEventListener('touchend',function(e){
+  // Touchend with {once:true} so it auto-removes after first fire
+  function _pbTouch(e){
     e.preventDefault();
     cancelAnimationFrame(raf);
     window._playNow();
-  },{passive:false});
+  }
+  $('play-btn').removeEventListener('touchend',_pbTouch);
+  $('play-btn').addEventListener('touchend',_pbTouch,{passive:false,once:true});
 }
 
 // CHARACTER SELECT
 // ── PREMIUM LOADING SCREEN ──────────────────────────────────
+var _loadingActive=false;
 function _showLoadingThenSelect(){
+  if(_loadingActive)return; // prevent double-call
+  _loadingActive=true;
   // Build overlay inside #splash
   var splash=document.getElementById('splash');
   var ov=document.createElement('div');
@@ -1427,6 +1434,7 @@ function _showLoadingThenSelect(){
       setTimeout(function(){
         ov.style.opacity='0';
         setTimeout(function(){
+          _loadingActive=false;
           bgmPlay('select');G.screen='select';showScreen('select');initSelect();
         },420);
       },300);
