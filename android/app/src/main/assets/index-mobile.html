@@ -22,7 +22,28 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
 .screen.active{opacity:1;pointer-events:all;}
 
 /* ══════════ SPLASH ══════════ */
-#splash{background:#000;}
+#splash{background:#000;overflow:hidden;}
+/* BG Slideshow */
+.splash-bg-slide{
+  position:absolute;inset:0;z-index:0;
+  background-size:cover;background-position:center;
+  opacity:0;transition:opacity 1.8s ease-in-out;
+  animation:kenBurns 8s ease-in-out infinite alternate;
+  will-change:transform,opacity;
+}
+.splash-bg-slide.active{opacity:1;}
+@keyframes kenBurns{
+  0%  {transform:scale(1)   translate(0%,0%);}
+  25% {transform:scale(1.06) translate(-1%,-.5%);}
+  50% {transform:scale(1.04) translate(.5%,1%);}
+  75% {transform:scale(1.08) translate(-1.5%,.5%);}
+  100%{transform:scale(1.05) translate(1%,-1%);}
+}
+/* Dark overlay so text is readable */
+.splash-bg-overlay{
+  position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.3) 40%,rgba(0,0,0,.7) 100%);
+}
 #splash-canvas{position:absolute;inset:0;width:100%;height:100%;}
 .splash-content{position:relative;z-index:2;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -529,6 +550,10 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
 
   <!-- SPLASH -->
   <div class="screen active" id="splash">
+    <!-- Background Slideshow -->
+    <div id="splash-bg-a" class="splash-bg-slide active"></div>
+    <div id="splash-bg-b" class="splash-bg-slide"></div>
+    <div class="splash-bg-overlay"></div>
     <canvas id="splash-canvas"></canvas>
     <div class="splash-content">
       <div class="splash-studio">AILURIX STUDIOS</div>
@@ -740,6 +765,48 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
     setTimeout(_scale, 800);
   });
   window.addEventListener('resize', _scale);
+})();
+
+// ═══════════════════════════════════════════
+// SPLASH BG SLIDESHOW — cycles all arena BGs
+// ═══════════════════════════════════════════
+(function(){
+  var BGs = [
+    'bg_fire.png','bg_ice.png','bg_cyber.png','bg_jungle.png',
+    'bg_ocean.png','bg_dark_storm.png','bg_crystal.png','bg_ghost.png',
+    'bg_forge.png','bg_forest.png','bg_speed.png','bg_boss.png',
+    'bg_void.png','bg_storm.png','bg_dark_forest.png'
+  ];
+  // Shuffle for variety on each launch
+  for(var i=BGs.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var tmp=BGs[i];BGs[i]=BGs[j];BGs[j]=tmp;
+  }
+  var slA=document.getElementById('splash-bg-a');
+  var slB=document.getElementById('splash-bg-b');
+  if(!slA||!slB)return;
+  var cur=0,useA=true;
+  // Set first BG immediately
+  slA.style.backgroundImage='url('+BGs[0]+')';
+  // Preload next
+  function preload(src){ var i=new Image(); i.src=src; }
+  if(BGs[1])preload(BGs[1]);
+  var INTERVAL=3500; // ms per slide
+  setInterval(function(){
+    cur=(cur+1)%BGs.length;
+    var next=BGs[cur];
+    if(BGs[cur+1])preload(BGs[cur+1]);
+    if(useA){
+      slB.style.backgroundImage='url('+next+')';
+      slB.classList.add('active');
+      slA.classList.remove('active');
+    } else {
+      slA.style.backgroundImage='url('+next+')';
+      slA.classList.add('active');
+      slB.classList.remove('active');
+    }
+    useA=!useA;
+  },INTERVAL);
 })();
 
 // ═══════════════════════════════════════════
