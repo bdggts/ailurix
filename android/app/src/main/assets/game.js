@@ -1519,8 +1519,8 @@ function showResult(win,gs){
   var col=champion?'#f59e0b':win?'#22c55e':'#ef4444';
   $('res-title').textContent=title;$('res-title').style.color=col;
   $('res-sub').textContent=win?'Stage '+G.stage+' Complete'+(champion?' - All 15 done!':'')+'!':'Stage '+G.stage+' Failed';
-  if(champion)announce('You are the champion',200);
-  else if(win)announce(G.player.name+' wins the match',200);
+  if(champion)announce('You Win!',200);
+  else if(win)announce('You Win!',200);
   else announce('You lose',200);
   var nb=$('res-next'),rb=$('res-retry');
   if(win&&!champion){nb.style.display='block';nb.textContent='NEXT STAGE \u25B6 ('+(G.stage+1)+'/15)';}
