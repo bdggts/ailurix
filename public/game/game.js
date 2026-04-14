@@ -1351,6 +1351,18 @@ function fightLoop(now){
 
 // SPLASH
 function initSplash(){
+  // Export navigation function globally for HTML onclick fallback
+  window._playNow = function(){
+    try{
+      snd('start');
+      _showLoadingThenSelect();
+    }catch(e){
+      // Fallback: direct navigate
+      try{bgmPlay('select');}catch(ex){}
+      G.screen='select';showScreen('select');
+      try{initSelect();}catch(ex){}
+    }
+  };
   var cv=$('splash-canvas');
   cv.width=cv.offsetWidth;cv.height=cv.offsetHeight;
   var ctx=cv.getContext('2d');var t=0;var raf;
@@ -1371,11 +1383,17 @@ function initSplash(){
   _btn.style.opacity='1';
   var _oldPb=$('sprite-pb-wrap');
   if(_oldPb)_oldPb.parentNode.removeChild(_oldPb);
-  $('play-btn').onclick=function(){
+  $('play-btn').onclick=function(e){
+    e && e.preventDefault && e.preventDefault();
     cancelAnimationFrame(raf);
-    snd('start');
-    _showLoadingThenSelect();
+    window._playNow();
   };
+  // Also touchend for Android WebView 300ms delay bypass
+  $('play-btn').addEventListener('touchend',function(e){
+    e.preventDefault();
+    cancelAnimationFrame(raf);
+    window._playNow();
+  },{passive:false});
 }
 
 // CHARACTER SELECT
@@ -1402,7 +1420,7 @@ function _showLoadingThenSelect(){
     if(fill)fill.style.width=p+'%';
     if(pct)pct.textContent=p+'%';
     // Ready: either sprites done OR forced after 6s
-    if((SPRITES_READY&&p>=99)||ticks>=60){
+    if((SPRITES_READY&&p>=99)||ticks>=30){
       clearInterval(iv);
       if(fill)fill.style.width='100%';
       if(pct)pct.textContent='100%';
