@@ -1374,35 +1374,48 @@ function initSplash(){
   $('play-btn').onclick=function(){
     cancelAnimationFrame(raf);
     snd('start');
-    if(SPRITES_READY){
-      bgmPlay('select');G.screen='select';showScreen('select');initSelect();
-    } else {
-      // Show loading bar and wait
-      var btn=$('play-btn');
-      btn.textContent='Loading Sprites...';
-      btn.disabled=true;
-      btn.style.opacity='0.7';
-      // Add progress bar
-      var pb=document.createElement('div');
-      pb.id='sprite-pb-wrap';
-      pb.style.cssText='width:200px;height:6px;background:rgba(255,255,255,0.15);border-radius:3px;margin:12px auto 0;overflow:hidden;';
-      var pbFill=document.createElement('div');
-      pbFill.style.cssText='height:100%;background:linear-gradient(90deg,#f59e0b,#ef4444);border-radius:3px;width:0%;transition:width 0.2s;';
-      pb.appendChild(pbFill);
-      btn.parentNode.insertBefore(pb,btn.nextSibling);
-      var _pbInt=setInterval(function(){
-        var pct=SPRITES_TOTAL>0?Math.round(SPRITES_LOADED/SPRITES_TOTAL*100):0;
-        pbFill.style.width=pct+'%';
-        if(SPRITES_READY){
-          clearInterval(_pbInt);
-          bgmPlay('select');G.screen='select';showScreen('select');initSelect();
-        }
-      },100);
-    }
+    _showLoadingThenSelect();
   };
 }
 
 // CHARACTER SELECT
+// ── PREMIUM LOADING SCREEN ──────────────────────────────────
+function _showLoadingThenSelect(){
+  // Build overlay inside #splash
+  var splash=document.getElementById('splash');
+  var ov=document.createElement('div');
+  ov.id='_load-ov';
+  ov.style.cssText='position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.88);transition:opacity .4s;';
+  ov.innerHTML=
+    '<div style="font-size:clamp(11px,3vmax,15px);letter-spacing:6px;color:#f59e0b;margin-bottom:20px;text-shadow:0 0 20px rgba(245,158,11,.6)">LOADING FIGHTERS</div>'+
+    '<div id="_lp-wrap" style="width:min(280px,70vw);height:6px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;border:1px solid rgba(245,158,11,.2)">'+
+    '<div id="_lp-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#f59e0b,#ef4444);border-radius:4px;transition:width .15s;box-shadow:0 0 8px rgba(245,158,11,.6)"></div></div>'+
+    '<div id="_lp-pct" style="font-size:11px;color:rgba(255,255,255,.35);letter-spacing:2px;margin-top:10px">0%</div>'+
+    '<div style="font-size:8px;color:rgba(255,255,255,.2);letter-spacing:3px;margin-top:28px">AILURIX ARENA</div>';
+  splash.appendChild(ov);
+  var fill=document.getElementById('_lp-fill');
+  var pct=document.getElementById('_lp-pct');
+  var ticks=0;
+  var iv=setInterval(function(){
+    ticks++;
+    var p=SPRITES_TOTAL>0?Math.min(99,Math.round(SPRITES_LOADED/SPRITES_TOTAL*100)):ticks*2;
+    if(fill)fill.style.width=p+'%';
+    if(pct)pct.textContent=p+'%';
+    // Ready: either sprites done OR forced after 6s
+    if((SPRITES_READY&&p>=99)||ticks>=60){
+      clearInterval(iv);
+      if(fill)fill.style.width='100%';
+      if(pct)pct.textContent='100%';
+      setTimeout(function(){
+        ov.style.opacity='0';
+        setTimeout(function(){
+          bgmPlay('select');G.screen='select';showScreen('select');initSelect();
+        },420);
+      },300);
+    }
+  },100);
+}
+
 function initSelect(){
   var grid=$('char-grid');
   grid.innerHTML='';
