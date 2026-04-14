@@ -1742,14 +1742,31 @@ function _playVoice(text,delayMs){
   return true;
 }
 
+var _VM={'round one':'v_round1.mp3','round two':'v_round2.mp3','round three':'v_round3.mp3','flawless':'v_flawless.mp3','finish him':'v_finishhim.mp3','finish her':'v_finishher.mp3','you win':'v_youwin.mp3','perfect':'v_perfect.mp3'};
+var _VA={};
+function _playVoice(text,delayMs){
+  var key=text.toLowerCase(),file=null;
+  for(var k in _VM){if(key.indexOf(k)>=0){file=_VM[k];break;}}
+  if(!file)return false;
+  setTimeout(function(){
+    try{
+      if(_VA[file]&&!_VA[file].paused){_VA[file].pause();_VA[file].currentTime=0;}
+      var a=_VA[file]||(new Audio('voice/'+file));
+      _VA[file]=a;a.currentTime=0;a.volume=1;
+      var p=a.play();if(p&&p.catch)p.catch(function(){});
+    }catch(e){}
+  },delayMs||0);
+  return true;
+}
+
 function announce(text,delayMs){
-  if(_playVoice(text,delayMs))return;
+  // Only pre-recorded MP3 on Android. AndroidTTS removed (caused double voice)  
   if(window.AndroidTTS){
-    setTimeout(function(){
-      try{var _t=String(text).replace(/\b[A-Z]+\b/g,function(w){return w.charAt(0)+w.slice(1).toLowerCase();});window.AndroidTTS.speak(_t);}catch(e){}
-    },delayMs||0);
-    return;
+    if(_playVoice(text,delayMs))return; // MP3 matched
+    return; // no match, skip TTS to avoid robot voice
   }
+  // Browser fallback (web version)
+  if(_playVoice(text,delayMs))return;
   setTimeout(function(){
     try{
       if(!window.speechSynthesis)return;
