@@ -1358,10 +1358,10 @@ function initSplash(){
     raf=requestAnimationFrame(frame);t++;
     var W=cv.offsetWidth,H=cv.offsetHeight;
     if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
-    var grd=ctx.createRadialGradient(W/2,H*0.4,0,W/2,H*0.4,W*0.8);
-    grd.addColorStop(0,'#1a0800');grd.addColorStop(1,'#000');
-    ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
-    for(var i=0;i<30;i++){var sx=((i*W/30+t*0.4*(i%2?1:-1))%W+W)%W,sy=H*0.08+Math.sin(t*0.018+i*0.9)*H*0.38;ctx.fillStyle='rgba(245,158,11,'+(0.15+0.25*Math.sin(t*0.06+i))+')';ctx.beginPath();ctx.arc(sx,sy,1+Math.sin(t*0.07+i)*1,0,Math.PI*2);ctx.fill();}
+    // Transparent canvas — BG slideshow shows through
+    ctx.clearRect(0,0,W,H);
+    // Floating golden particles
+    for(var i=0;i<40;i++){var sx=((i*W/40+t*0.3*(i%2?1:-1))%W+W)%W,sy=H*0.08+Math.sin(t*0.015+i*0.9)*H*0.42;var al=(0.08+0.28*Math.sin(t*0.06+i));ctx.fillStyle='rgba(245,158,11,'+al+')';ctx.beginPath();ctx.arc(sx,sy,0.8+Math.sin(t*0.07+i)*1.2,0,Math.PI*2);ctx.fill();}
   }
   frame();
   // Reset play button in case user came back from a fight
