@@ -1732,7 +1732,7 @@ function _mkVoiceEffect(durationMs){
 }
 
 // MK ANNOUNCER — exact Mortal Kombat style
-var _VM={'round one':'v_round1.mp3','round two':'v_round2.mp3','round three':'v_round3.mp3','flawless':'v_flawless.mp3','finish him':'v_finishhim.mp3','finish her':'v_finishher.mp3','you win':'v_youwin.mp3','perfect':'v_perfect.mp3'};
+var _VM={'round one':'v_round1.mp3','round two':'v_round2.mp3','round three':'v_round3.mp3','flawless':'v_flawless.mp3','finish him':'v_finishhim.mp3','finish her':'v_finishher.mp3','you win':'v_youwin.mp3'};
 var _VA={};
 function _playVoice(text,delayMs){
   var key=text.toLowerCase(),file=null;
@@ -1742,7 +1742,7 @@ function _playVoice(text,delayMs){
   return true;
 }
 
-var _VM={'round one':'v_round1.mp3','round two':'v_round2.mp3','round three':'v_round3.mp3','flawless':'v_flawless.mp3','finish him':'v_finishhim.mp3','finish her':'v_finishher.mp3','you win':'v_youwin.mp3','perfect':'v_perfect.mp3'};
+var _VM={'round one':'v_round1.mp3','round two':'v_round2.mp3','round three':'v_round3.mp3','flawless':'v_flawless.mp3','finish him':'v_finishhim.mp3','finish her':'v_finishher.mp3','you win':'v_youwin.mp3'};
 var _VA={};
 function _playVoice(text,delayMs){
   var key=text.toLowerCase(),file=null;
