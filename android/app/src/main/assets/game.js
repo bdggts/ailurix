@@ -1,4 +1,4 @@
-'use strict'; // v3.0 MK-style fullscreen+canvas
+﻿'use strict'; // v3.0 MK-style fullscreen+canvas
 (function(){
 
 // =========================================================
@@ -1415,7 +1415,7 @@ function initSelect(){
     var cv=document.createElement('canvas');
     cv.className='cem-canvas';
     cv.style.cssText='display:block;margin:0 auto;';
-    drawCharPreview(cv,c,110);
+    drawCharPreview(cv,c,85);
     d.appendChild(cv);
     var nm=document.createElement('div');nm.className='cnm';nm.textContent=c.name.split(' ')[0];
     d.appendChild(nm);
@@ -1434,7 +1434,7 @@ function initSelect(){
   var _refreshInt=setInterval(function(){
     _refreshCount++;
     var canvases=document.querySelectorAll('.cem-canvas');
-    canvases.forEach(function(cv,i){if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],110);});
+    canvases.forEach(function(cv,i){if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],85);});
     if(_refreshCount>=8)clearInterval(_refreshInt);
   },120);
   $('select-btn').onclick=function(){
@@ -1459,7 +1459,7 @@ function updatePreview(){
   // Animated preview: cycle idle frames
   if(window._selAnimInt){clearInterval(window._selAnimInt);window._selAnimInt=null;}
   var _pcv=$('prev-char-canvas');
-  var _sz=130;var _w=_sz;var _h=Math.round(_sz*1.6);
+  var _sz=100;var _w=_sz;var _h=Math.round(_sz*1.6);
   _pcv.width=_w;_pcv.height=_h;
   var _anim_c=c;var _frame=0;
   function _drawFrame(){
