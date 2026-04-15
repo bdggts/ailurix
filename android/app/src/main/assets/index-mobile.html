@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -112,17 +112,15 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
 }
 
 /* Character Grid */
-#char-grid{
-  flex:1;width:100%;display:grid;
-  grid-template-columns:repeat(5,1fr);
-  min-height:0;overflow:hidden;position:relative;z-index:1;
-}
-@media(orientation:portrait){#char-grid{grid-template-columns:repeat(3,1fr);}}
+#sel-main{flex:1;display:flex;flex-direction:row;min-height:0;overflow:hidden;position:relative;z-index:1;}
+#sel-left{width:42%;flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:10px 8px max(10px,env(safe-area-inset-bottom,10px));background:linear-gradient(180deg,rgba(5,2,20,.98),rgba(0,0,0,.99));border-right:1px solid rgba(245,158,11,.18);overflow-y:auto;gap:5px;}
+#sel-right{flex:1;min-width:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:rgba(0,0,0,.15);}
+#char-grid{display:grid;grid-template-columns:repeat(2,1fr);width:100%;}
 
 .char-card{
   position:relative;touch-action:manipulation;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-  padding-top:4px;
+  padding-top:8px;min-height:clamp(90px,22vmax,130px);
   border:1px solid rgba(255,255,255,.05);overflow:hidden;
   transition:background .2s, box-shadow .2s, border-color .2s;
   background:rgba(255,255,255,.02);
@@ -156,30 +154,16 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
 @keyframes dotP{0%,100%{opacity:1;transform:translateX(-50%) scale(1);}50%{opacity:.4;transform:translateX(-50%) scale(.6);}}
 
 /* Bottom info — PREMIUM GLASSMORPHISM */
-#sel-bottom{
-  width:100%;flex-shrink:0;position:relative;z-index:2;
-  background:linear-gradient(180deg,rgba(2,1,15,.97) 0%,rgba(0,0,0,.99) 100%);
-  border-top:1px solid rgba(245,158,11,.25);
-  box-shadow:0 -8px 32px rgba(0,0,0,.6);
-}
+#sel-bottom{display:none !important;}
 #sel-info-row{
   display:flex;align-items:center;gap:12px;
   padding:8px 14px 5px;
 }
 /* prev-emoji: game.js injects prev-char-canvas INSIDE this */
-#prev-emoji{
-  width:52px;min-width:52px;height:80px;
-  display:flex;align-items:center;justify-content:center;
-  overflow:visible;flex-shrink:0;
-  border-right:1px solid rgba(255,255,255,.06);padding-right:12px;
-}
+#prev-emoji{width:100%;flex-shrink:0;min-height:clamp(120px,32vmax,180px);display:flex;align-items:flex-end;justify-content:center;position:relative;}
 #prev-emoji canvas{display:block !important;filter:drop-shadow(0 4px 12px rgba(245,158,11,.3));}
 #prev-color-block{flex:1;min-width:0;}
-#prev-name{
-  font-size:clamp(14px,4vmax,19px);font-weight:900;letter-spacing:2px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1;
-  text-shadow:0 0 20px currentColor;
-}
+#prev-name{font-size:clamp(11px,3.2vmax,16px);font-weight:900;letter-spacing:2px;text-align:center;line-height:1.1;text-shadow:0 0 20px currentColor;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;}
 #prev-title{font-size:8px;color:rgba(255,255,255,.28);letter-spacing:2px;margin-top:2px;}
 #prev-rarity{
   display:inline-block;padding:2px 10px;border-radius:20px;
@@ -187,10 +171,7 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
   margin-top:3px;margin-bottom:4px;
   box-shadow:0 0 10px rgba(245,158,11,.2);
 }
-#prev-stats{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:3px 10px;width:100%;
-}
+#prev-stats{display:flex;flex-direction:column;gap:3px;width:100%;}
 .stat-row{width:100%;}
 .stat-lbl{display:flex;justify-content:space-between;align-items:center;
   font-size:7px;color:rgba(255,255,255,.3);margin-bottom:1px;letter-spacing:.5px;}
@@ -204,7 +185,7 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
 .prev-divider,.prev-special{display:none !important;}
 
 /* SELECT button — PREMIUM PULSE */
-#sel-btn-row{padding:0 12px max(10px,env(safe-area-inset-bottom,10px)) 12px;}
+#sel-btn-row{padding:0 12px max(10px,env(safe-area-inset-bottom,10px)) 12px;display:none !important;}
 #select-btn{
   width:100%;padding:clamp(11px,2.8vmax,14px);
   border-radius:12px;border:none;color:#000;font-weight:900;
@@ -213,7 +194,7 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
   background-size:200% 100%;
   box-shadow:0 0 24px rgba(245,158,11,.5),0 4px 16px rgba(0,0,0,.4);
   touch-action:manipulation;transition:transform .1s, box-shadow .1s;
-  animation:selBtnP 2.5s ease-in-out infinite;
+  animation:selBtnP 2.5s ease-in-out infinite;margin-top:auto;flex-shrink:0;
 }
 @keyframes selBtnP{
   0%,100%{background-position:0% 50%;box-shadow:0 0 20px rgba(245,158,11,.4),0 4px 14px rgba(0,0,0,.4);}
