@@ -1,4 +1,4 @@
-'use strict'; // v3.0 MK-style fullscreen+canvas
+﻿'use strict'; // v3.0 MK-style fullscreen+canvas
 (function(){
 
 // =========================================================
@@ -1479,11 +1479,17 @@ function updatePreview(dir){
       inner.classList.add(dir==='right'?'slide-in-right':'slide-in-left');
     },30);
   }
-  // Big animated preview (170px)
+  // Set arena background per character
+  var _bgKeys=['bg_cyber','bg_ocean','bg_jungle','bg_ice','bg_dark_storm','bg_crystal','bg_fire','bg_ghost','bg_forest','bg_speed','bg_forge','bg_storm','bg_void','bg_dark_forest','bg_boss'];
+  var _bgK=_bgKeys[G.selIdx%_bgKeys.length];
+  var _bgImg=BG_IMAGES[_bgK];var _seEl=$('select');
+  function _applyBg(){if(_seEl&&_bgImg&&_bgImg.src)_seEl.style.backgroundImage="url('"+_bgImg.src+"')"}
+  if(_bgImg&&_bgImg.complete&&_bgImg.naturalWidth>0){_applyBg();}else if(_bgImg){_bgImg.onload=_applyBg;}
+  // Big animated preview (220px hero showcase)
   if(window._selAnimInt){clearInterval(window._selAnimInt);window._selAnimInt=null;}
   var _pcv=$('prev-char-canvas');
   if(_pcv){
-    var _sz=170,_w=_sz,_h=Math.round(_sz*1.6);
+    var _sz=220,_w=_sz,_h=Math.round(_sz*1.6);
     _pcv.width=_w;_pcv.height=_h;
     var _ac=c,_fr=0;
     function _df(){_fr+=2;var ctx=_pcv.getContext('2d');ctx.clearRect(0,0,_w,_h);var fk={x:_w/2,y:_h-4,dir:1,ch:_ac,H:_h*0.85,state:'idle',af:0,vy:0};drawFighter(ctx,fk,_fr);}
@@ -1496,7 +1502,7 @@ function updatePreview(dir){
   var re=$('prev-rarity');if(re){re.textContent=c.rarity;re.style.color=c.color;re.style.background=c.color+'22';re.style.borderColor=c.color+'55';}
   var spe=$('prev-spl');if(spe){spe.textContent=c.spl;spe.style.color=c.color;}
   // Stats with animated bars
-  var stats=[['&#x2694;&#xFE0F; POW',c.pow,'#ef4444'],['&#x26A1; SPD',c.spd,'#22c55e'],['&#x1F6E1;&#xFE0F; DEF',c.def,'#3b82f6'],['&#x2764;&#xFE0F; HP',Math.round(c.hp/10),'#f472b6']];
+  var stats=[['&#x2694; POW',c.pow,'#ef4444'],['&#x26A1; SPD',c.spd,'#22c55e'],['&#x1F6E1; DEF',c.def,'#3b82f6'],['&#x2764; HP',Math.round(c.hp/10),'#f472b6']];
   var stEl=$('prev-stats');
   if(stEl){
     stEl.innerHTML=stats.map(function(s){return '<div class="stat-row"><div class="stat-lbl">'+s[0]+'<span class="stat-val" style="color:'+s[2]+'">'+s[1]+'/10</span></div><div class="stat-bg"><div class="stat-fill" style="width:0%;background:'+s[2]+';color:'+s[2]+'"></div></div></div>';}).join('');
