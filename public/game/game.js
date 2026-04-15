@@ -1,4 +1,4 @@
-﻿'use strict'; // v3.0 MK-style fullscreen+canvas
+'use strict'; // v3.0 MK-style fullscreen+canvas
 (function(){
 
 // =========================================================
@@ -1401,11 +1401,11 @@ function initSplash(){
 // No complex loading screen - direct navigation
 
 function initSelect(){
-  // Stop any old preview animation
   if(window._selAnimInt){clearInterval(window._selAnimInt);window._selAnimInt=null;}
   var grid=$('char-grid');
   grid.innerHTML='';
   $('sel-stage-info').textContent='STAGE '+G.stage+' OF 15';
+  // Build portrait tray cards
   PLAYABLE.forEach(function(c,i){
     var d=document.createElement('div');
     d.className='char-card';
@@ -1414,70 +1414,97 @@ function initSelect(){
     d.style.setProperty('--cs',c.color+'55');
     var cv=document.createElement('canvas');
     cv.className='cem-canvas';
-    cv.style.cssText='display:block;margin:0 auto;';
-    drawCharPreview(cv,c,85);
+    drawCharPreview(cv,c,55);
     d.appendChild(cv);
     var nm=document.createElement('div');nm.className='cnm';nm.textContent=c.name.split(' ')[0];
     d.appendChild(nm);
-    var dot=document.createElement('div');dot.className='char-dot';
-    d.appendChild(dot);
     d.setAttribute('data-idx',i);
     d.addEventListener('pointerdown',function(){
-      G.selIdx=i;snd('select');updatePreview();updateGrid();
-      try{d.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(e){}
+      G.selIdx=i;snd('select');
+      updatePreview('right');updateGrid();
+      try{d.scrollIntoView({inline:'nearest',behavior:'smooth'});}catch(e){}
     });
     grid.appendChild(d);
   });
-  updateGrid();updatePreview();
-  // Auto-refresh previews as sprites load async
-  var _refreshCount=0;
-  var _refreshInt=setInterval(function(){
-    _refreshCount++;
-    var canvases=document.querySelectorAll('.cem-canvas');
-    canvases.forEach(function(cv,i){if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],85);});
-    if(_refreshCount>=8)clearInterval(_refreshInt);
-  },120);
+  // Build nav dots
+  var dw=$('sel-dots-wrap');
+  if(dw){dw.innerHTML='';PLAYABLE.forEach(function(c,i){var dot=document.createElement('div');dot.className='sel-dot'+(i===G.selIdx?' active':'');dw.appendChild(dot);});}
+  // Arrow buttons
+  var pb=$('sel-prev-btn'),nb=$('sel-next-btn');
+  if(pb)pb.onclick=function(){if(G.selIdx>0){G.selIdx--;snd('select');updatePreview('left');updateGrid();}};  
+  if(nb)nb.onclick=function(){if(G.selIdx<PLAYABLE.length-1){G.selIdx++;snd('select');updatePreview('right');updateGrid();}};
+  // Swipe on showcase
+  var sc=$('sel-showcase');
+  if(sc){
+    var _sx=0,_sy=0;
+    sc.addEventListener('touchstart',function(e){_sx=e.touches[0].clientX;_sy=e.touches[0].clientY;},{passive:true});
+    sc.addEventListener('touchend',function(e){
+      var dx=e.changedTouches[0].clientX-_sx,dy=e.changedTouches[0].clientY-_sy;
+      if(Math.abs(dx)>Math.abs(dy)*1.2&&Math.abs(dx)>35){
+        if(dx<0&&G.selIdx<PLAYABLE.length-1){G.selIdx++;snd('select');updatePreview('right');updateGrid();}
+        else if(dx>0&&G.selIdx>0){G.selIdx--;snd('select');updatePreview('left');updateGrid();}
+      }
+    },{passive:true});
+  }
+  updateGrid();updatePreview('none');
+  // Refresh small portraits once sprites load
+  var _rc=0,_ri=setInterval(function(){
+    _rc++;document.querySelectorAll('.cem-canvas').forEach(function(cv,i){if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],55);});
+    if(_rc>=8)clearInterval(_ri);
+  },130);
   $('select-btn').onclick=function(){
     G.player=PLAYABLE[G.selIdx];snd('start');
     if(window._selAnimInt){clearInterval(window._selAnimInt);window._selAnimInt=null;}
-    bgmStop();
-    G.screen='vs';showScreen('vs');initVS();
+    bgmStop();G.screen='vs';showScreen('vs');initVS();
   };
 }
 function updateGrid(){
-  var cards=document.querySelectorAll('.char-card');
-  cards.forEach(function(c,i){c.classList.toggle('sel',i===G.selIdx);});
+  document.querySelectorAll('.char-card').forEach(function(c,i){c.classList.toggle('sel',i===G.selIdx);});
+  document.querySelectorAll('.sel-dot').forEach(function(d,i){d.classList.toggle('active',i===G.selIdx);});
+  var ccEl=$('sel-char-count');if(ccEl)ccEl.textContent=(G.selIdx+1)+'/'+PLAYABLE.length;
 }
-function updatePreview(){
+function updatePreview(dir){
   var c=PLAYABLE[G.selIdx];
-  var pEl=$('prev-emoji');
-  if(!$('prev-char-canvas')){
-    var cv=document.createElement('canvas');cv.id='prev-char-canvas';
-    cv.style.cssText='display:block;margin:0 auto;';
-    pEl.innerHTML='';pEl.appendChild(cv);
+  // Theme colors on #select root
+  var se=$('select');
+  if(se){se.style.setProperty('--sel-cc',c.color);se.style.setProperty('--sel-c1',c.color+'30');se.style.setProperty('--sel-glow',c.color+'90');}
+  // Animated bg layer
+  var bl=$('sel-bg-layer');
+  if(bl)bl.style.background='radial-gradient(ellipse at 50% 55%,'+c.color+'28 0%,rgba(0,0,0,0) 65%)';
+  // Showcase slide animation
+  var inner=$('sel-showcase-inner');
+  if(inner&&dir&&dir!=='none'){
+    inner.classList.remove('slide-in-left','slide-in-right');
+    setTimeout(function(){
+      inner.classList.add(dir==='right'?'slide-in-right':'slide-in-left');
+    },30);
   }
-  // Animated preview: cycle idle frames
+  // Big animated preview (170px)
   if(window._selAnimInt){clearInterval(window._selAnimInt);window._selAnimInt=null;}
   var _pcv=$('prev-char-canvas');
-  var _sz=100;var _w=_sz;var _h=Math.round(_sz*1.6);
-  _pcv.width=_w;_pcv.height=_h;
-  var _anim_c=c;var _frame=0;
-  function _drawFrame(){
-    _frame+=2;
-    var ctx=_pcv.getContext('2d');
-    ctx.clearRect(0,0,_w,_h);
-    var fk={x:_w/2,y:_h-4,dir:1,ch:_anim_c,H:_h*0.85,state:'idle',af:0,vy:0};
-    drawFighter(ctx,fk,_frame);
+  if(_pcv){
+    var _sz=170,_w=_sz,_h=Math.round(_sz*1.6);
+    _pcv.width=_w;_pcv.height=_h;
+    var _ac=c,_fr=0;
+    function _df(){_fr+=2;var ctx=_pcv.getContext('2d');ctx.clearRect(0,0,_w,_h);var fk={x:_w/2,y:_h-4,dir:1,ch:_ac,H:_h*0.85,state:'idle',af:0,vy:0};drawFighter(ctx,fk,_fr);}
+    _df();window._selAnimInt=setInterval(_df,80);
   }
-  _drawFrame();
-  window._selAnimInt=setInterval(_drawFrame,80);
-  $('prev-name').textContent=c.name;$('prev-name').style.color=c.color;
-  $('prev-title').textContent=c.title;
-  var rEl=$('prev-rarity');rEl.textContent=c.rarity;rEl.style.color=c.color;rEl.style.background=c.color+'22';rEl.style.border='1px solid '+c.color+'44';
-  $('prev-spl').textContent=c.spl;$('prev-spl').style.color=c.color;
-  var stats=[['\u2694\uFE0F POWER',c.pow,'#ef4444'],['\u26A1 SPEED',c.spd,'#22c55e'],['\uD83D\uDEE1\uFE0F DEFENSE',c.def,'#3b82f6'],['\u2764\uFE0F HP',Math.round(c.hp/10),'#f472b6']];
-  $('prev-stats').innerHTML=stats.map(function(s){return '<div class="stat-row"><div class="stat-lbl"><span>'+s[0]+'</span><span class="stat-val" style="color:'+s[2]+'">'+s[1]+'/10</span></div><div class="stat-bg"><div class="stat-fill" style="width:'+s[1]*10+'%;background:'+s[2]+'"></div></div></div>';}).join('');
-  var btn=$('select-btn');btn.style.background='linear-gradient(135deg,'+c.color+','+c.color+'88)';btn.style.boxShadow='0 4px 20px '+c.color+'55';
+  // Name with animation reset
+  var ne=$('prev-name');
+  if(ne){ne.textContent=c.name;ne.style.color=c.color;ne.style.textShadow='0 0 20px '+c.color;ne.style.animation='none';setTimeout(function(){ne.style.animation='';},10);}
+  var te=$('prev-title');if(te)te.textContent=c.title||'—';
+  var re=$('prev-rarity');if(re){re.textContent=c.rarity;re.style.color=c.color;re.style.background=c.color+'22';re.style.borderColor=c.color+'55';}
+  var spe=$('prev-spl');if(spe){spe.textContent=c.spl;spe.style.color=c.color;}
+  // Stats with animated bars
+  var stats=[['&#x2694;&#xFE0F; POW',c.pow,'#ef4444'],['&#x26A1; SPD',c.spd,'#22c55e'],['&#x1F6E1;&#xFE0F; DEF',c.def,'#3b82f6'],['&#x2764;&#xFE0F; HP',Math.round(c.hp/10),'#f472b6']];
+  var stEl=$('prev-stats');
+  if(stEl){
+    stEl.innerHTML=stats.map(function(s){return '<div class="stat-row"><div class="stat-lbl">'+s[0]+'<span class="stat-val" style="color:'+s[2]+'">'+s[1]+'/10</span></div><div class="stat-bg"><div class="stat-fill" style="width:0%;background:'+s[2]+';color:'+s[2]+'"></div></div></div>';}).join('');
+    setTimeout(function(){stEl.querySelectorAll('.stat-fill').forEach(function(f,i){f.style.width=stats[i][1]*10+'%';});},60);
+  }
+  // Fight button
+  var btn=$('select-btn');
+  if(btn){btn.textContent='FIGHT!';btn.style.background='linear-gradient(135deg,'+c.color+','+c.color+'88)';btn.style.boxShadow='0 0 28px '+c.color+'55,0 4px 16px rgba(0,0,0,.6)';}
 }
 
 // VS
