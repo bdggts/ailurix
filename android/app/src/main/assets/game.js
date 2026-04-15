@@ -1,4 +1,4 @@
-﻿'use strict'; // v3.0 MK-style fullscreen+canvas
+'use strict'; // v3.0 MK-style fullscreen+canvas
 (function(){
 
 // =========================================================
@@ -469,11 +469,12 @@ function drawFighter(ctx,f,t){
 
 // Draw character preview on a canvas element
 function drawCharPreview(canvas,ch,size){
-  var w=size||90,h=Math.round(w*1.6);
+  var w=size||90,h=w;
   canvas.width=w;canvas.height=h;
   var ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,w,h);
-  var fakeF={x:w/2,y:h-4,dir:1,ch:ch,H:h*0.85,state:'idle',af:0,vy:0};
+  var charH=h*0.72;
+  var fakeF={x:w/2,y:h-2,dir:1,ch:ch,H:charH,state:'idle',af:0,vy:0};
   drawFighter(ctx,fakeF,60);
 }
 
@@ -1413,7 +1414,7 @@ function initSelect(){
     d.style.setProperty('--cb',c.color+'22');
     var cv=document.createElement('canvas');
     cv.className='cem-canvas';
-    drawCharPreview(cv,c,100);
+    drawCharPreview(cv,c,110);
     d.appendChild(cv);
     var nm=document.createElement('div');nm.className='cnm';nm.textContent=c.name.split(' ')[0];
     d.appendChild(nm);
@@ -1434,7 +1435,7 @@ function initSelect(){
   var _rc=0,_ri=setInterval(function(){
     _rc++;
     document.querySelectorAll('.cem-canvas').forEach(function(cv,i){
-      if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],100);
+      if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],110);
     });
     if(_rc>=8)clearInterval(_ri);
   },130);
@@ -1462,12 +1463,12 @@ function updatePreview(dir){
   if(window._selAnimInt){clearInterval(window._selAnimInt);window._selAnimInt=null;}
   var _pcv=$('prev-char-canvas');
   if(_pcv){
-    var _sz=Math.round(Math.min(window.innerWidth*0.26,130));
-    var _w=_sz,_h=Math.round(_sz*1.6);
+    var _sz=Math.round(Math.min(window.innerWidth*0.30,150));
+    var _w=_sz,_h=Math.round(_sz*1.3);
     _pcv.width=_w;_pcv.height=_h;
     _pcv.style.opacity='1';_pcv.style.transform='none';
     var _ac=c,_fr=0;
-    function _df(){_fr+=2;var ctx=_pcv.getContext('2d');ctx.clearRect(0,0,_w,_h);var fk={x:_w/2,y:_h-4,dir:1,ch:_ac,H:_h*0.85,state:'idle',af:0,vy:0};drawFighter(ctx,fk,_fr);}
+    function _df(){_fr+=2;var ctx=_pcv.getContext('2d');ctx.clearRect(0,0,_w,_h);var fk={x:_w/2,y:_h-4,dir:1,ch:_ac,H:_h*0.75,state:'idle',af:0,vy:0};drawFighter(ctx,fk,_fr);}
     _df();window._selAnimInt=setInterval(_df,80);
   }
   // Name
