@@ -1,4 +1,4 @@
-'use strict'; // v3.0 MK-style fullscreen+canvas
+﻿'use strict'; // v3.0 MK-style fullscreen+canvas
 (function(){
 
 // =========================================================
@@ -1413,7 +1413,7 @@ function initSelect(){
     d.style.setProperty('--cb',c.color+'22');
     var cv=document.createElement('canvas');
     cv.className='cem-canvas';
-    drawCharPreview(cv,c,62);
+    drawCharPreview(cv,c,95);
     d.appendChild(cv);
     var nm=document.createElement('div');nm.className='cnm';nm.textContent=c.name.split(' ')[0];
     d.appendChild(nm);
@@ -1434,7 +1434,7 @@ function initSelect(){
   var _rc=0,_ri=setInterval(function(){
     _rc++;
     document.querySelectorAll('.cem-canvas').forEach(function(cv,i){
-      if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],62);
+      if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],95);
     });
     if(_rc>=8)clearInterval(_ri);
   },130);
