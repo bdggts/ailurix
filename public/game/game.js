@@ -1633,7 +1633,12 @@ function setupControls(){
   });
 
   document.addEventListener('contextmenu',function(e){e.preventDefault();});
-  document.addEventListener('touchmove',function(e){e.preventDefault();},{passive:false});
+  document.addEventListener('touchmove',function(e){
+    // Allow scroll inside character select grid
+    var el=e.target;
+    while(el){if(el.id==='sel-grid-panel')return;el=el.parentElement;}
+    e.preventDefault();
+  },{passive:false});
 }
 
 // =========================================================
