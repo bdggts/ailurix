@@ -1,4 +1,4 @@
-'use strict'; // v3.0 MK-style fullscreen+canvas
+﻿'use strict'; // v3.0 MK-style fullscreen+canvas
 (function(){
 
 // =========================================================
@@ -473,7 +473,7 @@ function drawCharPreview(canvas,ch,size){
   canvas.width=w;canvas.height=h;
   var ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,w,h);
-  var charH=h*0.72;
+  var charH=h*0.92;
   var fakeF={x:w/2,y:h-2,dir:1,ch:ch,H:charH,state:'idle',af:0,vy:0};
   drawFighter(ctx,fakeF,60);
 }
@@ -1414,7 +1414,7 @@ function initSelect(){
     d.style.setProperty('--cb',c.color+'22');
     var cv=document.createElement('canvas');
     cv.className='cem-canvas';
-    drawCharPreview(cv,c,110);
+    drawCharPreview(cv,c,140);
     d.appendChild(cv);
     var nm=document.createElement('div');nm.className='cnm';nm.textContent=c.name.split(' ')[0];
     d.appendChild(nm);
@@ -1435,7 +1435,7 @@ function initSelect(){
   var _rc=0,_ri=setInterval(function(){
     _rc++;
     document.querySelectorAll('.cem-canvas').forEach(function(cv,i){
-      if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],110);
+      if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],140);
     });
     if(_rc>=8)clearInterval(_ri);
   },130);
