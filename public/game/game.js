@@ -1413,7 +1413,7 @@ function initSelect(){
     d.style.setProperty('--cb',c.color+'22');
     var cv=document.createElement('canvas');
     cv.className='cem-canvas';
-    drawCharPreview(cv,c,120);
+    drawCharPreview(cv,c,100);
     d.appendChild(cv);
     var nm=document.createElement('div');nm.className='cnm';nm.textContent=c.name.split(' ')[0];
     d.appendChild(nm);
@@ -1434,7 +1434,7 @@ function initSelect(){
   var _rc=0,_ri=setInterval(function(){
     _rc++;
     document.querySelectorAll('.cem-canvas').forEach(function(cv,i){
-      if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],120);
+      if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],100);
     });
     if(_rc>=8)clearInterval(_ri);
   },130);
@@ -1462,7 +1462,7 @@ function updatePreview(dir){
   if(window._selAnimInt){clearInterval(window._selAnimInt);window._selAnimInt=null;}
   var _pcv=$('prev-char-canvas');
   if(_pcv){
-    var _sz=Math.round(Math.min(window.innerWidth*0.36,180));
+    var _sz=Math.round(Math.min(window.innerWidth*0.26,130));
     var _w=_sz,_h=Math.round(_sz*1.6);
     _pcv.width=_w;_pcv.height=_h;
     _pcv.style.opacity='1';_pcv.style.transform='none';
