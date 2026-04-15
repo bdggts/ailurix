@@ -1,118 +1,56 @@
 'use client';
 import Link from 'next/link';
 
-const orb = "'Orbitron','Rajdhani',sans-serif";
-const C = { gold: '#f59e0b', border: 'rgba(255,255,255,0.07)', dim: 'rgba(255,255,255,0.42)' };
+const LINKS = {
+  Games: [['Ailurix Arena', '/game'], ['Ailurix Farm', '#roadmap'], ['Ailurix Racers', '#roadmap']],
+  Token: [['$ARX Token', '#token'], ['Tokenomics', '#token'], ['Waitlist', '#waitlist']],
+  Studio: [['About', '#about'], ['Roadmap', '#roadmap'], ['Partners', '#partners']],
+  Community: [['Discord', 'https://discord.gg/ailurix'], ['Twitter / X', 'https://x.com/AilurixStudios'], ['Telegram', 'https://t.me/ailurix']],
+};
 
-const FOOTER_COLS = [
-  {
-    heading: 'GAMES',
-    links: [
-      { label: 'Ailurix Arena', href: '/game' },
-      { label: 'Ailurix Farm', href: '#roadmap' },
-      { label: 'Coming Soon', href: '#roadmap' },
-    ],
-  },
-  {
-    heading: 'COMPANY',
-    links: [
-      { label: 'About Studio', href: '#' },
-      { label: 'Roadmap', href: '#roadmap' },
-      { label: 'Press Kit', href: '#' },
-    ],
-  },
-  {
-    heading: 'COMMUNITY',
-    links: [
-      { label: 'Twitter / X', href: 'https://twitter.com/ailurix' },
-      { label: 'Discord', href: '#' },
-      { label: 'GitHub', href: 'https://github.com/bdggts/ailurix' },
-    ],
-  },
-];
-
-const BOTTOM_LINKS = ['Privacy Policy', 'Terms of Service', 'Cookie Policy'];
-
-export default function Footer({ onHover }) {
+export default function Footer() {
   return (
-    <>
-      <style>{`
-        .ft-link { font-size: 13px; color: ${C.dim}; text-decoration: none; transition: color .2s; }
-        .ft-link:hover { color: #fff; }
-        .ft-bottom-link { font-size: 12px; color: rgba(255,255,255,0.16); text-decoration: none; transition: color .2s; }
-        .ft-bottom-link:hover { color: ${C.dim}; }
-        @media(max-width:768px){ .ft-grid{grid-template-columns:1fr!important;} .ft-bottom{flex-direction:column!important;gap:12px!important;text-align:center;} }
-      `}</style>
-
-      <footer style={{ borderTop: `1px solid ${C.border}`, background: 'rgba(0,0,0,0.5)' }}>
-        {/* Top section */}
-        <div className="ft-grid" style={{ maxWidth: 1180, margin: '0 auto', padding: '64px 48px 40px', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 48 }}>
+    <footer style={{ borderTop: '1px solid rgba(255,255,255,0.07)', background: '#020207' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 48px 40px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr repeat(4, 1fr)', gap: 48, marginBottom: 56 }}>
           {/* Brand */}
           <div>
-            <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 11, marginBottom: 22 }}
-              onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
-              <div style={{ width: 38, height: 38, borderRadius: 9, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: orb, fontWeight: 900, fontSize: 16, color: '#000', boxShadow: '0 0 18px rgba(245,158,11,.25)' }}>A</div>
-              <div>
-                <div style={{ fontFamily: orb, fontSize: 16, fontWeight: 900, letterSpacing: 2.5, color: '#fff', lineHeight: 1 }}>AIL<span style={{ color: C.gold }}>URIX</span></div>
-                <div style={{ fontSize: 8.5, color: 'rgba(255,255,255,0.2)', letterSpacing: 3, fontFamily: orb }}>STUDIOS</div>
-              </div>
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', marginBottom: 16 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 7, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, color: '#000' }}>A</div>
+              <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 14, letterSpacing: 2, color: '#fff' }}>AILURIX</span>
             </Link>
-            <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.9, maxWidth: 270 }}>
-              Building the future of blockchain gaming. One studio. One token. Multiple worlds.
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', lineHeight: 1.7, maxWidth: 240 }}>
+              A blockchain gaming studio building the future of play-to-earn on Base Chain.
             </p>
-
-            {/* Social icons row */}
-            <div style={{ display: 'flex', gap: 10, marginTop: 28 }}>
-              {[{ label: 'X', href: 'https://twitter.com/ailurix' }, { label: 'DC', href: '#' }, { label: 'GH', href: 'https://github.com/bdggts/ailurix' }].map(s => (
-                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
-                  style={{ width: 36, height: 36, borderRadius: 3, border: `1px solid ${C.border}`, background: 'rgba(255,255,255,.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: orb, fontSize: 10, fontWeight: 700, color: C.dim, textDecoration: 'none', transition: 'border-color .2s, color .2s' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = C.gold; e.currentTarget.style.color = C.gold; onHover?.(true); }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.dim; onHover?.(false); }}>
-                  {s.label}
-                </a>
-              ))}
-            </div>
-
-            <div style={{ marginTop: 28, fontSize: 11, color: 'rgba(255,255,255,.16)', fontFamily: orb, letterSpacing: 1.5 }}>ailurix.com</div>
           </div>
 
           {/* Link columns */}
-          {FOOTER_COLS.map(col => (
-            <div key={col.heading}>
-              <div style={{ fontSize: 9.5, fontFamily: orb, fontWeight: 700, letterSpacing: 3, color: C.gold, marginBottom: 22 }}>{col.heading}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {col.links.map(link => (
-                  <a key={link.label} href={link.href} className="ft-link"
-                    onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
-                    {link.label}
-                  </a>
+          {Object.entries(LINKS).map(([title, links]) => (
+            <div key={title}>
+              <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 3, color: 'rgba(255,255,255,0.25)', marginBottom: 20 }}>{title.toUpperCase()}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {links.map(([label, href]) => (
+                  <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noopener' : undefined}
+                    style={{ fontSize: 13, color: 'rgba(255,255,255,0.42)', textDecoration: 'none', transition: 'color 0.2s' }}
+                    onMouseEnter={e => e.target.style.color = '#fff'}
+                    onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.42)'}
+                  >{label}</a>
                 ))}
               </div>
             </div>
           ))}
         </div>
 
-        {/* Divider with token badge */}
-        <div style={{ maxWidth: 1180, margin: '0 auto', padding: '0 48px' }}>
-          <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${C.border}, ${C.border}, transparent)` }} />
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: -14 }}>
-            <div style={{ background: '#020207', padding: '0 16px' }}>
-              <div style={{ padding: '5px 18px', border: `1px solid rgba(245,158,11,.2)`, borderRadius: 20, fontFamily: orb, fontSize: 10, fontWeight: 700, color: C.gold, letterSpacing: 2 }}>$ARX · BASE CHAIN · COMING Q3 2026</div>
-            </div>
-          </div>
-        </div>
-
         {/* Bottom bar */}
-        <div className="ft-bottom" style={{ maxWidth: 1180, margin: '0 auto', padding: '20px 48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,.16)' }}>© 2026 Ailurix Studios LLC — All rights reserved</span>
-          <div style={{ display: 'flex', gap: 24 }}>
-            {BOTTOM_LINKS.map(l => (
-              <a key={l} href="#" className="ft-bottom-link"
-                onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>{l}</a>
-            ))}
-          </div>
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>
+            &copy; 2026 Ailurix Studios. All rights reserved.
+          </span>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', fontFamily: "'Orbitron',sans-serif", letterSpacing: 2 }}>
+            BUILT ON BASE CHAIN
+          </span>
         </div>
-      </footer>
-    </>
+      </div>
+    </footer>
   );
 }

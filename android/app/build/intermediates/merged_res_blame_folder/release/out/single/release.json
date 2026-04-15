@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "com.dominex.arena.app-merged_res-5:/drawable_ic_launcher_round.png.flat",
+        "source": "com.dominex.arena.app-main-6:/drawable/ic_launcher_round.png"
+    },
+    {
+        "merged": "C:\\Users\\HP\\.gradle\\daemon\\7.6\\com.dominex.arena.app-merged_res-5:\\drawable_ic_launcher.png.flat",
+        "source": "C:\\Users\\HP\\.gradle\\daemon\\7.6\\com.dominex.arena.app-main-6:\\drawable\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\HP\\.gradle\\daemon\\7.6\\com.dominex.arena.app-merged_res-5:\\drawable_ic_launcher_round.png.flat",
+        "source": "C:\\Users\\HP\\.gradle\\daemon\\7.6\\com.dominex.arena.app-main-6:\\drawable\\ic_launcher_round.png"
+    },
+    {
+        "merged": "com.dominex.arena.app-merged_res-5:/drawable_ic_launcher.png.flat",
+        "source": "com.dominex.arena.app-main-6:/drawable/ic_launcher.png"
+    }
+]

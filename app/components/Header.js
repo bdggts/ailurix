@@ -1,113 +1,74 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-
-const orb = "'Orbitron','Rajdhani',sans-serif";
-const C = { gold: '#f59e0b', border: 'rgba(255,255,255,0.07)', dim: 'rgba(255,255,255,0.42)' };
 
 const NAV_LINKS = [
   ['Games', '#games'],
-  ['About', '#about'],
   ['Token', '#token'],
   ['Roadmap', '#roadmap'],
-  ['Team', '#team'],
   ['FAQ', '#faq'],
 ];
 
-export default function Header({ onHover }) {
-  const [scroll, setScroll] = useState(0);
+export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const fn = () => setScroll(window.scrollY);
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
-  }, []);
-
-  const solid = scroll > 60;
 
   return (
     <>
       <style>{`
+        .hdr { position: fixed; top: 0; left: 0; right: 0; z-index: 200; background: #020207; border-bottom: 1px solid rgba(255,255,255,0.07); }
+        .hdr-inner { height: 64px; max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; }
+        .hdr-logo { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+        .hdr-logo-icon { width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #f59e0b, #ef4444); display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 16px; color: #000; box-shadow: 0 0 16px rgba(245,158,11,0.3); }
+        .hdr-logo-text { font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 900; letter-spacing: 2.5px; color: #fff; line-height: 1; }
+        .hdr-logo-sub { font-size: 8.5px; color: rgba(255,255,255,0.25); letter-spacing: 3px; font-family: 'Orbitron', sans-serif; }
+        .hdr-nav { display: flex; gap: 36px; align-items: center; }
+        .hdr-link { color: rgba(255,255,255,0.42); text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 0.3px; transition: color 0.2s; }
+        .hdr-link:hover { color: #fff; }
+        .hdr-cta { padding: 9px 26px; border-radius: 4px; background: linear-gradient(135deg, #f59e0b, #ef4444); color: #000; font-weight: 900; font-size: 12px; text-decoration: none; font-family: 'Orbitron', sans-serif; letter-spacing: 1.5px; box-shadow: 0 0 20px rgba(245,158,11,0.22); transition: box-shadow 0.3s, transform 0.3s; }
+        .hdr-cta:hover { box-shadow: 0 0 36px rgba(245,158,11,0.5); transform: translateY(-1px); }
+        .hdr-right { display: flex; gap: 14px; align-items: center; }
+        .hdr-burger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; }
+        .hdr-burger span { width: 22px; height: 1.5px; background: #fff; display: block; transition: all 0.3s; }
+        .hdr-mobile { display: none; background: rgba(2,2,7,0.98); backdrop-filter: blur(24px); border-top: 1px solid rgba(255,255,255,0.07); padding: 24px 32px; flex-direction: column; gap: 20px; animation: slideDown 0.25s ease; }
+        .hdr-mobile a { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; color: rgba(255,255,255,0.42); text-decoration: none; transition: color 0.2s; }
+        .hdr-mobile a:hover { color: #fff; }
+        .hdr-mobile-cta { padding: 13px 0; background: linear-gradient(135deg, #f59e0b, #ef4444); color: #000; font-weight: 900; font-size: 13px; text-decoration: none; font-family: 'Orbitron', sans-serif; letter-spacing: 2px; text-align: center; border-radius: 4px; margin-top: 8px; display: block; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
-        .nav-link { color: ${C.dim}; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 0.3px; transition: color .2s; }
-        .nav-link:hover { color: #fff; }
-        .hdr-cta { padding: 9px 26px; border-radius: 3px; background: linear-gradient(135deg,#f59e0b,#ef4444); color: #000; font-weight: 900; font-size: 12px; text-decoration: none; font-family: ${orb}; letter-spacing: 1.5px; box-shadow: 0 0 20px rgba(245,158,11,.22); transition: box-shadow .3s; }
-        .hdr-cta:hover { box-shadow: 0 0 36px rgba(245,158,11,.5); }
-        @media(max-width:768px){ .nav-desktop{display:none!important;} .nav-mobile-btn{display:flex!important;} }
-        @media(min-width:769px){ .nav-mobile-btn{display:none!important;} .nav-mobile-menu{display:none!important;} }
+        @media(max-width:768px) { .hdr-nav { display: none !important; } .hdr-burger { display: flex !important; } .hdr-mobile.open { display: flex !important; } .hdr-inner { padding: 0 20px; } }
       `}</style>
 
-      <header style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
-        transition: 'background .4s, border-color .4s, backdrop-filter .4s',
-        background: solid ? 'rgba(2,2,7,0.97)' : 'transparent',
-        backdropFilter: solid ? 'blur(24px)' : 'none',
-        borderBottom: `1px solid ${solid ? C.border : 'transparent'}`,
-      }}>
-        {/* Main nav row */}
-        <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 48px' }}>
-          {/* Logo */}
-          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 11 }}
-            onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
-            <div style={{
-              width: 36, height: 36, borderRadius: 8,
-              background: 'linear-gradient(135deg,#f59e0b,#ef4444)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: orb, fontWeight: 900, fontSize: 16, color: '#000',
-              boxShadow: '0 0 16px rgba(245,158,11,.3)',
-            }}>A</div>
+      <header className="hdr">
+        <div className="hdr-inner">
+          <Link href="/" className="hdr-logo">
+            <div className="hdr-logo-icon">A</div>
             <div>
-              <div style={{ fontFamily: orb, fontSize: 16, fontWeight: 900, letterSpacing: 2.5, color: '#fff', lineHeight: 1 }}>
-                AIL<span style={{ color: C.gold }}>URIX</span>
-              </div>
-              <div style={{ fontSize: 8.5, color: 'rgba(255,255,255,0.25)', letterSpacing: 3, fontFamily: orb }}>STUDIOS</div>
+              <div className="hdr-logo-text">AIL<span style={{ color: '#f59e0b' }}>URIX</span></div>
+              <div className="hdr-logo-sub">STUDIOS</div>
             </div>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="nav-desktop" style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
+          <nav className="hdr-nav">
             {NAV_LINKS.map(([l, h]) => (
-              <a key={l} href={h} className="nav-link"
-                onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>{l}</a>
+              <a key={l} href={h} className="hdr-link">{l}</a>
             ))}
           </nav>
 
-          {/* Right side */}
-          <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-            <Link href="/game" className="hdr-cta"
-              onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
-              PLAY NOW
-            </Link>
-            {/* Mobile hamburger */}
-            <button className="nav-mobile-btn" onClick={() => setMenuOpen(o => !o)} style={{
-              display: 'none', flexDirection: 'column', gap: 5, background: 'none', border: 'none',
-              cursor: 'none', padding: 6,
-            }}>
-              {[0, 1, 2].map(i => (
-                <span key={i} style={{ width: 22, height: 1.5, background: '#fff', display: 'block', transition: 'all .3s', transform: menuOpen && i === 0 ? 'rotate(45deg) translate(5px,5px)' : menuOpen && i === 2 ? 'rotate(-45deg) translate(5px,-5px)' : 'none', opacity: menuOpen && i === 1 ? 0 : 1 }} />
-              ))}
+          <div className="hdr-right">
+            <Link href="/game" className="hdr-cta">PLAY NOW</Link>
+            <button className="hdr-burger" onClick={() => setMenuOpen(o => !o)}>
+              <span style={{ transform: menuOpen ? 'rotate(45deg) translate(5px,5px)' : 'none', opacity: 1 }} />
+              <span style={{ opacity: menuOpen ? 0 : 1 }} />
+              <span style={{ transform: menuOpen ? 'rotate(-45deg) translate(5px,-5px)' : 'none', opacity: 1 }} />
             </button>
           </div>
         </div>
 
-        {/* Mobile menu */}
-        {menuOpen && (
-          <div className="nav-mobile-menu" style={{
-            background: 'rgba(2,2,7,0.98)', backdropFilter: 'blur(24px)',
-            borderTop: `1px solid ${C.border}`,
-            padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20,
-            animation: 'slideDown .25s ease',
-          }}>
-            {NAV_LINKS.map(([l, h]) => (
-              <a key={l} href={h} onClick={() => setMenuOpen(false)} style={{ fontFamily: orb, fontSize: 14, fontWeight: 700, letterSpacing: 2, color: C.dim, textDecoration: 'none' }}
-                onMouseEnter={e => e.target.style.color = '#fff'} onMouseLeave={e => e.target.style.color = C.dim}>{l}</a>
-            ))}
-            <Link href="/game" onClick={() => setMenuOpen(false)} style={{ padding: '13px 0', background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#000', fontWeight: 900, fontSize: 13, textDecoration: 'none', fontFamily: orb, letterSpacing: 2, textAlign: 'center', borderRadius: 3, marginTop: 8 }}>
-              PLAY NOW
-            </Link>
-          </div>
-        )}
+        <div className={`hdr-mobile ${menuOpen ? 'open' : ''}`}>
+          {NAV_LINKS.map(([l, h]) => (
+            <a key={l} href={h} onClick={() => setMenuOpen(false)}>{l}</a>
+          ))}
+          <Link href="/game" onClick={() => setMenuOpen(false)} className="hdr-mobile-cta">PLAY NOW</Link>
+        </div>
       </header>
     </>
   );

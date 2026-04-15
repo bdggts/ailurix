@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="description" content="Ailurix Arena - The #1 Mobile Fighting Game by Ailurix Studios. 1M+ Players. Season 1 Live."/>
+<title>Ailurix Arena | Season 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Rajdhani',Impact,sans-serif;}
+
+/* SPLASH PREMIUM */
+.splash-studio{font-size:9px;font-weight:700;letter-spacing:4px;color:rgba(245,158,11,0.55);font-family:'Orbitron',sans-serif;margin-bottom:14px;}
+.splash-logo{font-family:'Orbitron',sans-serif;font-size:clamp(38px,11vw,72px);font-weight:900;letter-spacing:4px;color:#fff;text-shadow:0 0 30px rgba(245,158,11,0.5),0 0 60px rgba(245,158,11,0.2);animation:logoGlow 3s ease-in-out infinite;line-height:1;}
+@keyframes logoGlow{0%,100%{text-shadow:0 0 30px rgba(245,158,11,0.5),0 0 60px rgba(245,158,11,0.2);}50%{text-shadow:0 0 50px rgba(245,158,11,0.9),0 0 100px rgba(245,158,11,0.4),0 0 140px rgba(239,68,68,0.2);}}
+.splash-season{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(245,158,11,0.12));border:1px solid rgba(239,68,68,0.35);border-radius:20px;padding:4px 14px;font-size:9px;font-weight:900;letter-spacing:2px;color:#ef4444;margin-top:6px;margin-bottom:20px;animation:seasonPulse 2s ease-in-out infinite;}
+@keyframes seasonPulse{0%,100%{border-color:rgba(239,68,68,0.35)}50%{border-color:rgba(239,68,68,0.8);box-shadow:0 0 12px rgba(239,68,68,0.25);}}
+.splash-live-dot{width:6px;height:6px;border-radius:50%;background:#ef4444;animation:liveBlink 1s ease-in-out infinite;flex-shrink:0;}
+@keyframes liveBlink{0%,100%{opacity:1}50%{opacity:0.15}}
+.splash-stats{display:flex;gap:20px;margin-top:22px;}
+.splash-stat{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.splash-stat-val{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;color:#f59e0b;}
+.splash-stat-lbl{font-size:8px;color:rgba(255,255,255,0.3);letter-spacing:1.5px;font-weight:700;}
+.splash-divider{width:1px;height:30px;background:rgba(255,255,255,0.1);align-self:center;}
+.splash-footer{position:absolute;bottom:max(14px,env(safe-area-inset-bottom));font-size:8px;color:rgba(255,255,255,0.18);letter-spacing:1px;font-weight:600;text-align:center;width:100%;}
+
+/* ORBITRON for key UI */
+#timer{font-family:'Orbitron',sans-serif !important;}
+.char-name{font-family:'Orbitron','Rajdhani',sans-serif !important;font-size:9px !important;}
+#select-title h2{font-family:'Orbitron',sans-serif !important;}
+.vs-text{font-family:'Orbitron',sans-serif !important;}
+.res-title{font-family:'Orbitron',sans-serif !important;}
+.res-btn{font-family:'Orbitron',sans-serif !important;font-size:14px !important;letter-spacing:2px;}
+.sel-btn{font-family:'Orbitron',sans-serif !important;}
+.play-btn{font-family:'Orbitron',sans-serif !important;letter-spacing:3px;font-size:15px !important;}
+.vs-name{font-family:'Orbitron',sans-serif !important;font-size:clamp(10px,2.5vw,16px) !important;}
+.prev-name{font-family:'Orbitron',sans-serif !important;font-size:14px !important;}
+
+/* XP display */
+.res-xp{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:6px 20px;border-radius:20px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.22);font-size:13px;font-weight:900;color:#f59e0b;letter-spacing:1px;font-family:'Orbitron',sans-serif;}
+</style>
+<style>
+/* ── LAYOUT ─────────────────────────────────────── */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:#000;}
+#screens{position:absolute;inset:0;z-index:10;pointer-events:none;}
+#fight-ui{position:absolute;inset:0;display:none;flex-direction:column;z-index:5;}
+
+/* ── HUD ─────────────────────────────────────────── */
+#hud{
+  height:42px;flex-shrink:0;
+  display:flex;align-items:center;gap:8px;
+  padding:4px 10px;background:rgba(0,0,0,0.92);
+  border-bottom:2px solid rgba(245,158,11,0.3);
+}
+.hud-side{flex:1;display:flex;flex-direction:column;gap:3px;}
+.hud-side.right{align-items:flex-end;}
+.char-name{font-size:10px;font-weight:900;letter-spacing:1px;line-height:1;}
+.hp-wrap{width:100%;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;border:1px solid rgba(255,255,255,0.15);}
+.hp-bar{height:100%;border-radius:4px;transition:width .1s;background:linear-gradient(90deg,#22c55e,#4ade80);}
+.hp-bar.low{background:linear-gradient(90deg,#ef4444,#f97316);}
+.en-wrap{width:100%;height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;}
+.en-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,#8b5cf6,#a78bfa);transition:width .15s;}
+.en-bar.ready{background:linear-gradient(90deg,#f59e0b,#fbbf24);box-shadow:0 0 6px #f59e0b;}
+.hud-center{text-align:center;min-width:60px;}
+#timer{font-size:22px;font-weight:900;color:#f59e0b;line-height:1;text-shadow:0 0 12px rgba(245,158,11,0.6);}
+#round-info{font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;}
+
+/* ── GAME AREA ──────────────────────────────────── */
+#game-area{flex:1;position:relative;overflow:hidden;}
+#game-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+
+/* ── CONTROL PANELS — OVERLAID ON CANVAS ─────────── */
+.ctrl-panel{
+  position:absolute;
+  bottom:18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  pointer-events:none;
+}
+.ctrl-panel *{pointer-events:all;}
+.ctrl-panel.left{left:10px;}
+.ctrl-panel.right{right:10px;}
+
+
+
+/* ── D-PAD ──────────────────────────────────────── */
+.dpad{position:relative;width:116px;height:90px;}
+.dp{
+  position:absolute;
+  width:42px;height:36px;
+  border-radius:10px;
+  background:rgba(20,20,35,0.75);
+  border:2px solid rgba(255,255,255,0.18);
+  color:rgba(255,255,255,0.9);
+  font-size:17px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;touch-action:manipulation;
+  box-shadow:0 4px 12px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.15);
+  backdrop-filter:blur(6px);
+  transition:all .05s;
+  -webkit-backdrop-filter:blur(6px);
+}
+.dp:active,.dp.pressed{
+  transform:scale(0.88);
+  background:rgba(100,80,200,0.7);
+  border-color:rgba(168,85,247,0.8);
+  box-shadow:0 2px 8px rgba(0,0,0,0.5),0 0 14px rgba(168,85,247,0.4);
+}
+.dp-up{top:0;left:50%;transform:translateX(-50%);}
+.dp-up:active,.dp-up.pressed{transform:translateX(-50%) scale(0.88);}
+.dp-left{top:50%;left:0;transform:translateY(-50%);}
+.dp-left:active,.dp-left.pressed{transform:translateY(-50%) scale(0.88);}
+.dp-right{top:50%;right:0;transform:translateY(-50%);}
+.dp-right:active,.dp-right.pressed{transform:translateY(-50%) scale(0.88);}
+.dp-label{font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:1px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.8);}
+
+/* ── ATTACK BUTTONS ─────────────────────────────── */
+.atk-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.atk{
+  width:52px;height:52px;border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1px;cursor:pointer;touch-action:manipulation;
+  font-weight:900;font-family:'Rajdhani',Impact,sans-serif;
+  border:2.5px solid transparent;
+  background:rgba(0,0,0,0.65);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  box-shadow:0 4px 16px rgba(0,0,0,0.7),inset 0 2px 0 rgba(255,255,255,0.12);
+  transition:all .05s;
+  position:relative;overflow:hidden;
+}
+.atk::before{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,0.1) 0%,transparent 55%);}
+.atk:active,.atk.pressed{transform:scale(0.86);}
+.atk-icon{font-size:15px;line-height:1;font-family:Orbitron,sans-serif;font-weight:900;letter-spacing:1px;}
+.atk-lbl{font-size:7px;font-weight:900;letter-spacing:.5px;}
+
+.atk-punch{border-color:#22c55e;color:#22c55e;box-shadow:0 4px 14px rgba(34,197,94,0.3),inset 0 2px 0 rgba(255,255,255,0.1);}
+.atk-punch:active,.atk-punch.pressed{box-shadow:0 2px 8px rgba(34,197,94,0.5),0 0 16px rgba(34,197,94,0.4),inset 0 1px 0 rgba(255,255,255,0.1);}
+.atk-kick{border-color:#f59e0b;color:#f59e0b;box-shadow:0 4px 14px rgba(245,158,11,0.3),inset 0 2px 0 rgba(255,255,255,0.1);}
+.atk-kick:active,.atk-kick.pressed{box-shadow:0 2px 8px rgba(245,158,11,0.5),0 0 16px rgba(245,158,11,0.4),inset 0 1px 0 rgba(255,255,255,0.1);}
+.atk-block{border-color:#3b82f6;color:#3b82f6;box-shadow:0 4px 14px rgba(59,130,246,0.3),inset 0 2px 0 rgba(255,255,255,0.1);}
+.atk-block:active,.atk-block.pressed{box-shadow:0 2px 8px rgba(59,130,246,0.5),0 0 16px rgba(59,130,246,0.4),inset 0 1px 0 rgba(255,255,255,0.1);}
+.atk-special{border-color:#ef4444;color:#ef4444;box-shadow:0 4px 14px rgba(239,68,68,0.3),inset 0 2px 0 rgba(255,255,255,0.1);}
+.atk-special:active,.atk-special.pressed{box-shadow:0 2px 8px rgba(239,68,68,0.6),0 0 20px rgba(239,68,68,0.5),inset 0 1px 0 rgba(255,255,255,0.1);}
+.atk-special.glow{animation:specPulse 0.8s ease-in-out infinite;}
+@keyframes specPulse{0%,100%{box-shadow:0 4px 14px rgba(239,68,68,0.3),inset 0 2px 0 rgba(255,255,255,0.1);}50%{box-shadow:0 4px 24px rgba(239,68,68,0.7),0 0 24px rgba(239,68,68,0.5),inset 0 2px 0 rgba(255,255,255,0.1);border-color:#ff6b6b;}}
+.atk-label{margin-top:8px;font-size:8px;color:rgba(239,68,68,0.5);letter-spacing:1px;font-weight:700;}
+
+/* ── OVERLAY SCREENS ─────────────────────────────── */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.screen.active{opacity:1;pointer-events:all;}
+
+/* Splash */
+#splash{background:#000;}
+#splash-canvas{position:absolute;inset:0;width:100%;height:100%;}
+.splash-content{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:100%;height:100%;text-align:center;
+  padding:20px;
+}
+.splash-logo{font-size:clamp(40px,10vw,80px);font-weight:900;color:#f59e0b;letter-spacing:6px;text-shadow:0 0 40px rgba(245,158,11,0.7),0 0 80px rgba(245,158,11,0.3);line-height:1;}
+.splash-sub{font-size:clamp(16px,4vw,28px);color:#fff;letter-spacing:8px;margin-top:4px;opacity:0.6;}
+.play-btn{
+  margin-top:clamp(20px,5vh,40px);
+  padding:16px clamp(40px,10vw,80px);
+  border-radius:16px;
+  background:linear-gradient(135deg,#f59e0b,#ef4444);
+  border:none;color:#000;font-weight:900;
+  font-size:clamp(18px,4vw,28px);letter-spacing:3px;
+  font-family:'Rajdhani',Impact,sans-serif;
+  cursor:pointer;touch-action:manipulation;
+  box-shadow:0 0 40px rgba(245,158,11,0.5),0 8px 24px rgba(0,0,0,0.4);
+  animation:btnPulse 2s ease-in-out infinite;
+}
+@keyframes btnPulse{0%,100%{box-shadow:0 0 40px rgba(245,158,11,0.5),0 8px 24px rgba(0,0,0,0.4);}50%{box-shadow:0 0 60px rgba(245,158,11,0.8),0 8px 30px rgba(0,0,0,0.4);}}
+
+/* SELECT — FINAL AAA PREMIUM */
+#select{background:radial-gradient(ellipse at 25% 50%,#0d0518 0%,#06040f 50%,#020208 100%);flex-direction:row;position:relative;overflow:hidden;}
+#select::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 0% 0%,rgba(245,158,11,0.08) 0%,transparent 40%),radial-gradient(ellipse at 100% 100%,rgba(139,92,246,0.06) 0%,transparent 40%);pointer-events:none;z-index:0;}
+
+
+/* Grid wrap */
+#select-grid-wrap{flex:1;display:flex;flex-direction:column;border-right:1px solid rgba(245,158,11,0.15);position:relative;z-index:1;overflow:hidden;}
+#select-title{padding:14px 20px 10px;text-align:center;flex-shrink:0;border-bottom:1px solid rgba(245,158,11,0.12);background:linear-gradient(180deg,rgba(0,0,0,0.7),transparent);}
+#select-title h2{font-size:18px;font-weight:900;color:#f59e0b;letter-spacing:8px;font-family:'Orbitron',sans-serif;text-shadow:0 0 30px rgba(245,158,11,0.6),0 0 60px rgba(245,158,11,0.2);}
+#select-title p{font-size:10px;color:#475569;letter-spacing:3px;margin-top:3px;}
+
+/* Grid — 3 cols x 5 rows, fills 100% */
+#char-grid{flex:1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(5,1fr);gap:0;padding:0;height:0;min-height:0;}
+
+/* Card tile */
+.char-card{position:relative;cursor:pointer;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px solid rgba(255,255,255,0.04);background:transparent;transition:background .15s,border-color .15s;overflow:hidden;padding:8px 6px;}
+.char-card::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 70%,rgba(245,158,11,0.09) 0%,transparent 65%);opacity:0;transition:opacity .15s;pointer-events:none;}
+.char-card:hover{border-color:rgba(245,158,11,0.2);background:rgba(255,255,255,0.03);}
+.char-card:hover::after{opacity:1;}
+.char-card.sel{border-color:var(--cc);background:linear-gradient(160deg,var(--cb) 0%,rgba(0,0,0,0.55) 100%);}
+.char-card.sel::after{background:radial-gradient(ellipse at 50% 70%,var(--cs) 0%,transparent 65%);opacity:1;}
+.char-card.sel::before{content:'';position:absolute;top:0;left:15%;right:15%;height:2px;background:var(--cc);box-shadow:0 0 12px var(--cc),0 0 24px var(--cc);border-radius:0 0 4px 4px;}
+.char-card .cem-canvas{display:block;margin:0 auto;flex-shrink:0;}
+.char-card .cnm{font-size:9px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:1.5px;text-transform:uppercase;line-height:1;transition:color .15s;}
+.char-card.sel .cnm{color:var(--cc);text-shadow:0 0 8px var(--cs);}
+.char-card:hover .cnm{color:rgba(255,255,255,0.65);}
+.char-dot{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;display:none;}
+.char-card.sel .char-dot{display:block;background:var(--cc);box-shadow:0 0 8px var(--cc),0 0 16px var(--cc);}
+
+/* Right panel */
+#select-panel{width:240px;display:flex;flex-direction:column;background:linear-gradient(160deg,rgba(5,3,15,0.98),rgba(5,3,12,0.95));position:relative;z-index:1;border-left:1px solid rgba(245,158,11,0.12);}
+#select-panel::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(245,158,11,0.07) 0%,transparent 55%);pointer-events:none;}
+#prev-wrap{flex:1;padding:16px 18px;overflow-y:auto;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;}
+.prev-emoji{text-align:center;line-height:1;margin-bottom:10px;font-family:Orbitron,sans-serif;font-weight:900;filter:drop-shadow(0 0 20px rgba(245,158,11,0.3));}
+.prev-name{text-align:center;font-size:20px;font-weight:900;letter-spacing:3px;width:100%;font-family:'Orbitron',sans-serif;text-shadow:0 0 20px rgba(245,158,11,0.15);}
+.prev-title{text-align:center;font-size:9px;color:#475569;margin-bottom:6px;letter-spacing:2px;width:100%;}
+.prev-rarity{display:inline-block;padding:3px 16px;border-radius:20px;font-size:8px;font-weight:900;margin-bottom:12px;letter-spacing:2px;}
+.prev-divider{width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(245,158,11,0.25),transparent);margin-bottom:12px;}
+.stat-row{margin-bottom:7px;width:100%;}
+.stat-lbl{display:flex;justify-content:space-between;font-size:9px;color:#64748b;margin-bottom:3px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.stat-val{font-weight:900;font-family:'Orbitron',sans-serif;font-size:9px;color:#f8fafc;}
+.stat-bg{height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;border:1px solid rgba(255,255,255,0.04);}
+.stat-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(0.4,0,0.2,1);}
+.prev-special{width:100%;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.07);margin-top:10px;}
+.prev-spl-lbl{font-size:8px;color:#64748b;letter-spacing:2px;margin-bottom:4px;font-weight:700;}
+.prev-spl-val{font-size:13px;font-weight:700;letter-spacing:1px;}
+#select-btn-wrap{padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom));flex-shrink:0;}
+.sel-btn{width:100%;padding:16px;border-radius:12px;border:none;color:#000;font-weight:900;font-size:16px;font-family:'Orbitron',sans-serif;letter-spacing:4px;cursor:pointer;touch-action:manipulation;transition:all .2s;box-shadow:0 0 30px rgba(245,158,11,0.3),0 4px 20px rgba(0,0,0,0.4);}
+.sel-btn:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(245,158,11,0.5),0 6px 24px rgba(0,0,0,0.5);}
+.sel-btn:active{transform:translateY(1px);}
+
+/* VS Screen */
+#vs-screen{background:#000;}
+.vs-bg-l,.vs-bg-r{position:absolute;top:0;bottom:0;width:45%;pointer-events:none;}
+.vs-bg-l{left:0;background:radial-gradient(ellipse at 20% 50%,var(--c1) 0%,transparent 70%);}
+.vs-bg-r{right:0;background:radial-gradient(ellipse at 80% 50%,var(--c2) 0%,transparent 70%);}
+.vs-content{position:relative;display:flex;align-items:center;justify-content:space-around;width:100%;padding:0 20px;}
+.vs-fighter{text-align:center;animation:none;}
+.vs-fighter.anim-l{animation:vsSlideL .5s ease-out both;}
+.vs-fighter.anim-r{animation:vsSlideR .5s ease-out both;}
+@keyframes vsSlideL{from{transform:translateX(-80px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes vsSlideR{from{transform:translateX(80px);opacity:0}to{transform:translateX(0);opacity:1}}
+.vs-emoji{font-size:clamp(40px,10vw,70px);line-height:1;display:block;}
+.vs-name{font-size:clamp(14px,3.5vw,22px);font-weight:900;letter-spacing:2px;margin-top:6px;}
+.vs-role{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:2px;}
+.vs-mid{text-align:center;min-width:70px;}
+.vs-text{font-size:clamp(36px,10vw,64px);font-weight:900;color:#ef4444;text-shadow:0 0 40px rgba(239,68,68,0.9),0 0 80px rgba(239,68,68,0.4);line-height:1;animation:vsFlash .6s ease-out both .3s;}
+@keyframes vsFlash{0%{opacity:0;transform:scale(1.5)}100%{opacity:1;transform:scale(1)}}
+.vs-stage{font-size:11px;color:#f59e0b;font-weight:700;letter-spacing:1px;margin-top:4px;}
+
+/* Tower Ladder */
+.tower-wrap{position:relative;width:100%;padding:6px 12px;margin-top:8px;}
+.tower-title{text-align:center;font-size:9px;font-weight:900;color:#f59e0b;letter-spacing:3px;margin-bottom:4px;}
+.tower-ladder{display:flex;align-items:center;justify-content:center;gap:2px;flex-wrap:nowrap;}
+.tower-step{display:flex;flex-direction:column;align-items:center;width:22px;position:relative;}
+.tower-em{font-size:10px;line-height:1;opacity:0.3;transition:all .3s;font-family:Orbitron,sans-serif;font-weight:900;}
+.tower-step.done .tower-em{opacity:0.6;}
+.tower-step.current .tower-em{opacity:1;transform:scale(1.3);}
+.tower-step.current{}
+.tower-bar{width:100%;height:3px;border-radius:2px;margin-top:2px;background:rgba(255,255,255,0.1);}
+.tower-step.done .tower-bar{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,0.5);}
+.tower-step.current .tower-bar{background:#f59e0b;box-shadow:0 0 8px rgba(245,158,11,0.7);animation:tPulse 1s ease-in-out infinite;}
+.tower-step.boss .tower-em{filter:saturate(1.5);}
+.tower-step.boss.current .tower-bar{background:#ef4444;box-shadow:0 0 10px rgba(239,68,68,0.8);}
+.tower-num{font-size:6px;color:rgba(255,255,255,0.25);font-weight:700;margin-top:1px;}
+.tower-step.current .tower-num{color:#f59e0b;}
+.tower-step.done .tower-num{color:#22c55e;}
+@keyframes tPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* Result */
+#result-screen{padding:20px;}
+.res-emoji{font-size:clamp(60px,15vw,100px);line-height:1;text-align:center;margin-bottom:10px;}
+.res-title{font-size:clamp(36px,10vw,64px);font-weight:900;text-align:center;line-height:1;}
+.res-sub{font-size:14px;font-weight:700;text-align:center;margin-top:8px;opacity:0.7;}
+.res-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;margin-top:20px;}
+.res-btn{
+  padding:15px;border-radius:14px;border:none;
+  font-weight:900;font-size:18px;letter-spacing:2px;
+  font-family:'Rajdhani',Impact,sans-serif;cursor:pointer;touch-action:manipulation;
+}
+.res-btn.primary{background:linear-gradient(135deg,#22c55e,#16a34a);color:#000;}
+.res-btn.danger{background:linear-gradient(135deg,#ef4444,#f59e0b);color:#000;}
+.res-btn.ghost{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#94a3b8;font-size:14px;padding:11px;}
+/* ── VOICE PICKER ── */
+#voice-picker-wrap{
+  position:fixed;bottom:0;left:0;right:0;z-index:999;
+  background:linear-gradient(0deg,rgba(0,0,0,0.97),rgba(5,3,15,0.92));
+  border-top:1px solid rgba(245,158,11,0.2);
+  padding:14px 16px 16px;
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(0.4,0,0.2,1);
+}
+#voice-picker-wrap.open{transform:translateY(0);}
+#voice-picker-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;
+}
+#voice-picker-header h3{
+  font-size:13px;font-weight:900;color:#f59e0b;letter-spacing:4px;
+  font-family:'Orbitron',sans-serif;
+}
+#voice-close-btn{
+  background:none;border:1px solid rgba(255,255,255,0.15);color:#94a3b8;
+  font-size:18px;width:32px;height:32px;border-radius:8px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+#voice-close-btn:hover{border-color:#f59e0b;color:#f59e0b;}
+#voice-list{
+  display:flex;flex-wrap:wrap;gap:8px;max-height:160px;overflow-y:auto;
+  padding-right:4px;
+}
+.voice-opt{
+  padding:8px 14px;border-radius:10px;font-size:11px;font-weight:700;
+  cursor:pointer;touch-action:manipulation;letter-spacing:1px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.04);color:#94a3b8;
+  transition:all .15s;font-family:'Orbitron',sans-serif;
+}
+.voice-opt:hover{border-color:rgba(245,158,11,0.4);color:#f59e0b;background:rgba(245,158,11,0.06);}
+.voice-opt.active{border-color:#f59e0b;color:#000;background:linear-gradient(135deg,#f59e0b,#d97706);}
+#voice-settings-btn{
+  position:absolute;bottom:18px;right:18px;
+  background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);
+  color:#f59e0b;font-size:10px;font-weight:700;letter-spacing:2px;
+  padding:8px 14px;border-radius:10px;cursor:pointer;
+  font-family:'Orbitron',sans-serif;transition:all .15s;z-index:10;
+}
+#voice-settings-btn:hover{background:rgba(245,158,11,0.2);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── SCREEN OVERLAYS ──────────────────────────── -->
+  <div id="screens">
+
+    <!-- SPLASH -->
+    <div class="screen active" id="splash">
+      <canvas id="splash-canvas"></canvas>
+      <div class="splash-content">
+        <div class="splash-studio">AILURIX STUDIOS</div>
+        <div class="splash-logo">AILURIX</div>
+        <div class="splash-sub">ARENA</div>
+        <div class="splash-season"><span class="splash-live-dot"></span> SEASON 1 · NOW LIVE</div>
+        <button class="play-btn" id="play-btn">PLAY NOW</button>
+        <div class="splash-stats" style="display:none">
+          <div class="splash-stat">
+            <div class="splash-stat-val">1M+</div>
+            <div class="splash-stat-lbl">PLAYERS</div>
+          </div>
+          <div class="splash-divider"></div>
+          <div class="splash-stat">
+            <div class="splash-stat-val">4.8★</div>
+            <div class="splash-stat-lbl">RATING</div>
+          </div>
+          <div class="splash-divider"></div>
+          <div class="splash-stat">
+            <div class="splash-stat-val">#1</div>
+            <div class="splash-stat-lbl">FIGHTING</div>
+          </div>
+        </div>
+        <div class="splash-footer">© 2026 AILURIX STUDIOS LLC · v2.1.0 · All Rights Reserved</div>
+        <button id="voice-settings-btn">🎙 VOICE</button>
+      </div>
+    </div>
+
+    <!-- VOICE PICKER PANEL -->
+    <div id="voice-picker-wrap">
+      <div id="voice-picker-header">
+        <h3>SELECT ANNOUNCER VOICE</h3>
+        <button id="voice-close-btn">✕</button>
+      </div>
+      <div id="voice-list"></div>
+    </div>
+
+    <!-- SELECT -->
+    <div class="screen" id="select">
+      <div id="select-grid-wrap">
+        <div id="select-title"><h2>CHOOSE FIGHTER</h2><p id="sel-stage-info">STAGE 1 OF 15</p></div>
+        <div id="char-grid"></div>
+      </div>
+      <div id="select-panel">
+        <div id="prev-wrap">
+          <div class="prev-emoji" id="prev-emoji"></div>
+          <div id="prev-color-block" style="text-align:center">
+            <div class="prev-name" id="prev-name">SCORPION</div>
+            <div class="prev-title" id="prev-title">Hell Ninja</div>
+            <div class="prev-rarity" id="prev-rarity">Common</div>
+          </div>
+          <div class="prev-divider"></div>
+          <div id="prev-stats"></div>
+          <div class="prev-special">
+            <div class="prev-spl-lbl">SPECIAL MOVE</div>
+            <div class="prev-spl-val" id="prev-spl">Spear Pull</div>
+          </div>
+        </div>
+        <div id="select-btn-wrap">
+          <button class="sel-btn" id="select-btn">SELECT</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VS -->
+    <div class="screen" id="vs-screen">
+      <div class="vs-bg-l" id="vs-bg-l" style="--c1:rgba(245,158,11,0.2)"></div>
+      <div class="vs-bg-r" id="vs-bg-r" style="--c2:rgba(56,189,248,0.2)"></div>
+      <div class="vs-content">
+        <div class="vs-fighter anim-l" id="vs-p1">
+          <span class="vs-emoji" id="vs-p1-emoji" style="font-family:Orbitron,sans-serif;font-weight:900"></span>
+          <div class="vs-name" id="vs-p1-name">SCORPION</div>
+          <div class="vs-role">YOU</div>
+        </div>
+        <div class="vs-mid">
+          <div class="vs-text">VS</div>
+          <div class="vs-stage" id="vs-stage-label">STAGE 1/15</div>
+        </div>
+        <div class="vs-fighter anim-r" id="vs-p2">
+          <span class="vs-emoji" id="vs-p2-emoji" style="font-family:Orbitron,sans-serif;font-weight:900">❄️</span>
+          <div class="vs-name" id="vs-p2-name">SUB-ZERO</div>
+          <div class="vs-role" id="vs-p2-role">CPU</div>
+        </div>
+      </div>
+      <!-- Tower Ladder -->
+      <div class="tower-wrap">
+        <div class="tower-title">TOWER LADDER</div>
+        <div class="tower-ladder" id="tower-ladder"></div>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="screen" id="result-screen">
+      <div class="res-emoji" id="res-emoji" style="display:none"></div>
+      <div class="res-title" id="res-title">YOU WIN!</div>
+      <div class="res-sub" id="res-sub">Stage 1 Complete!</div>
+      <div class="res-xp" id="res-xp" style="display:none">+250 XP EARNED</div>
+      <div class="res-btns">
+        <button class="res-btn primary" id="res-next">NEXT STAGE</button>
+        <button class="res-btn danger" id="res-retry">RETRY</button>
+        <button class="res-btn ghost" id="res-menu">MAIN MENU</button>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <!-- ── FIGHT UI (shown only during fight) ───────── -->
+  <div id="fight-ui">
+    <!-- HUD -->
+    <div id="hud">
+      <div class="hud-side left">
+        <div class="char-name" id="hud-p1-name" style="color:#f59e0b">SCORPION</div>
+        <div class="hp-wrap"><div class="hp-bar" id="hud-p1-hp" style="width:100%"></div></div>
+        <div class="en-wrap"><div class="en-bar" id="hud-p1-en" style="width:0%"></div></div>
+      </div>
+      <div class="hud-center">
+        <div id="timer">99</div>
+        <div id="round-info">R1 · 0-0</div>
+      </div>
+      <div class="hud-side right">
+        <div class="char-name" id="hud-p2-name" style="color:#38bdf8;text-align:right">SUB-ZERO</div>
+        <div class="hp-wrap" style="direction:rtl"><div class="hp-bar" id="hud-p2-hp" style="width:100%"></div></div>
+        <div class="en-wrap" style="direction:rtl"><div class="en-bar" id="hud-p2-en" style="width:0%"></div></div>
+      </div>
+    </div>
+    <!-- Game area: canvas fullscreen, controls overlaid -->
+    <div id="game-area">
+      <canvas id="game-canvas"></canvas>
+      <!-- D-Pad overlaid bottom-left -->
+      <div class="ctrl-panel left">
+        <div class="dpad">
+          <button class="dp dp-up" id="dp-up" data-action="jump">↑</button>
+          <button class="dp dp-left" id="dp-left" data-action="left">◀</button>
+          <button class="dp dp-right" id="dp-right" data-action="right">▶</button>
+        </div>
+        <div class="dp-label">MOVE</div>
+      </div>
+      <!-- Attack buttons overlaid bottom-right -->
+      <div class="ctrl-panel right">
+        <div class="atk-grid">
+          <button class="atk atk-punch" id="btn-punch" data-action="punch">
+            <span class="atk-icon">P</span>
+            <span class="atk-lbl">HIT</span>
+          </button>
+          <button class="atk atk-kick" id="btn-kick" data-action="kick">
+            <span class="atk-icon">K</span>
+            <span class="atk-lbl">KICK</span>
+          </button>
+          <button class="atk atk-block" id="btn-block" data-action="block">
+            <span class="atk-icon">B</span>
+            <span class="atk-lbl">BLK</span>
+          </button>
+          <button class="atk atk-special" id="btn-special" data-action="special">
+            <span class="atk-icon">S</span>
+            <span class="atk-lbl">SPEC</span>
+          </button>
+        </div>
+        <div class="atk-label">ATTACK</div>
+      </div>
+    </div>
+  </div><!-- /fight-ui -->
+
+</div><!-- /app -->
+<script>document.write('<scr'+'ipt src="game.js?v='+Date.now()+'">'+'<\/scr'+'ipt>');</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<lint-module
+    format="1"
+    dir="C:\xampp\htdocs\dominex\android\app"
+    name=":app"
+    type="APP"
+    maven="DominexArena:app:"
+    gradle="7.4.2"
+    buildFolder="build"
+    bootClassPath="C:\Users\HP\android-sdk\platforms\android-34\android.jar;C:\Users\HP\android-sdk\build-tools\33.0.2\core-lambda-stubs.jar"
+    javaSourceLevel="1.8"
+    compileTarget="android-34"
+    neverShrinking="true">
+  <lintOptions
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true"/>
+  <variant name="release"/>
+</lint-module>

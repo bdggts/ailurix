@@ -1,0 +1,8 @@
+com.dominex.arena.app-pngs-0 C:\xampp\htdocs\dominex\android\app\build\generated\res\pngs\release
+com.dominex.arena.app-resValues-1 C:\xampp\htdocs\dominex\android\app\build\generated\res\resValues\release
+com.dominex.arena.app-rs-2 C:\xampp\htdocs\dominex\android\app\build\generated\res\rs\release
+com.dominex.arena.app-mergeReleaseResources-3 C:\xampp\htdocs\dominex\android\app\build\intermediates\incremental\release\mergeReleaseResources\merged.dir
+com.dominex.arena.app-mergeReleaseResources-4 C:\xampp\htdocs\dominex\android\app\build\intermediates\incremental\release\mergeReleaseResources\stripped.dir
+com.dominex.arena.app-merged_res-5 C:\xampp\htdocs\dominex\android\app\build\intermediates\merged_res\release
+com.dominex.arena.app-main-6 C:\xampp\htdocs\dominex\android\app\src\main\res
+com.dominex.arena.app-release-7 C:\xampp\htdocs\dominex\android\app\src\release\res
