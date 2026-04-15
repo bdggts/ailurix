@@ -1,4 +1,4 @@
-﻿'use strict'; // v3.0 MK-style fullscreen+canvas
+'use strict'; // v3.0 MK-style fullscreen+canvas
 (function(){
 
 // =========================================================
@@ -1459,7 +1459,7 @@ function updatePreview(dir){
   if(_bgImg&&_bgImg.complete&&_bgImg.naturalWidth>0){_ab();}else if(_bgImg){_bgImg.onload=_ab;}
   // CSS colors
   if(_seEl){_seEl.style.setProperty('--sel-cc',c.color);}
-  // Animated left-panel preview — size based on left panel width ~42vw
+  // ── 360° ROTATABLE HERO PREVIEW ──
   if(window._selAnimInt){clearInterval(window._selAnimInt);window._selAnimInt=null;}
   var _pcv=$('prev-char-canvas');
   if(_pcv){
@@ -1467,9 +1467,50 @@ function updatePreview(dir){
     var _w=_sz,_h=Math.round(_sz*1.3);
     _pcv.width=_w;_pcv.height=_h;
     _pcv.style.opacity='1';_pcv.style.transform='none';
+    _pcv.style.touchAction='none'; // enable pointer events
     var _ac=c,_fr=0;
-    function _df(){_fr+=2;var ctx=_pcv.getContext('2d');ctx.clearRect(0,0,_w,_h);var fk={x:_w/2,y:_h-4,dir:1,ch:_ac,H:_h*0.75,state:'idle',af:0,vy:0};drawFighter(ctx,fk,_fr);}
+    // Rotation state
+    if(!window._rot)window._rot={angle:0,dir:1,dragging:false,startX:0,autoRot:true};
+    var R=window._rot; R.angle=0; R.dir=1; R.autoRot=true;
+    // Draw with rotation effect
+    function _df(){
+      _fr+=2;
+      var ctx=_pcv.getContext('2d');ctx.clearRect(0,0,_w,_h);
+      // Auto rotate slowly when not dragging
+      if(R.autoRot&&!R.dragging){R.angle+=0.8;}
+      // Determine direction from angle
+      var normA=((R.angle%360)+360)%360;
+      if(normA>90&&normA<270) R.dir=-1; else R.dir=1;
+      // Scale effect for depth (smaller when "turned away")
+      var depthScale=0.85+0.15*Math.abs(Math.cos(normA*Math.PI/180));
+      // Draw glow ring at bottom
+      ctx.save();
+      var ringY=_h-6,ringW=_w*0.35*depthScale,ringH=8;
+      var grd=ctx.createRadialGradient(_w/2,ringY,2,_w/2,ringY,ringW);
+      grd.addColorStop(0,_ac.color+'66');grd.addColorStop(0.6,_ac.color+'22');grd.addColorStop(1,'transparent');
+      ctx.fillStyle=grd;ctx.beginPath();ctx.ellipse(_w/2,ringY,ringW,ringH,0,0,Math.PI*2);ctx.fill();
+      // Rotating ring markers
+      ctx.strokeStyle=_ac.color+'44';ctx.lineWidth=1;
+      ctx.beginPath();ctx.ellipse(_w/2,ringY,ringW*0.8,ringH*0.6,0,0,Math.PI*2);ctx.stroke();
+      // Ring dot indicator (shows rotation position)
+      var dotAngle=normA*Math.PI/180;
+      var dotX=_w/2+Math.cos(dotAngle)*ringW*0.8;
+      var dotY=ringY+Math.sin(dotAngle)*ringH*0.5;
+      ctx.fillStyle=_ac.color;ctx.beginPath();ctx.arc(dotX,dotY,2.5,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+      // Draw fighter with scale
+      ctx.save();
+      ctx.translate(_w/2,_h-4);ctx.scale(depthScale,1);ctx.translate(-_w/2,-(_h-4));
+      var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:'idle',af:0,vy:0};
+      drawFighter(ctx,fk,_fr);
+      ctx.restore();
+    }
     _df();window._selAnimInt=setInterval(_df,80);
+    // Touch/pointer drag to rotate
+    _pcv.onpointerdown=function(e){R.dragging=true;R.startX=e.clientX;R.autoRot=false;_pcv.setPointerCapture(e.pointerId);};
+    _pcv.onpointermove=function(e){if(!R.dragging)return;var dx=e.clientX-R.startX;R.angle+=dx*1.5;R.startX=e.clientX;};
+    _pcv.onpointerup=function(e){R.dragging=false;setTimeout(function(){R.autoRot=true;},2000);};
+    _pcv.onpointercancel=function(e){R.dragging=false;R.autoRot=true;};
   }
   // Name
   var ne=$('prev-name');
