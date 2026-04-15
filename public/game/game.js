@@ -1482,7 +1482,7 @@ function updatePreview(dir){
   var _pcv=$('prev-char-canvas');
   if(_pcv){
     var _sz=Math.round(Math.min(window.innerWidth*0.30,150));
-    var _w=_sz,_h=Math.round(_sz*1.3);
+    var _w=_sz,_h=Math.round(_sz*1.5);
     _pcv.width=_w;_pcv.height=_h;
     _pcv.style.opacity='1';_pcv.style.transform='none';
     _pcv.style.touchAction='none'; // enable pointer events
@@ -1524,7 +1524,7 @@ function updatePreview(dir){
         var _rspr=_rotFrames[_dirIdx];
         if(_rspr && _rspr.complete && _rspr.naturalWidth>0){
           ctx.save();
-          var _rH=_h*0.75, _rW=_rH*(_rspr.width/_rspr.height);
+          var _rH=_h*0.95, _rW=_rH*(_rspr.width/_rspr.height);
           ctx.translate(_w/2,_h-4);ctx.scale(depthScale,1);
           ctx.drawImage(_rspr,-_rW/2,-_rH,_rW,_rH);
           ctx.restore();
