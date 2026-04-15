@@ -1414,7 +1414,7 @@ function initSelect(){
     d.style.setProperty('--cs',c.color+'55');
     var cv=document.createElement('canvas');
     cv.className='cem-canvas';
-    drawCharPreview(cv,c,55);
+    drawCharPreview(cv,c,62);
     d.appendChild(cv);
     var nm=document.createElement('div');nm.className='cnm';nm.textContent=c.name.split(' ')[0];
     d.appendChild(nm);
@@ -1449,7 +1449,7 @@ function initSelect(){
   updateGrid();updatePreview('none');
   // Refresh small portraits once sprites load
   var _rc=0,_ri=setInterval(function(){
-    _rc++;document.querySelectorAll('.cem-canvas').forEach(function(cv,i){if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],55);});
+    _rc++;document.querySelectorAll('.cem-canvas').forEach(function(cv,i){if(i<PLAYABLE.length)drawCharPreview(cv,PLAYABLE[i],62);});
     if(_rc>=8)clearInterval(_ri);
   },130);
   $('select-btn').onclick=function(){
@@ -1473,11 +1473,17 @@ function updatePreview(dir){
   if(bl)bl.style.background='radial-gradient(ellipse at 50% 55%,'+c.color+'28 0%,rgba(0,0,0,0) 65%)';
   // Showcase slide animation
   var inner=$('sel-showcase-inner');
-  if(inner&&dir&&dir!=='none'){
+  if(inner){
     inner.classList.remove('slide-in-left','slide-in-right');
-    setTimeout(function(){
-      inner.classList.add(dir==='right'?'slide-in-right':'slide-in-left');
-    },30);
+    inner.style.opacity='1';inner.style.transform='none';
+    if(dir&&dir!=='none'){
+      inner.style.opacity='0';inner.style.transform=dir==='right'?'translateX(55px)':'translateX(-55px)';
+      setTimeout(function(){
+        inner.style.transition='transform .28s cubic-bezier(.4,0,.2,1),opacity .28s';
+        inner.style.opacity='1';inner.style.transform='none';
+        setTimeout(function(){inner.style.transition='';},320);
+      },20);
+    }
   }
   // Set arena background per character
   var _bgKeys=['bg_cyber','bg_ocean','bg_jungle','bg_ice','bg_dark_storm','bg_crystal','bg_fire','bg_ghost','bg_forest','bg_speed','bg_forge','bg_storm','bg_void','bg_dark_forest','bg_boss'];

@@ -134,7 +134,7 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
 #sel-showcase{
   position:relative;z-index:5;flex:1;min-height:0;
   display:flex;align-items:flex-end;justify-content:center;
-  overflow:hidden;
+  overflow:visible;
 }
 #sel-showcase-inner{
   position:relative;z-index:2;
@@ -245,7 +245,7 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
   touch-action:manipulation;cursor:pointer;
   border:2px solid rgba(255,255,255,.1);
   background:rgba(255,255,255,.06);
-  transition:all .2s;
+  transition:all .2s;overflow:hidden;
 }
 .char-card:active{transform:scale(.88);}
 .char-card.sel{
@@ -254,7 +254,7 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
   background:rgba(0,0,0,.4);transform:scale(1.08);
 }
 .char-card::after{content:'';position:absolute;inset:0;border-radius:8px;background:linear-gradient(135deg,rgba(255,255,255,.1),transparent 50%);pointer-events:none;}
-.char-card .cem-canvas{display:block;transform-origin:bottom center;}
+.char-card .cem-canvas{display:block;transform-origin:bottom center;filter:brightness(1.4) saturate(1.2) drop-shadow(0 0 3px rgba(255,255,255,.15));}
 .char-card .cnm{
   font-size:clamp(4px,1vmax,5.5px);color:rgba(255,255,255,.3);
   letter-spacing:.5px;text-transform:uppercase;line-height:1;
