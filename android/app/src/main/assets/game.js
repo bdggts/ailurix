@@ -94,7 +94,7 @@ initSprites();
 
 // -- 8-DIRECTION ROTATION SPRITES --
 var ROT_SPRITES={};
-var ROT_CHARS=['raiden'];
+var ROT_CHARS=['raiden','liukang'];
 function loadRotSprites(){
   ROT_CHARS.forEach(function(cid){
     ROT_SPRITES[cid]=[];
