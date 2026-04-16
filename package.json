@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.95.2",
+    "gif-frames": "^1.0.1",
     "next": "16.2.1",
     "phaser": "^3.90.0",
     "react": "19.2.4",
