@@ -1487,15 +1487,20 @@ function updatePreview(dir){
     _pcv.style.opacity='1';_pcv.style.transform='none';
     _pcv.style.touchAction='none'; // enable pointer events
     var _ac=c,_fr=0;
-    // Rotation state
-    if(!window._rot)window._rot={angle:0,dir:1,dragging:false,startX:0,autoRot:true};
-    var R=window._rot; R.angle=0; R.dir=1; R.autoRot=true;
+    // Rotation state + Fight Showcase
+    if(!window._rot)window._rot={angle:0,dir:1,dragging:false,startX:0,autoRot:true,showPose:'idle',showTimer:0,showSeq:['idle','idle','punch','punch','kick','kick','idle'],showIdx:0};
+    var R=window._rot; R.angle=0; R.dir=1; R.autoRot=true; R.showPose='idle'; R.showTimer=0; R.showIdx=0;
     // Draw with rotation effect
     function _df(){
       _fr+=2;
       var ctx=_pcv.getContext('2d');ctx.clearRect(0,0,_w,_h);
-      // Auto rotate slowly when not dragging
-      if(R.autoRot&&!R.dragging){R.angle+=0.8;}
+      // Auto rotate + fight showcase when not dragging
+      if(R.autoRot&&!R.dragging){
+        R.angle+=0.6;
+        R.showTimer++;
+        // Cycle poses every 25 frames (~2 sec): idle->punch->kick->idle
+        if(R.showTimer>=25){R.showTimer=0;R.showIdx=(R.showIdx+1)%R.showSeq.length;R.showPose=R.showSeq[R.showIdx];}
+      } else { R.showPose='idle';R.showTimer=0;R.showIdx=0; }
       // Determine direction from angle
       var normA=((R.angle%360)+360)%360;
       if(normA>90&&normA<270) R.dir=-1; else R.dir=1;
@@ -1530,11 +1535,11 @@ function updatePreview(dir){
           ctx.restore();
         } else {
           ctx.save();ctx.translate(_w/2,_h-4);ctx.scale(depthScale,1);ctx.translate(-_w/2,-(_h-4));
-          var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:'idle',af:0,vy:0};drawFighter(ctx,fk,_fr);ctx.restore();
+          var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:R.showPose,af:R.showTimer,vy:0};drawFighter(ctx,fk,_fr);ctx.restore();
         }
       } else {
         ctx.save();ctx.translate(_w/2,_h-4);ctx.scale(depthScale,1);ctx.translate(-_w/2,-(_h-4));
-        var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:'idle',af:0,vy:0};drawFighter(ctx,fk,_fr);ctx.restore();
+        var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:R.showPose,af:R.showTimer,vy:0};drawFighter(ctx,fk,_fr);ctx.restore();
       }
     }
     _df();window._selAnimInt=setInterval(_df,80);
