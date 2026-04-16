@@ -94,7 +94,7 @@ initSprites();
 
 // -- 8-DIRECTION ROTATION SPRITES --
 var ROT_SPRITES={};
-var ROT_CHARS=['raiden','liukang','noob'];
+var ROT_CHARS=['raiden','liukang','noob','nightwolf'];
 function loadRotSprites(){
   ROT_CHARS.forEach(function(cid){
     ROT_SPRITES[cid]=[];
