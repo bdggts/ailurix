@@ -1521,21 +1521,21 @@ function updatePreview(dir){
       var dotY=ringY+Math.sin(dotAngle)*ringH*0.5;
       ctx.fillStyle=_ac.color;ctx.beginPath();ctx.arc(dotX,dotY,2.5,0,Math.PI*2);ctx.fill();
       ctx.restore();
-      // Draw fighter — use 8-dir rotation sprites if available
+      // Draw fighter — rotation sprites for idle, drawFighter for punch/kick showcase
       var _rotFrames=ROT_SPRITES[_ac.id];
-      if(_rotFrames && _rotFrames.length>=8 && _rotFrames[0]){
-        // Map angle to 8 directions: 0=front,1=FR,2=R,3=BR,4=back,5=BL,6=L,7=FL
+      var _useRotSprite=(R.showPose==='idle')&&_rotFrames&&_rotFrames.length>=8&&_rotFrames[0];
+      if(_useRotSprite){
         var _dirIdx=Math.round(((normA%360+360)%360)/45)%8;
         var _rspr=_rotFrames[_dirIdx];
-        if(_rspr && _rspr.complete && _rspr.naturalWidth>0){
+        if(_rspr&&_rspr.complete&&_rspr.naturalWidth>0){
           ctx.save();
-          var _rH=_h*0.95, _rW=_rH*(_rspr.width/_rspr.height);
+          var _rH=_h*0.95,_rW=_rH*(_rspr.width/_rspr.height);
           ctx.translate(_w/2,_h-4);ctx.scale(depthScale,1);
           ctx.drawImage(_rspr,-_rW/2,-_rH,_rW,_rH);
           ctx.restore();
         } else {
           ctx.save();ctx.translate(_w/2,_h-4);ctx.scale(depthScale,1);ctx.translate(-_w/2,-(_h-4));
-          var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:R.showPose,af:R.showTimer,vy:0};drawFighter(ctx,fk,_fr);ctx.restore();
+          var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:'idle',af:0,vy:0};drawFighter(ctx,fk,_fr);ctx.restore();
         }
       } else {
         ctx.save();ctx.translate(_w/2,_h-4);ctx.scale(depthScale,1);ctx.translate(-_w/2,-(_h-4));
