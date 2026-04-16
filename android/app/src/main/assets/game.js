@@ -18,7 +18,7 @@ var CHARS=[
   {id:'cyrax',    name:'NANOBYTE',   title:'Micro Warrior',   color:'#a3e635',accent:'#d9f99d',hp:440,spd:8, pow:8, def:8, rarity:'Common',   spl:'Nano Swarm',     em:'',bW:1.1, bH:1.0},
   {id:'sektor',   name:'ARMOREX',    title:'Steel Crusher',   color:'#dc2626',accent:'#fca5a5',hp:450,spd:8, pow:9, def:8, rarity:'Epic',     spl:'Roll Crush',     em:'',bW:1.1, bH:1.0},
   {id:'kunglao',  name:'VELOCITY',   title:'Speed Phantom',   color:'#e2e8f0',accent:'#f1f5f9',hp:440,spd:9, pow:8, def:7, rarity:'Legendary',spl:'Speed Blitz',    em:'',bW:0.95,bH:1.0},
-  {id:'noob',name:'LUNARIX',    title:'Moon Beast',      color:'#84cc16',accent:'#bef264',hp:460,spd:7, pow:9, def:8, rarity:'Mythic',   spl:'Sonic Howl',     em:'',bW:1.1, bH:1.05},
+  {id:'nightwolf',name:'LUNARIX',    title:'Moon Beast',      color:'#84cc16',accent:'#bef264',hp:460,spd:7, pow:9, def:8, rarity:'Mythic',   spl:'Sonic Howl',     em:'',bW:1.1, bH:1.05},
   {id:'noob',     name:'SONARX',     title:'Echo Warrior',    color:'#64748b',accent:'#94a3b8',hp:425,spd:9, pow:10,def:6, rarity:'Mythic',   spl:'Wall of Sound',  em:'',bW:0.92,bH:1.0},
   {id:'goro',     name:'DYNOREX',    title:'Final Boss',      color:'#d97706',accent:'#fbbf24',hp:1100,spd:4,pow:10,def:10,rarity:'BOSS',     spl:'Dino Stomp',     em:'',boss:true,bW:1.6,bH:1.3},
 ];
