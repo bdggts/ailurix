@@ -492,8 +492,15 @@ function drawCharPreview(canvas,ch,size){
   var ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,w,h);
   var charH=h*0.92;
-  var fakeF={x:w/2,y:h-2,dir:1,ch:ch,H:charH,state:'idle',af:0,vy:0};
-  drawFighter(ctx,fakeF,60);
+  // For ROT_CHARS: use front-facing rot_0 sprite so card looks distinct
+  var rotF=ROT_SPRITES[ch.id];
+  if(rotF&&rotF[0]&&rotF[0].complete&&rotF[0].naturalWidth>0){
+    var sp=rotF[0];var sH=charH,sW=sH*(sp.width/sp.height);
+    ctx.drawImage(sp,(w-sW)/2,h-2-sH,sW,sH);
+  } else {
+    var fakeF={x:w/2,y:h-2,dir:1,ch:ch,H:charH,state:'idle',af:0,vy:0};
+    drawFighter(ctx,fakeF,60);
+  }
 }
 
 
