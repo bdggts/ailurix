@@ -500,12 +500,12 @@ function drawCharPreview(canvas,ch,size,frame,pose){
   var frames=SPRITE_ANIMS[key];
   var loaded=[];
   if(frames)for(var fi=0;fi<frames.length;fi++){if(frames[fi])loaded.push(frames[fi]);}
-  // For idle: use rotation sprite based on direction angle (rot_0 to rot_7)
+  // For idle: use rotation sprite based on angle (rot_0 to rot_7)
   var rotF=ROT_SPRITES[ch.id];
   var spr=null;
-  if(st==='idle'&&rotF){
-    // Select rotation sprite based on current direction (0-360 degrees)
-    var rotIdx=Math.round(((dir||0)*45)%360/45)%8;
+  if(st==='idle'&&rotF&&f.rotAngle!==undefined){
+    // Select rotation sprite based on rotation angle (0-360 degrees)
+    var rotIdx=Math.round((f.rotAngle%360)/45)%8;
     if(rotF[rotIdx]&&rotF[rotIdx].complete&&rotF[rotIdx].naturalWidth>0){
       spr=rotF[rotIdx];
     }
@@ -1564,7 +1564,7 @@ function updatePreview(dir){
       // Draw fighter — IDLE STANCE (relaxed, not fighting pose)
       // Always use IDLE POSE for relaxed rotation appearance (not fighting stance)
       ctx.save();ctx.translate(_w/2,_h-4);ctx.scale(depthScale,1);ctx.translate(-_w/2,-(_h-4));
-      var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:'idle',af:R.showTimer,vy:0};drawFighter(ctx,fk,_fr);ctx.restore();
+      var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:'idle',af:R.showTimer,vy:0,rotAngle:normA};drawFighter(ctx,fk,_fr);ctx.restore();
         // Preview action label (Free Fire style)
         if(R.showPose==='punch'||R.showPose==='kick'){
           var _lCol=R.showPose==='punch'?'#ef4444':'#f59e0b';
