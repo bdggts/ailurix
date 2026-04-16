@@ -1557,9 +1557,9 @@ function updatePreview(dir){
       ctx.fillStyle=_ac.color;ctx.beginPath();ctx.arc(dotX,dotY,2.5,0,Math.PI*2);ctx.fill();
       ctx.restore();
       // Draw fighter — IDLE STANCE (relaxed, not fighting pose)
-      // Always use drawFighter with idle state for smooth relaxed appearance
+      // Always use IDLE POSE for relaxed rotation appearance (not fighting stance)
       ctx.save();ctx.translate(_w/2,_h-4);ctx.scale(depthScale,1);ctx.translate(-_w/2,-(_h-4));
-      var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:R.showPose,af:R.showTimer,vy:0};drawFighter(ctx,fk,_fr);ctx.restore();
+      var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:'idle',af:R.showTimer,vy:0};drawFighter(ctx,fk,_fr);ctx.restore();
         // Preview action label (Free Fire style)
         if(R.showPose==='punch'||R.showPose==='kick'){
           var _lCol=R.showPose==='punch'?'#ef4444':'#f59e0b';
