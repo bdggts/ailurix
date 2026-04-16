@@ -486,21 +486,48 @@ function drawFighter(ctx,f,t){
 }
 
 
-// Draw character preview on a canvas element
-function drawCharPreview(canvas,ch,size){
+// Draw character preview — animated with fight showcase support
+function drawCharPreview(canvas,ch,size,frame,pose){
   var w=size||90,h=w;
   canvas.width=w;canvas.height=h;
   var ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,w,h);
-  var charH=h*0.92;
-  // For ROT_CHARS: use front-facing rot_0 sprite so card looks distinct
+  var charH=h*0.90;
+  var t=frame!==undefined?frame:60;
+  var st=pose||'idle';
+  // Collect loaded animation frames for this pose
+  var key=ch.id+'_'+st;
+  var frames=SPRITE_ANIMS[key];
+  var loaded=[];
+  if(frames)for(var fi=0;fi<frames.length;fi++){if(frames[fi])loaded.push(frames[fi]);}
+  // For idle: prefer front-facing rot sprite (most visually distinct per character)
   var rotF=ROT_SPRITES[ch.id];
-  if(rotF&&rotF[0]&&rotF[0].complete&&rotF[0].naturalWidth>0){
-    var sp=rotF[0];var sH=charH,sW=sH*(sp.width/sp.height);
-    ctx.drawImage(sp,(w-sW)/2,h-2-sH,sW,sH);
+  var spr=null;
+  if(st==='idle'&&rotF&&rotF[0]&&rotF[0].complete&&rotF[0].naturalWidth>0){
+    spr=rotF[0];
+  } else if(loaded.length>0){
+    var animSpd=st==='idle'?8:3;
+    spr=loaded[Math.floor(t/animSpd)%loaded.length];
+  }
+  var bob=st==='idle'?Math.sin(t*0.10)*1.8:0;
+  if(spr){
+    var sH=charH,sW=sH*(spr.width/spr.height);
+    ctx.drawImage(spr,(w-sW)/2,h-4-sH+bob,sW,sH);
   } else {
-    var fakeF={x:w/2,y:h-2,dir:1,ch:ch,H:charH,state:'idle',af:0,vy:0};
-    drawFighter(ctx,fakeF,60);
+    var fakeF={x:w/2,y:h-4+bob,dir:1,ch:ch,H:charH,state:st,af:t%20,vy:0};
+    drawFighter(ctx,fakeF,t);
+  }
+  // Free Fire style: flash + action label for punch/kick
+  if(st==='punch'||st==='kick'){
+    var lCol=st==='punch'?'#ef4444':'#f59e0b';
+    if(t<8){ctx.fillStyle='rgba(255,255,255,'+(0.28*(1-t/8))+')';ctx.fillRect(0,0,w,h);}
+    ctx.globalAlpha=0.85+Math.sin(t*0.22)*0.15;
+    ctx.font='bold '+Math.round(w*0.13)+'px Impact,sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.strokeStyle='rgba(0,0,0,0.8)';ctx.lineWidth=2;
+    var lbl=st==='punch'?'PUNCH!':'KICK!';
+    ctx.strokeText(lbl,w/2,3);ctx.fillStyle=lCol;ctx.fillText(lbl,w/2,3);
+    ctx.globalAlpha=1;
   }
 }
 
@@ -1496,7 +1523,7 @@ function updatePreview(dir){
     _pcv.style.touchAction='none'; // enable pointer events
     var _ac=c,_fr=0;
     // Rotation state + Fight Showcase
-    if(!window._rot)window._rot={angle:0,dir:1,dragging:false,startX:0,autoRot:true,showPose:'idle',showTimer:0,showSeq:['idle','idle','punch','punch','kick','kick','idle'],showIdx:0};
+    if(!window._rot)window._rot={angle:0,dir:1,dragging:false,startX:0,autoRot:true,showPose:'idle',showTimer:0,showSeq:['idle','idle','idle','punch','kick','idle'],showIdx:0};
     var R=window._rot; R.angle=0; R.dir=1; R.autoRot=true; R.showPose='idle'; R.showTimer=0; R.showIdx=0;
     // Draw with rotation effect
     function _df(){
@@ -1506,8 +1533,8 @@ function updatePreview(dir){
       if(R.autoRot&&!R.dragging){
         R.angle+=0.6;
         R.showTimer++;
-        // Cycle poses every 25 frames (~2 sec): idle->punch->kick->idle
-        if(R.showTimer>=25){R.showTimer=0;R.showIdx=(R.showIdx+1)%R.showSeq.length;R.showPose=R.showSeq[R.showIdx];}
+        // Cycle poses every 18 frames (~1.4 sec): idle->punch->kick->idle (Free Fire speed)
+        if(R.showTimer>=18){R.showTimer=0;R.showIdx=(R.showIdx+1)%R.showSeq.length;R.showPose=R.showSeq[R.showIdx];}
       } else { R.showPose='idle';R.showTimer=0;R.showIdx=0; }
       // Determine direction from angle
       var normA=((R.angle%360)+360)%360;
@@ -1548,7 +1575,28 @@ function updatePreview(dir){
       } else {
         ctx.save();ctx.translate(_w/2,_h-4);ctx.scale(depthScale,1);ctx.translate(-_w/2,-(_h-4));
         var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:R.showPose,af:R.showTimer,vy:0};drawFighter(ctx,fk,_fr);ctx.restore();
+        // Preview action label (Free Fire style)
+        if(R.showPose==='punch'||R.showPose==='kick'){
+          var _lCol=R.showPose==='punch'?'#ef4444':'#f59e0b';
+          var _lbl=R.showPose==='punch'?'PUNCH!':'KICK!';
+          if(R.showTimer<8){ctx.fillStyle='rgba(255,255,255,'+(0.15*(1-R.showTimer/8))+')';ctx.fillRect(0,0,_w,_h);}
+          ctx.globalAlpha=0.92;ctx.font='bold '+Math.round(_w*0.15)+'px Impact,sans-serif';
+          ctx.textAlign='center';ctx.textBaseline='top';
+          ctx.strokeStyle='rgba(0,0,0,0.75)';ctx.lineWidth=3;
+          ctx.strokeText(_lbl,_w/2,6);ctx.fillStyle=_lCol;ctx.fillText(_lbl,_w/2,6);
+          ctx.globalAlpha=1;
+        }
       }
+      // ── GRID FIGHT SHOWCASE — Free Fire style staggered animation ──
+      window._gT=(window._gT||0)+1;
+      var _gSeq=['idle','idle','idle','idle','idle','punch','punch','kick','kick','idle'];
+      document.querySelectorAll('.cem-canvas').forEach(function(gcv,gi){
+        if(gi>=PLAYABLE.length)return;
+        var stag=gi*19; // stagger: each fighter starts at different point in sequence
+        var gT=window._gT+stag;
+        var seqPos=Math.floor(gT/20)%_gSeq.length;
+        drawCharPreview(gcv,PLAYABLE[gi],140,(gT%20)*3,_gSeq[seqPos]);
+      });
     }
     _df();window._selAnimInt=setInterval(_df,80);
     // Touch/pointer drag to rotate
