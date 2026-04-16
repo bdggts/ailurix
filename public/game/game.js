@@ -18,12 +18,12 @@ var CHARS=[
   {id:'cyrax',    name:'NANOBYTE',   title:'Micro Warrior',   color:'#a3e635',accent:'#d9f99d',hp:440,spd:8, pow:8, def:8, rarity:'Common',   spl:'Nano Swarm',     em:'',bW:1.1, bH:1.0},
   {id:'sektor',   name:'ARMOREX',    title:'Steel Crusher',   color:'#dc2626',accent:'#fca5a5',hp:450,spd:8, pow:9, def:8, rarity:'Epic',     spl:'Roll Crush',     em:'',bW:1.1, bH:1.0},
   {id:'kunglao',  name:'VELOCITY',   title:'Speed Phantom',   color:'#e2e8f0',accent:'#f1f5f9',hp:440,spd:9, pow:8, def:7, rarity:'Legendary',spl:'Speed Blitz',    em:'',bW:0.95,bH:1.0},
-  {id:'nightwolf',name:'LUNARIX',    title:'Moon Beast',      color:'#84cc16',accent:'#bef264',hp:460,spd:7, pow:9, def:8, rarity:'Mythic',   spl:'Sonic Howl',     em:'',bW:1.1, bH:1.05},
+  {id:'noob',name:'LUNARIX',    title:'Moon Beast',      color:'#84cc16',accent:'#bef264',hp:460,spd:7, pow:9, def:8, rarity:'Mythic',   spl:'Sonic Howl',     em:'',bW:1.1, bH:1.05},
   {id:'noob',     name:'SONARX',     title:'Echo Warrior',    color:'#64748b',accent:'#94a3b8',hp:425,spd:9, pow:10,def:6, rarity:'Mythic',   spl:'Wall of Sound',  em:'',bW:0.92,bH:1.0},
   {id:'goro',     name:'DYNOREX',    title:'Final Boss',      color:'#d97706',accent:'#fbbf24',hp:1100,spd:4,pow:10,def:10,rarity:'BOSS',     spl:'Dino Stomp',     em:'',boss:true,bW:1.6,bH:1.3},
 ];
 var PLAYABLE=CHARS.filter(function(c){return !c.boss;});
-var TOWER_ORDER=['cyrax','reptile','liukang','subzero','kitana','mileena','baraka','smoke','scorpion','kunglao','nightwolf','raiden','sektor','noob','goro'];
+var TOWER_ORDER=['cyrax','reptile','liukang','subzero','kitana','mileena','baraka','smoke','scorpion','kunglao','noob','raiden','sektor','noob','goro'];
 var TOWER=TOWER_ORDER.map(function(id){return CHARS.find(function(c){return c.id===id;});});
 
 // =========================================================
@@ -94,7 +94,7 @@ initSprites();
 
 // -- 8-DIRECTION ROTATION SPRITES --
 var ROT_SPRITES={};
-var ROT_CHARS=['raiden','liukang','nightwolf'];
+var ROT_CHARS=['raiden','liukang','noob'];
 function loadRotSprites(){
   ROT_CHARS.forEach(function(cid){
     ROT_SPRITES[cid]=[];
@@ -568,7 +568,7 @@ function drawBG(ctx,W,H,stage,t){
     ctx.strokeStyle='rgba(163,230,53,0.06)';ctx.lineWidth=1;for(var sl=0;sl<H;sl+=8){ctx.beginPath();ctx.moveTo(0,sl);ctx.lineTo(W,sl);ctx.stroke();}
   } else if(id==='reptile'){
     for(var bu=0;bu<8;bu++){var bx=((bu*W/8+Math.sin(t*0.01+bu)*15))%W;var byy=H-((t*0.6+bu*55)%(H*0.85));ctx.strokeStyle='rgba(56,189,248,0.25)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(bx,byy,1.5,0,Math.PI*2);ctx.stroke();}
-  } else if(id==='liukang'||id==='baraka'||id==='nightwolf'){
+  } else if(id==='liukang'||id==='baraka'||id==='noob'){
     for(var fl=0;fl<12;fl++){var fx=((fl*W/12+t*0.2+Math.sin(fl*3)*40)%W);var fy=H*0.05+Math.sin(t*0.018+fl*0.6)*H*0.6;ctx.fillStyle='rgba(250,220,50,0.2)';ctx.beginPath();ctx.arc(fx,fy,1.2,0,Math.PI*2);ctx.fill();}
   } else if(id==='subzero'){
     for(var sn=0;sn<15;sn++){var sx=((sn*W/15+t*0.15+Math.sin(sn*2)*20)%W);var sy=((t*0.4+sn*35)%H);ctx.fillStyle='rgba(255,255,255,0.2)';ctx.beginPath();ctx.arc(sx,sy,1,0,Math.PI*2);ctx.fill();}
