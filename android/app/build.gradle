@@ -7,8 +7,8 @@ android {
     applicationId 'com.dominex.arena'
     minSdkVersion 21
     targetSdkVersion 34
-    versionCode 59
-    versionName '8.4'
+    versionCode 60
+    versionName '8.5'
   }
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8
