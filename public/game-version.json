@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 71,
-  "versionName": "9.6",
+  "versionCode": 72,
+  "versionName": "9.7",
   "apkUrl": "https://dominex-three.vercel.app/Ailurix-Arena-v3.apk",
-  "changelog": "v9.6: Fixed VOLTRAX and PYROVEX UI pose. Fixed major syntax error in character selection code."
+  "changelog": "v9.7: Enhanced 360° character rotation and auto-fighting animations for all special fighters (VOLTRAX, PYROVEX, SONARX, LUNARIX)"
 }
