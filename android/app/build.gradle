@@ -1,4 +1,4 @@
-apply plugin: 'com.android.application'
+﻿apply plugin: 'com.android.application'
 android {
   namespace 'com.dominex.arena'
   compileSdkVersion 34
@@ -7,8 +7,8 @@ android {
     applicationId 'com.dominex.arena'
     minSdkVersion 21
     targetSdkVersion 34
-    versionCode 69
-    versionName '9.4'
+    versionCode 70
+    versionName '9.5'
   }
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8

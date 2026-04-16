@@ -1,1 +1,6 @@
-﻿{"versionCode":69,"versionName":"9.4","apkUrl":"https://dominex-three.vercel.app/Ailurix-Arena-v3.apk","changelog":"v9.4: LUNARIX id fixed from noob to nightwolf"}
+﻿{
+    "apkUrl":  "https://dominex-three.vercel.app/Ailurix-Arena-v3.apk",
+    "changelog":  "v9.5: VOLTRAX \u0026 PYROVEX idle‑only when touched (auto‑rotate \u0026 fight showcase otherwise)",
+    "versionCode":  70,
+    "versionName":  "9.5"
+}
