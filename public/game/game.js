@@ -500,12 +500,17 @@ function drawCharPreview(canvas,ch,size,frame,pose){
   var frames=SPRITE_ANIMS[key];
   var loaded=[];
   if(frames)for(var fi=0;fi<frames.length;fi++){if(frames[fi])loaded.push(frames[fi]);}
-  // For idle: prefer front-facing rot sprite (most visually distinct per character)
+  // For idle: use rotation sprite based on direction angle (rot_0 to rot_7)
   var rotF=ROT_SPRITES[ch.id];
   var spr=null;
-  if(st==='idle'&&rotF&&rotF[0]&&rotF[0].complete&&rotF[0].naturalWidth>0){
-    spr=rotF[0];
-  } else if(loaded.length>0){
+  if(st==='idle'&&rotF){
+    // Select rotation sprite based on current direction (0-360 degrees)
+    var rotIdx=Math.round(((dir||0)*45)%360/45)%8;
+    if(rotF[rotIdx]&&rotF[rotIdx].complete&&rotF[rotIdx].naturalWidth>0){
+      spr=rotF[rotIdx];
+    }
+  }
+  if(!spr&&loaded.length>0){
     var animSpd=st==='idle'?8:3;
     spr=loaded[Math.floor(t/animSpd)%loaded.length];
   }
