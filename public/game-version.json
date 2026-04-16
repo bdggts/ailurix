@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 72,
-  "versionName": "9.7",
+  "versionCode": 73,
+  "versionName": "9.8",
   "apkUrl": "https://dominex-three.vercel.app/Ailurix-Arena-v3.apk",
-  "changelog": "v9.7: Enhanced 360° character rotation and auto-fighting animations for all special fighters (VOLTRAX, PYROVEX, SONARX, LUNARIX)"
+  "changelog": "v9.8: Added high-quality rotation sprites for PYROVEX. Fixed idle pose during 360° rotation showcase."
 }
