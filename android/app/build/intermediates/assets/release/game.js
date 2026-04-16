@@ -1,4 +1,4 @@
-﻿'use strict'; // v3.0 MK-style fullscreen+canvas
+'use strict'; // v3.0 MK-style fullscreen+canvas
 (function(){
 
 // =========================================================
@@ -18,7 +18,7 @@ var CHARS=[
   {id:'cyrax',    name:'NANOBYTE',   title:'Micro Warrior',   color:'#a3e635',accent:'#d9f99d',hp:440,spd:8, pow:8, def:8, rarity:'Common',   spl:'Nano Swarm',     em:'',bW:1.1, bH:1.0},
   {id:'sektor',   name:'ARMOREX',    title:'Steel Crusher',   color:'#dc2626',accent:'#fca5a5',hp:450,spd:8, pow:9, def:8, rarity:'Epic',     spl:'Roll Crush',     em:'',bW:1.1, bH:1.0},
   {id:'kunglao',  name:'VELOCITY',   title:'Speed Phantom',   color:'#e2e8f0',accent:'#f1f5f9',hp:440,spd:9, pow:8, def:7, rarity:'Legendary',spl:'Speed Blitz',    em:'',bW:0.95,bH:1.0},
-  {id:'noob',name:'LUNARIX',    title:'Moon Beast',      color:'#84cc16',accent:'#bef264',hp:460,spd:7, pow:9, def:8, rarity:'Mythic',   spl:'Sonic Howl',     em:'',bW:1.1, bH:1.05},
+  {id:'nightwolf',name:'LUNARIX',    title:'Moon Beast',      color:'#84cc16',accent:'#bef264',hp:460,spd:7, pow:9, def:8, rarity:'Mythic',   spl:'Sonic Howl',     em:'',bW:1.1, bH:1.05},
   {id:'noob',     name:'SONARX',     title:'Echo Warrior',    color:'#64748b',accent:'#94a3b8',hp:425,spd:9, pow:10,def:6, rarity:'Mythic',   spl:'Wall of Sound',  em:'',bW:0.92,bH:1.0},
   {id:'goro',     name:'DYNOREX',    title:'Final Boss',      color:'#d97706',accent:'#fbbf24',hp:1100,spd:4,pow:10,def:10,rarity:'BOSS',     spl:'Dino Stomp',     em:'',boss:true,bW:1.6,bH:1.3},
 ];
@@ -95,6 +95,7 @@ initSprites();
 // -- 8-DIRECTION ROTATION SPRITES --
 var ROT_SPRITES={};
 var ROT_CHARS=['raiden','liukang','noob','nightwolf'];
+var IDLE_ONLY_CHARS=['raiden','liukang'];
 function loadRotSprites(){
   ROT_CHARS.forEach(function(cid){
     ROT_SPRITES[cid]=[];
@@ -492,8 +493,15 @@ function drawCharPreview(canvas,ch,size){
   var ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,w,h);
   var charH=h*0.92;
-  var fakeF={x:w/2,y:h-2,dir:1,ch:ch,H:charH,state:'idle',af:0,vy:0};
-  drawFighter(ctx,fakeF,60);
+  // For ROT_CHARS: use front-facing rot_0 sprite so card looks distinct
+  var rotF=ROT_SPRITES[ch.id];
+  if(rotF&&rotF[0]&&rotF[0].complete&&rotF[0].naturalWidth>0){
+    var sp=rotF[0];var sH=charH,sW=sH*(sp.width/sp.height);
+    ctx.drawImage(sp,(w-sW)/2,h-2-sH,sW,sH);
+  } else {
+    var fakeF={x:w/2,y:h-2,dir:1,ch:ch,H:charH,state:'idle',af:0,vy:0};
+    drawFighter(ctx,fakeF,60);
+  }
 }
 
 

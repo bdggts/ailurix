@@ -1,4 +1,4 @@
-﻿'use strict'; // v3.0 MK-style fullscreen+canvas
+'use strict'; // v3.0 MK-style fullscreen+canvas
 (function(){
 
 // =========================================================
@@ -95,6 +95,7 @@ initSprites();
 // -- 8-DIRECTION ROTATION SPRITES --
 var ROT_SPRITES={};
 var ROT_CHARS=['raiden','liukang','noob','nightwolf'];
+var IDLE_ONLY_CHARS=['raiden','liukang'];
 function loadRotSprites(){
   ROT_CHARS.forEach(function(cid){
     ROT_SPRITES[cid]=[];

@@ -1,6 +1,6 @@
 ﻿{
-    "apkUrl":  "https://dominex-three.vercel.app/Ailurix-Arena-v3.apk",
-    "changelog":  "v9.5: VOLTRAX \u0026 PYROVEX idle‑only when touched (auto‑rotate \u0026 fight showcase otherwise)",
-    "versionCode":  70,
-    "versionName":  "9.5"
+  "versionCode": 71,
+  "versionName": "9.6",
+  "apkUrl": "https://dominex-three.vercel.app/Ailurix-Arena-v3.apk",
+  "changelog": "v9.6: Fixed VOLTRAX and PYROVEX UI pose. Fixed major syntax error in character selection code."
 }
