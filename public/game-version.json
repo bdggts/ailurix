@@ -1,6 +1,6 @@
 {
-  "versionCode": 93,
-  "versionName": "15.5",
-  "apkUrl": "https://www.ailurix.com/ailurix_arena_v15_5.apk",
-  "changelog": "v15.5: Engine & Audio Restoration. Restored Combat Audio Pool, missing global engine objects, and VS stage transition logic."
+  "versionCode": 94,
+  "versionName": "15.6",
+  "apkUrl": "https://www.ailurix.com/ailurix_arena_v15_6.apk",
+  "changelog": "v15.6: Fixed VS Screen crash and clipping bug!"
 }
