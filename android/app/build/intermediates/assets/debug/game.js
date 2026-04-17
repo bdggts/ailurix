@@ -536,8 +536,8 @@ function drawCharPreview(canvas,ch,size,frame,pose){
   var ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,w,h);
   var rotActive=ROT_CHARS.indexOf(ch.id)>=0;
-  // Use a height that leaves ~20% headspace even for tall characters
-  var charH=h*(rotActive?0.95:0.75)*(ch.bH||1.0);
+  // Use a height that leaves ~25% headspace even for tall characters
+  var charH=h*(rotActive?0.80:0.70)*(ch.bH||1.0);
   var t=frame!==undefined?frame:60;
   var st=pose||'idle';
   // Collect loaded animation frames for this pose
@@ -551,13 +551,13 @@ function drawCharPreview(canvas,ch,size,frame,pose){
     var animSpd=st==='idle'?8:3;
     spr=loaded[Math.floor(t/animSpd)%loaded.length];
   }
-  var bob=st==='idle'?Math.sin(t*0.10)*1.8:0;
+  var bob=st==='idle'?Math.sin(t*0.10)*1.5:0;
   if(spr){
     var sH=charH,sW=sH*(spr.width/spr.height);
-    // h-8: Pull everything down from the 128px top boundary to eliminate clipping
-    ctx.drawImage(spr,(w-sW)/2,h-8-sH+bob,sW,sH);
+    // h-14: more bottom margin so head never clips above canvas top
+    ctx.drawImage(spr,(w-sW)/2,h-14-sH+bob,sW,sH);
   } else {
-    var fakeF={x:w/2,y:h-8+bob,dir:1,ch:ch,H:charH,state:st,af:t%20,vy:0,rotAngle:G.rotAngle||0};
+    var fakeF={x:w/2,y:h-14+bob,dir:1,ch:ch,H:charH,state:st,af:t%20,vy:0,rotAngle:G.rotAngle||0};
     drawFighter(ctx,fakeF,t);
   }
   // Free Fire style: flash + action label for punch/kick
