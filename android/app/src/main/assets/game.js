@@ -232,13 +232,7 @@ function tickCombo(){if(COMBO.timer>0)COMBO.timer--;else{COMBO.count=0;COMBO.las
 function $(id){return document.getElementById(id);}
 function bgmStop(){if(window.MK_AUDIO){window.MK_CAN_PLAY=false;window.MK_AUDIO.pause();window.MK_AUDIO.currentTime=0;}}
 function bgmPlay(id){if(window.MK_PLAY){window._bgmKey=id;window.MK_PLAY();}}
-function announce(msg,dur){
-  var el=$('announce');
-  if(!el){el=document.createElement('div');el.id='announce';el.className='announce-overlay';document.body.appendChild(el);}
-  el.textContent=msg;el.classList.add('active');
-  if(window.speechSynthesis){var u=new SpeechSynthesisUtterance(toSpeech(msg));u.volume=1;u.rate=1.05;speechSynthesis.cancel();speechSynthesis.speak(u);}
-  setTimeout(function(){el.classList.remove('active');},dur||2500);
-}
+
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   if(name==='splash')$('splash').classList.add('active');
@@ -756,7 +750,7 @@ function initFight(){
     announce('Round One',200);
     // Video stages: play video audio instead of synth music
     var bgKey2=BG_MAP[opp.id]||'bg_fire';
-    if(opp.id==='goro'&&bossVideoReady){
+    if(opp.id==='goro'&&window.bossVideoReady){
       stopBGMusic();BOSS_VIDEO.currentTime=0;BOSS_VIDEO.muted=false;BOSS_VIDEO.volume=0.4;
       try{BOSS_VIDEO.play();}catch(e){}
     } else {
@@ -1987,6 +1981,13 @@ function _playVoice(text,delayMs){
 }
 
 function announce(text,delayMs){
+  // -- UI Overlay --
+  var el=$('announce');
+  if(!el){el=document.createElement('div');el.id='announce';el.className='announce-overlay';document.body.appendChild(el);}
+  el.textContent=text;el.classList.add('active');
+  setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs, 1000):2500);
+
+  // -- MK AUDIO --
   // Only pre-recorded MP3 on Android. AndroidTTS removed (caused double voice)  
   if(window.AndroidTTS){
     if(_playVoice(text,delayMs))return; // MP3 matched
