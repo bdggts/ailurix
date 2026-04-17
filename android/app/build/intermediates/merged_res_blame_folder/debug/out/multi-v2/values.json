@@ -1,0 +1,45 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.dominex.arena.app-mergeDebugResources-3:/values/values.xml",
+            "map": [
+                {
+                    "source": "C:\\xampp\\htdocs\\Ailurix\\android\\app\\src\\main\\res\\values\\styles.xml",
+                    "from": {
+                        "startLines": "1",
+                        "startColumns": "2",
+                        "startOffsets": "14",
+                        "endLines": "4",
+                        "endColumns": "10",
+                        "endOffsets": "204"
+                    },
+                    "to": {
+                        "startLines": "3",
+                        "startColumns": "4",
+                        "startOffsets": "106",
+                        "endLines": "6",
+                        "endColumns": "10",
+                        "endOffsets": "296"
+                    }
+                },
+                {
+                    "source": "C:\\xampp\\htdocs\\Ailurix\\android\\app\\src\\main\\res\\values\\strings.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "2",
+                        "startOffsets": "53",
+                        "endColumns": "48",
+                        "endOffsets": "99"
+                    },
+                    "to": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "50",
+                        "endOffsets": "101"
+                    }
+                }
+            ]
+        }
+    ]
+}

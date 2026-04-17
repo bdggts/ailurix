@@ -1,0 +1,81 @@
+-- Merging decision tree log ---
+manifest
+ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:2:1-26:12
+INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:2:1-26:12
+INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:2:1-26:12
+INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:2:1-26:12
+INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:2:1-26:12
+INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:2:1-26:12
+INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:2:1-26:12
+	package
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:3:3-30
+		INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+		INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+	android:versionName
+		INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:2:1-26:12
+		INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+	android:versionCode
+		INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:2:1-26:12
+		INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:2:11-69
+uses-permission#android.permission.INTERNET
+ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:5:3-64
+	android:name
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:5:20-62
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:6:3-76
+	android:name
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:6:20-74
+application
+ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:7:3-25:17
+	android:label
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:8:5-34
+	android:hardwareAccelerated
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:10:5-39
+	android:roundIcon
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:12:9-56
+	android:icon
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:11:5-41
+	android:allowBackup
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:9:5-31
+	android:theme
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:13:5-63
+activity#com.dominex.arena.MainActivity
+ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:14:5-24:16
+	android:screenOrientation
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:17:7-44
+	android:windowSoftInputMode
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:19:7-46
+	android:exported
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:16:7-30
+	android:configChanges
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:18:7-68
+	android:name
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:15:7-52
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:20:7-23:23
+action#android.intent.action.MAIN
+ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:21:9-60
+	android:name
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:21:17-58
+category#android.intent.category.LAUNCHER
+ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:22:9-68
+	android:name
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:22:19-66
+uses-sdk
+INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+		INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+		ADDED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+		INJECTED from C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml

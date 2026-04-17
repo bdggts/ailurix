@@ -1,6 +1,6 @@
-﻿{
-  "versionCode": 74,
-  "versionName": "9.9",
-  "apkUrl": "https://dominex-three.vercel.app/Ailurix-Arena-v3.apk",
-  "changelog": "v9.9: Updated VOLTRAX with high-quality rotation sprites. All 4 special fighters now have premium rotation animations."
+{
+  "versionCode": 87,
+  "versionName": "13.1",
+  "apkUrl": "https://www.ailurix.com/ailurix_arena_v13_1.apk",
+  "changelog": "v13.1: Professional Combat Overhaul. Added high-fidelity punch/kick sounds and tightened hit detection reach."
 }

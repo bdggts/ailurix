@@ -1,0 +1,8 @@
+com.dominex.arena.app-pngs-0 C:\xampp\htdocs\Ailurix\android\app\build\generated\res\pngs\debug
+com.dominex.arena.app-resValues-1 C:\xampp\htdocs\Ailurix\android\app\build\generated\res\resValues\debug
+com.dominex.arena.app-rs-2 C:\xampp\htdocs\Ailurix\android\app\build\generated\res\rs\debug
+com.dominex.arena.app-mergeDebugResources-3 C:\xampp\htdocs\Ailurix\android\app\build\intermediates\incremental\debug\mergeDebugResources\merged.dir
+com.dominex.arena.app-mergeDebugResources-4 C:\xampp\htdocs\Ailurix\android\app\build\intermediates\incremental\debug\mergeDebugResources\stripped.dir
+com.dominex.arena.app-merged_res-5 C:\xampp\htdocs\Ailurix\android\app\build\intermediates\merged_res\debug
+com.dominex.arena.app-debug-6 C:\xampp\htdocs\Ailurix\android\app\src\debug\res
+com.dominex.arena.app-main-7 C:\xampp\htdocs\Ailurix\android\app\src\main\res

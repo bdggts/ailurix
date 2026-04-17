@@ -1,0 +1,60 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.dominex.arena"
+4    android:versionCode="87"
+5    android:versionName="13.1" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="21"
+8-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+9        android:targetSdkVersion="34" />
+9-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:5:3-64
+11-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:5:20-62
+12    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+12-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:6:3-76
+12-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:6:20-74
+13
+14    <application
+14-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:7:3-25:17
+15        android:allowBackup="true"
+15-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:9:5-31
+16        android:debuggable="true"
+17        android:hardwareAccelerated="true"
+17-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:10:5-39
+18        android:icon="@drawable/ic_launcher"
+18-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:11:5-41
+19        android:label="Ailurix Arena"
+19-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:8:5-34
+20        android:roundIcon="@drawable/ic_launcher_round"
+20-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:12:9-56
+21        android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
+21-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:13:5-63
+22        <activity
+22-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:14:5-24:16
+23            android:name="com.dominex.arena.MainActivity"
+23-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:15:7-52
+24            android:configChanges="orientation|screenSize|keyboardHidden"
+24-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:18:7-68
+25            android:exported="true"
+25-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:16:7-30
+26            android:screenOrientation="landscape"
+26-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:17:7-44
+27            android:windowSoftInputMode="adjustPan" >
+27-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:19:7-46
+28            <intent-filter>
+28-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:20:7-23:23
+29                <action android:name="android.intent.action.MAIN" />
+29-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:21:9-60
+29-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:21:17-58
+30
+31                <category android:name="android.intent.category.LAUNCHER" />
+31-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:22:9-68
+31-->C:\xampp\htdocs\Ailurix\android\app\src\main\AndroidManifest.xml:22:19-66
+32            </intent-filter>
+33        </activity>
+34    </application>
+35
+36</manifest>

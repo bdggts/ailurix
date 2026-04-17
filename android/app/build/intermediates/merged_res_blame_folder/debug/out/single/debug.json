@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.dominex.arena.app-merged_res-5:/drawable_ic_launcher_round.png.flat",
+        "source": "com.dominex.arena.app-main-7:/drawable/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.dominex.arena.app-merged_res-5:/drawable_ic_launcher.png.flat",
+        "source": "com.dominex.arena.app-main-7:/drawable/ic_launcher.png"
+    }
+]
