@@ -1671,7 +1671,7 @@ function updatePreview(dir){
       if(!hasRotS) ctx.transform(depthScale, 0, skewX, 1, 0, 0);
       ctx.translate(-_w/2, -(_h-4));
       
-      var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:R.showPose||'idle',af:Math.floor(R.showTimer),vy:0,rotAngle:normA,animSpeed:(hasRotS?12:undefined)};
+      var fk={x:_w/2,y:_h-4,dir:R.dir,ch:_ac,H:_h*0.75,state:R.showPose||'idle',af:Math.floor(_fr%24),vy:0,rotAngle:normA,animSpeed:(hasRotS?12:undefined)};
       drawFighter(ctx,fk,_fr);
       ctx.restore();
 
@@ -1740,8 +1740,8 @@ function updatePreview(dir){
         R.showcaseActive=false;
         if(a[2]==='power'){
           R._powerTimer=60;
-          R.showPose='punch';R._tapTimer=60;
-          try{snd('start');}catch(ex){}
+          R.showPose='special';R._tapTimer=60;
+          try{snd('special');}catch(ex){}
         } else {
           R._powerTimer=0;
           R.showPose=a[2];R._tapTimer=a[3]||45;
