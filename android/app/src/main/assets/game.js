@@ -536,8 +536,10 @@ function drawCharPreview(canvas,ch,size,frame,pose){
   var ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,w,h);
   var rotActive=ROT_CHARS.indexOf(ch.id)>=0;
-  // Use a height that leaves ~25% headspace even for tall characters
-  var charH=h*(rotActive?0.80:0.70)*(ch.bH||1.0);
+  // Leave 28% headspace for tall chars - reduces for high bH values
+  var charH=h*(rotActive?0.74:0.68)*(ch.bH||1.0);
+  // Hard cap: never exceed 85% of canvas height
+  if(charH>h*0.85)charH=h*0.85;
   var t=frame!==undefined?frame:60;
   var st=pose||'idle';
   // Collect loaded animation frames for this pose
@@ -551,7 +553,7 @@ function drawCharPreview(canvas,ch,size,frame,pose){
     var animSpd=st==='idle'?8:3;
     spr=loaded[Math.floor(t/animSpd)%loaded.length];
   }
-  var bob=st==='idle'?Math.sin(t*0.10)*1.5:0;
+  var bob=st==='idle'?Math.sin(t*0.10)*0.8:0;
   if(spr){
     var sH=charH,sW=sH*(spr.width/spr.height);
     // h-14: more bottom margin so head never clips above canvas top
@@ -1609,7 +1611,7 @@ function updatePreview(dir){
           R.vel *= 0.94; // Friction / Damping
         }
         
-        // v15.1: FIGHT SHOWCASE MODE (After interaction stops)
+        // v15.1: FIGHT SHOWCASE MODE (After drag interaction stops)
         if(R.showcaseActive){
           R.showcaseTimer++;
           if(R.showcaseTimer < 20)      { R.showPose = 'idle'; }
@@ -1617,6 +1619,11 @@ function updatePreview(dir){
           else if(R.showcaseTimer < 65) { R.showPose = 'idle'; }
           else if(R.showcaseTimer < 100){ if(R.showcaseTimer===66)snd('kick'); R.showPose = 'kick'; }
           else { R.showPose = 'idle'; R.showcaseActive = false; }
+        } else if(R._tapTimer>0){
+          // Tap-triggered punch/kick — hold pose for N frames then back to idle
+          R._tapTimer--;
+          if(R._tapTimer<=0){R.showPose='idle';}
+          if(R.autoRot){if(Math.abs(R.vel)<1.0)R.angle+=0.25;}
         } else {
           R.showPose = 'idle';
           if(R.autoRot){
@@ -1668,26 +1675,31 @@ function updatePreview(dir){
       drawFighter(ctx,fk,_fr);
       ctx.restore();
 
-      // Preview action label
-      if(R.showPose==='punch'||R.showPose==='kick'){
-        var _lCol=R.showPose==='punch'?'#ef4444':'#f59e0b';
-        var _lbl=R.showPose==='punch'?'PUNCH!':'KICK!';
-        ctx.globalAlpha=0.92;ctx.font='bold '+Math.round(_w*0.15)+'px Impact,sans-serif';
-        ctx.textAlign='center';ctx.textBaseline='top';
-        ctx.strokeStyle='rgba(0,0,0,0.75)';ctx.lineWidth=3;
-        ctx.strokeText(_lbl,_w/2,6);ctx.fillStyle=_lCol;ctx.fillText(_lbl,_w/2,6);
-        ctx.globalAlpha=1;
-      }
+      // No text labels — animations speak for themselves
       
       if(window._selAnimInt) window._selAnimInt = requestAnimationFrame(_df);
     }
     window._selAnimInt = requestAnimationFrame(_df);
 
-    // Touch/pointer drag to rotate
-    _pcv.onpointerdown=function(e){R.dragging=true;R.startX=e.clientX;R.autoRot=false;R.vel=0;_pcv.setPointerCapture(e.pointerId);};
-    _pcv.onpointermove=function(e){if(!R.dragging)return;var dx=e.clientX-R.startX;R.angle+=dx*1.8;R.vel=dx*1.5;R.startX=e.clientX;};
-    _pcv.onpointerup=function(e){R.dragging=false;R.autoRot=true;R.showcaseActive=true;R.showcaseTimer=0;};
-    _pcv.onpointercancel=function(e){R.dragging=false;R.autoRot=true;R.showcaseActive=true;R.showcaseTimer=0;};
+    // Touch/pointer: drag=rotate, tap=punch/kick action
+    if(!window._tapPose)window._tapPose='punch';
+    _pcv.onpointerdown=function(e){R.dragging=false;R._tapStartX=e.clientX;R._tapStartY=e.clientY;R.startX=e.clientX;R.autoRot=false;R.vel=0;_pcv.setPointerCapture(e.pointerId);};
+    _pcv.onpointermove=function(e){var dx=e.clientX-R._tapStartX,dy=e.clientY-R._tapStartY;if(Math.abs(dx)>6||Math.abs(dy)>6){R.dragging=true;}if(R.dragging){var ddx=e.clientX-R.startX;R.angle+=ddx*1.8;R.vel=ddx*1.5;R.startX=e.clientX;}};
+    _pcv.onpointerup=function(e){
+      if(!R.dragging){
+        // Short tap — punch or kick alternating
+        var pose=window._tapPose||'punch';
+        window._tapPose=(pose==='punch')?'kick':'punch';
+        R.showPose=pose;R.showcaseTimer=0;R.showcaseActive=false;
+        // Play for 40 frames then return to idle
+        R._tapTimer=40;
+        try{snd(pose);}catch(ex){}
+      } else {
+        R.showcaseActive=true;R.showcaseTimer=0;
+      }
+      R.dragging=false;R.autoRot=true;
+    };
+    _pcv.onpointercancel=function(e){R.dragging=false;R.autoRot=true;};
   }
   // Name
   var ne=$('prev-name');
