@@ -631,7 +631,17 @@ function drawBG(ctx,W,H,stage,t){
       ctx.drawImage(bgImg,0,0,W,H);
       ctx.fillStyle='rgba(0,0,0,0.15)';ctx.fillRect(0,0,W,H);
     } else {
-      var g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0a0a12');g.addColorStop(1,'#050505');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+      // Fallback gradient — use a visible theme color by bg key so screen is never truly black
+      var _fc={'bg_cyber':'#0a1a0a','bg_fire':'#1a0600','bg_ice':'#000f1a','bg_jungle':'#0a1800',
+               'bg_storm':'#08080f','bg_boss':'#0f0000','bg_ocean':'#000a18','bg_crystal':'#080010',
+               'bg_ghost':'#060010','bg_forest':'#050f05','bg_speed':'#080010','bg_void':'#06000a','bg_forge':'#0f0a00'};
+      var _fc2={'bg_cyber':'#0f2b0f','bg_fire':'#2a0d00','bg_ice':'#001628','bg_jungle':'#0d2000',
+               'bg_storm':'#0d0d18','bg_boss':'#1a0000','bg_ocean':'#001025','bg_crystal':'#0d0020',
+               'bg_ghost':'#0a0020','bg_forest':'#08180a','bg_speed':'#0a001a','bg_void':'#0a000f','bg_forge':'#1a1200'};
+      var g=ctx.createLinearGradient(0,0,0,H);
+      g.addColorStop(0,_fc[bgKey]||'#0a0a18');
+      g.addColorStop(1,_fc2[bgKey]||'#050510');
+      ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
     }
   }
   // Animated overlays per theme — optimized (low particle count)
@@ -747,14 +757,16 @@ function initFight(){
       over:false,finishHim:false,finishTimer:0,
       roundOverText:'',roundOverColor:'#fff',
     };
-    announce('Round One',200);
-    // Video stages: play video audio instead of synth music
-    var bgKey2=BG_MAP[opp.id]||'bg_fire';
-    if(opp.id==='goro'&&window.bossVideoReady){
-      try{stopBGMusic();BOSS_VIDEO.currentTime=0;BOSS_VIDEO.muted=false;BOSS_VIDEO.volume=0.4;BOSS_VIDEO.play();}catch(e){}
-    } else {
-      startBGMusic();
-    }
+    // Wrap non-critical setup in try-catch — G.raf MUST always be called
+    try{announce('Round One',200);}catch(e){}
+    try{
+      if(opp.id==='goro'&&window.bossVideoReady){
+        try{stopBGMusic();if(window.BOSS_VIDEO){window.BOSS_VIDEO.currentTime=0;window.BOSS_VIDEO.muted=false;window.BOSS_VIDEO.volume=0.4;window.BOSS_VIDEO.play();}}catch(e){}
+      } else {
+        startBGMusic();
+      }
+    }catch(e){}
+    // CRITICAL: Always start the fight loop no matter what
     G.raf=requestAnimationFrame(fightLoop);
   }
   waitAndInit(0);
