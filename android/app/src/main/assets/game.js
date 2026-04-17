@@ -1570,8 +1570,10 @@ function updatePreview(dir){
   if(window._selAnimInt){cancelAnimationFrame(window._selAnimInt);window._selAnimInt=null;}
   var _pcv=$('prev-char-canvas');
   if(_pcv){
-    var _sz=Math.round(Math.min(window.innerWidth*0.30,150));
-    var _w=_sz,_h=Math.round(_sz*1.5);
+    // Cap canvas height by the actual showcase container height to prevent head overflow
+    var _containerH=_pcv.parentElement?_pcv.parentElement.clientHeight:200;
+    var _sz=Math.round(Math.min(window.innerWidth*0.28,_containerH*0.82,130));
+    var _w=_sz,_h=Math.round(_sz*1.25);
     _pcv.width=_w;_pcv.height=_h;
     _pcv.style.opacity='1';_pcv.style.transform='none';
     _pcv.style.touchAction='none'; // enable pointer events
