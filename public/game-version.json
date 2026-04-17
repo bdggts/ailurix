@@ -1,6 +1,6 @@
 {
   "versionCode": 105,
   "versionName": "15.7.1",
-  "apkUrl": "https://www.ailurix.com/ailurix_arena_v15_7_1.apk",
-  "changelog": "v15.6.6: Promise-deferred showResult - fixes frozen matchOver screen
+  "apkUrl": "https://github.com/bdggts/ailurix/raw/refs/heads/main/public/ailurix_arena_v15_7_1.apk",
+  "changelog": "v15.7.1: Fix character head clipping, added missing stage opponents"
 }
