@@ -4,7 +4,6 @@
 // =========================================================
 // DATA
 // =========================================================
-var CHARS=[
   {id:'scorpion', name:'INFERNUS',   title:'Fire Warrior',    color:'#f59e0b',accent:'#fbbf24',hp:500,spd:8, pow:9, def:7, rarity:'Common',   spl:'Inferno Strike', em:'',bW:1.1,bH:1.0,offY:4},
   {id:'subzero',  name:'GLACIUS',    title:'Ice Phantom',     color:'#38bdf8',accent:'#0c4a6e',hp:475,spd:7, pow:8, def:9, rarity:'Common',   spl:'Freeze Breath',  em:'',bW:1.1,bH:1.0,offY:4},
   {id:'liukang',  name:'PYROVEX',    title:'Flame Striker',   color:'#ef4444',accent:'#fca5a5',hp:450,spd:9, pow:9, def:7, rarity:'Rare',     spl:'Fire Kick',      em:'',bW:0.9, bH:1.05},
@@ -17,6 +16,10 @@ var CHARS=[
   {id:'kunglao',  name:'VELOCITY',   title:'Speed Phantom',   color:'#e2e8f0',accent:'#f1f5f9',hp:440,spd:9, pow:8, def:7, rarity:'Legendary',spl:'Speed Blitz',    em:'',bW:0.95,bH:1.0},
   {id:'nightwolf',name:'LUNARIX',    title:'Moon Beast',      color:'#84cc16',accent:'#bef264',hp:460,spd:7, pow:9, def:8, rarity:'Mythic',   spl:'Sonic Howl',     em:'',bW:1.1, bH:1.05},
   {id:'noob',     name:'SONARX',     title:'Echo Warrior',    color:'#64748b',accent:'#94a3b8',hp:425,spd:9, pow:10,def:6, rarity:'Mythic',   spl:'Wall of Sound',  em:'',bW:0.92,bH:1.0},
+  // ── Stage 2, 5, 6 opponents (were missing — caused initFight crash) ──
+  {id:'reptile',  name:'RIPJAW',     title:'Ocean Hunter',    color:'#22d3ee',accent:'#a5f3fc',hp:460,spd:9, pow:8, def:7, rarity:'Rare',     spl:'Hydro Slash',    em:'',bW:1.0, bH:1.0},
+  {id:'kitana',   name:'UPGRADE',    title:'Tech Warrior',    color:'#818cf8',accent:'#c7d2fe',hp:490,spd:7, pow:9, def:9, rarity:'Epic',     spl:'Tech Surge',     em:'',bW:1.0, bH:1.0},
+  {id:'mileena',  name:'CHROMAX',    title:'Crystal Phantom', color:'#e879f9',accent:'#f0abfc',hp:480,spd:9, pow:9, def:8, rarity:'Epic',     spl:'Crystal Shard',  em:'',bW:0.95,bH:1.0},
   {id:'goro',     name:'DYNOREX',    title:'Final Boss',      color:'#d97706',accent:'#fbbf24',hp:1100,spd:4,pow:10,def:10,rarity:'BOSS',     spl:'Dino Stomp',     em:'',boss:true,bW:1.6,bH:1.3},
 ];
 var PLAYABLE=CHARS.filter(function(c){return !c.boss;});
@@ -581,7 +584,7 @@ var BG_MAP={
   reptile:'bg_ocean',    // Stage 2  — Ocean Deep (Ripjaws/Reptile)
   liukang:'bg_jungle',   // Stage 3  — Jungle Swamp (Swampfire/Liu Kang)
   subzero:'bg_ice',      // Stage 4  — Ice Cave (Sub-Zero)
-  kitana:'bg_dark_storm',// Stage 5  — Dark Storm (Upgrade/Kitana)
+  kitana:'bg_storm',     // Stage 5  — Storm Arena (Upgrade/Kitana)
   mileena:'bg_crystal',  // Stage 6  — Crystal Cave (Chromastone/Mileena)
   baraka:'bg_fire',      // Stage 7  — Fire Arena (Wildmutt/Baraka)
   smoke:'bg_ghost',      // Stage 8  — Ghost Realm (Ghostfreak/Smoke)
