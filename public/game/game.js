@@ -1676,6 +1676,41 @@ function updatePreview(dir){
       ctx.restore();
 
       // No text labels — animations speak for themselves
+
+      // ── SPECIAL POWER EFFECT (plays when ⚡ is tapped) ──
+      if(R._powerTimer>0){
+        R._powerTimer--;
+        var _pPct=R._powerTimer/60;
+        ctx.save();
+        // Expanding shockwave ring
+        var _ringR=_w*0.5*(1.2-_pPct*0.8);
+        ctx.globalAlpha=_pPct*0.7;
+        ctx.strokeStyle=_ac.color;ctx.lineWidth=3+_pPct*4;
+        ctx.shadowColor=_ac.color;ctx.shadowBlur=16;
+        ctx.beginPath();ctx.arc(_w/2,_h*0.62,_ringR,0,Math.PI*2);ctx.stroke();
+        // Second inner ring (offset)
+        ctx.globalAlpha=_pPct*0.4;
+        ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(_w/2,_h*0.62,_ringR*0.6,0,Math.PI*2);ctx.stroke();
+        // Orbiting energy particles
+        for(var _pi=0;_pi<8;_pi++){
+          var _pa=(_pi/8)*Math.PI*2+(_fr*0.12);
+          var _pr=_w*0.32*(0.5+_pPct*0.5);
+          var _px=_w/2+Math.cos(_pa)*_pr;
+          var _py=_h*0.62+Math.sin(_pa)*_pr*0.38;
+          ctx.globalAlpha=_pPct*0.85;
+          ctx.fillStyle=_ac.color;ctx.shadowBlur=8;
+          ctx.beginPath();ctx.arc(_px,_py,3+Math.sin(_fr*0.3+_pi)*1.5,0,Math.PI*2);ctx.fill();
+        }
+        // Center flash burst (only first 15 frames)
+        if(R._powerTimer>45){
+          ctx.globalAlpha=((R._powerTimer-45)/15)*0.35;
+          ctx.fillStyle=_ac.color;
+          ctx.fillRect(0,0,_w,_h);
+        }
+        ctx.globalAlpha=1;ctx.shadowBlur=0;
+        ctx.restore();
+      }
       
       if(window._selAnimInt) window._selAnimInt = requestAnimationFrame(_df);
     }
@@ -1703,13 +1738,13 @@ function updatePreview(dir){
       b.addEventListener('pointerdown',function(e){
         e.stopPropagation();
         R.showcaseActive=false;
-        var _pose=a[2]==='power'?'kick':a[2];
-        R.showPose=_pose;R._tapTimer=a[3]||45;
-        b.style.background=_ac.color+'55';
         if(a[2]==='power'){
+          R._powerTimer=60;
+          R.showPose='punch';R._tapTimer=60;
           try{snd('start');}catch(ex){}
-          setTimeout(function(){try{snd('kick');}catch(ex){};},200);
         } else {
+          R._powerTimer=0;
+          R.showPose=a[2];R._tapTimer=a[3]||45;
           try{snd(a[2]==='punch'?'punch':'kick');}catch(ex){}
         }
       });
