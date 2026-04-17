@@ -1692,12 +1692,12 @@ function updatePreview(dir){
     if(_oldBtns)_oldBtns.parentNode.removeChild(_oldBtns);
     var _ab=document.createElement('div');
     _ab.id='_previewActionBtns';
-    _ab.style.cssText='display:flex;gap:6px;justify-content:center;align-items:stretch;padding:6px 8px;width:100%;box-sizing:border-box;flex-shrink:0;background:rgba(0,0,0,0.45);border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);';
-    var _actions=[['🥊','PUNCH','punch'],['🦵','KICK','kick'],['⚡',(_ac.spl||'POWER').split(' ').slice(0,1)[0],'punch']];
+    _ab.style.cssText='position:absolute;left:4px;top:50%;transform:translateY(-50%);z-index:5;display:flex;flex-direction:column;gap:5px;pointer-events:all;';
+    var _actions=[['🥊','PN','punch'],['🦵','KI','kick'],['⚡',(_ac.spl||'').split(' ')[0].substring(0,3)||'POW','punch']];
     _actions.forEach(function(a){
       var b=document.createElement('button');
-      b.style.cssText='flex:1;padding:8px 4px;border:2px solid '+_ac.color+'66;border-radius:10px;background:linear-gradient(160deg,'+_ac.color+'28,'+_ac.color+'0a);color:'+_ac.color+';font-size:12px;font-weight:900;letter-spacing:0.5px;cursor:pointer;outline:none;transition:all .15s;text-align:center;line-height:1.4;box-shadow:0 0 8px '+_ac.color+'22;';
-      b.innerHTML='<span style="font-size:18px;display:block">'+a[0]+'</span>'+a[1];
+      b.style.cssText='width:32px;height:46px;border:1.5px solid '+_ac.color+'99;border-radius:8px;background:rgba(0,0,0,0.72);color:'+_ac.color+';font-size:8px;font-weight:900;cursor:pointer;outline:none;transition:all .15s;text-align:center;line-height:1.2;padding:3px 2px;box-shadow:0 0 8px '+_ac.color+'55,inset 0 0 6px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;';
+      b.innerHTML='<span style="font-size:14px;line-height:1">'+a[0]+'</span><span>'+a[1]+'</span>';
       b.addEventListener('pointerdown',function(e){
         e.stopPropagation();
         R.showcaseActive=false;
@@ -1711,10 +1711,9 @@ function updatePreview(dir){
       });
       _ab.appendChild(b);
     });
-    // Insert AFTER showcase (sibling, not inside canvas area)
+    // Float inside showcase (position:absolute)
     var _showcase=_pcv.parentNode;
-    var _showcaseParent=_showcase.parentNode;
-    _showcaseParent.insertBefore(_ab,_showcase.nextSibling);
+    _showcase.appendChild(_ab);
   } // end if(_pcv)
   // Name
   var ne=$('prev-name');
