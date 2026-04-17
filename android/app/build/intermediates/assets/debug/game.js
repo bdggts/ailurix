@@ -1550,8 +1550,8 @@ function initSelect(){
   },130);
   $('select-btn').onclick=function(){
     G.player=PLAYABLE[G.selIdx];snd('start');
-    if(window._selAnimInt){clearInterval(window._selAnimInt);window._selAnimInt=null;}
-    bgmStop();G.screen='vs';showScreen('vs');initVS();
+    if(window._selAnimInt){cancelAnimationFrame(window._selAnimInt);window._selAnimInt=null;}
+    initStageIntro();
   };
 }
 function updateGrid(){
@@ -1776,6 +1776,90 @@ function updatePreview(dir){
   if(btn){btn.textContent='FIGHT!';btn.style.background='linear-gradient(135deg,'+c.color+','+c.color+'99)';btn.style.boxShadow='0 0 24px '+c.color+'55,0 4px 14px rgba(0,0,0,.7)';}
 }
 // VS
+// ─── Stage data ───
+var STAGE_DATA=[
+  {name:'INFERNO TEMPLE',   bg:'bg_fire'},
+  {name:'GLACIER FORTRESS', bg:'bg_ice'},
+  {name:'JADE FOREST',      bg:'bg_jungle'},
+  {name:'GHOST REALM',      bg:'bg_ghost'},
+  {name:'NEON GRID',        bg:'bg_cyber'},
+  {name:'THUNDER PEAK',     bg:'bg_storm'},
+  {name:'IRON FOUNDRY',     bg:'bg_forge'},
+  {name:'DARK FOREST',      bg:'bg_dark_forest'},
+  {name:'CRYSTAL MINES',    bg:'bg_crystal'},
+  {name:'OCEAN ABYSS',      bg:'bg_ocean'},
+  {name:'SHADOW WOODS',     bg:'bg_dark_forest'},
+  {name:'THE VOID',         bg:'bg_void'},
+  {name:'WARP ZONE',        bg:'bg_speed'},
+  {name:'STORM CITADEL',    bg:'bg_dark_storm'},
+  {name:'FINAL ARENA',      bg:'bg_boss'}
+];
+
+function initStageIntro(){
+  var opp=TOWER[Math.min(G.stage-1,TOWER.length-1)];
+  if(!opp){bgmStop();G.screen='vs';showScreen('vs');initVS();return;}
+  var sd=STAGE_DATA[Math.min(G.stage-1,STAGE_DATA.length-1)];
+  showScreen('stage-intro');
+  // Background
+  var siBg=$('si-bg');
+  if(siBg)siBg.style.backgroundImage="url('"+sd.bg+".png')";
+  // Labels
+  var snEl=$('si-stage-name');if(snEl)snEl.textContent=sd.name;
+  var snumEl=$('si-stage-num');if(snumEl)snumEl.textContent='STAGE '+G.stage+' / 15';
+  var srEl=$('si-round-label');if(srEl){srEl.textContent=opp.boss?'⚠️ FINAL BOSS':'ROUND 1';srEl.style.color=opp.boss?'#f59e0b':'#dc2626';}
+  // Player CSS var colors
+  var siEl=$('stage-intro');
+  if(siEl){siEl.style.setProperty('--si-c1',G.player.color);siEl.style.setProperty('--si-c2',opp.color);}
+  // Player info
+  var p1n=$('si-p1-name-si');if(p1n){p1n.textContent=G.player.name;p1n.style.color=G.player.color;}
+  var p1t=$('si-p1-title-si');if(p1t)p1t.textContent=G.player.title;
+  // Opponent info
+  var p2n=$('si-p2-name-si');if(p2n){p2n.textContent=opp.name;p2n.style.color=opp.color;}
+  var p2t=$('si-p2-title-si');if(p2t)p2t.textContent=(opp.boss?'⚠️ BOSS':opp.title);
+  // Derive canvas height from screen
+  var siH=Math.round(Math.min(window.innerHeight*0.52,220));
+  var siW=Math.round(siH*0.72);
+  // Draw player (left, faces right)
+  var c1=$('si-p1-canvas');
+  if(c1){
+    c1.width=siW;c1.height=siH;
+    if(window._siAnim1){cancelAnimationFrame(window._siAnim1);window._siAnim1=null;}
+    var _f1=0;
+    function _draw1(){
+      if(!document.getElementById('stage-intro').classList.contains('active')){window._siAnim1=null;return;}
+      _f1+=1.5;
+      var ctx=c1.getContext('2d');ctx.clearRect(0,0,siW,siH);
+      drawFighter(ctx,{x:siW/2,y:siH-4,dir:1,ch:G.player,H:siH*0.80,state:'idle',af:Math.floor(_f1%24),vy:0,rotAngle:0},_f1);
+      window._siAnim1=requestAnimationFrame(_draw1);
+    }
+    window._siAnim1=requestAnimationFrame(_draw1);
+  }
+  // Draw opponent (right, faces left = flip)
+  var c2=$('si-p2-canvas');
+  if(c2){
+    c2.width=siW;c2.height=siH;
+    if(window._siAnim2){cancelAnimationFrame(window._siAnim2);window._siAnim2=null;}
+    var _f2=0;
+    function _draw2(){
+      if(!document.getElementById('stage-intro').classList.contains('active')){window._siAnim2=null;return;}
+      _f2+=1.5;
+      var ctx2=c2.getContext('2d');ctx2.clearRect(0,0,siW,siH);
+      ctx2.save();ctx2.scale(-1,1);ctx2.translate(-siW,0);
+      drawFighter(ctx2,{x:siW/2,y:siH-4,dir:1,ch:opp,H:siH*0.80,state:'idle',af:Math.floor(_f2%24),vy:0,rotAngle:0},_f2);
+      ctx2.restore();
+      window._siAnim2=requestAnimationFrame(_draw2);
+    }
+    window._siAnim2=requestAnimationFrame(_draw2);
+  }
+  // FIGHT button → VS screen
+  var fb=$('si-fight-btn');
+  if(fb){fb.onclick=function(){
+    if(window._siAnim1){cancelAnimationFrame(window._siAnim1);window._siAnim1=null;}
+    if(window._siAnim2){cancelAnimationFrame(window._siAnim2);window._siAnim2=null;}
+    snd('fight');bgmStop();G.screen='vs';showScreen('vs');initVS();
+  };}
+}
+
 function initVS(){
   var opp=TOWER[Math.min(G.stage-1,TOWER.length-1)];
   // Safety: if opp is somehow undefined (missing char in roster), skip to fight
