@@ -1693,17 +1693,25 @@ function updatePreview(dir){
     var _ab=document.createElement('div');
     _ab.id='_previewActionBtns';
     _ab.style.cssText='position:absolute;left:4px;top:50%;transform:translateY(-50%);z-index:5;display:flex;flex-direction:column;gap:5px;pointer-events:all;';
-    var _actions=[['🥊','PN','punch'],['🦵','KI','kick'],['⚡',(_ac.spl||'').split(' ')[0].substring(0,3)||'POW','punch']];
+    var _actions=[['🥊','PN','punch',45],['🦵','KI','kick',45],['⚡',(_ac.spl||'').split(' ')[0].substring(0,4)||'POW','power',70]];
     _actions.forEach(function(a){
       var b=document.createElement('button');
       b.style.cssText='width:32px;height:46px;border:1.5px solid '+_ac.color+'99;border-radius:8px;background:rgba(0,0,0,0.72);color:'+_ac.color+';font-size:8px;font-weight:900;cursor:pointer;outline:none;transition:all .15s;text-align:center;line-height:1.2;padding:3px 2px;box-shadow:0 0 8px '+_ac.color+'55,inset 0 0 6px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;';
       b.innerHTML='<span style="font-size:14px;line-height:1">'+a[0]+'</span><span>'+a[1]+'</span>';
+      // Power button gets special gold styling
+      if(a[2]==='power')b.style.cssText=b.style.cssText.replace(_ac.color+'99','#f59e0b').replace(_ac.color+'55','#f59e0b88');
       b.addEventListener('pointerdown',function(e){
         e.stopPropagation();
         R.showcaseActive=false;
-        R.showPose=a[2];R._tapTimer=45;
-        b.style.background=_ac.color+'44';
-        try{snd(a[2]==='punch'?'punch':'kick');}catch(ex){}
+        var _pose=a[2]==='power'?'kick':a[2];
+        R.showPose=_pose;R._tapTimer=a[3]||45;
+        b.style.background=_ac.color+'55';
+        if(a[2]==='power'){
+          try{snd('start');}catch(ex){}
+          setTimeout(function(){try{snd('kick');}catch(ex){};},200);
+        } else {
+          try{snd(a[2]==='punch'?'punch':'kick');}catch(ex){}
+        }
       });
       b.addEventListener('pointerup',function(e){
         e.stopPropagation();
