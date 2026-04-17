@@ -1681,26 +1681,39 @@ function updatePreview(dir){
     }
     window._selAnimInt = requestAnimationFrame(_df);
 
-    // Touch/pointer: drag=rotate, tap=punch/kick action
-    if(!window._tapPose)window._tapPose='punch';
-    _pcv.onpointerdown=function(e){R.dragging=false;R._tapStartX=e.clientX;R._tapStartY=e.clientY;R.startX=e.clientX;R.autoRot=false;R.vel=0;_pcv.setPointerCapture(e.pointerId);};
-    _pcv.onpointermove=function(e){var dx=e.clientX-R._tapStartX,dy=e.clientY-R._tapStartY;if(Math.abs(dx)>6||Math.abs(dy)>6){R.dragging=true;}if(R.dragging){var ddx=e.clientX-R.startX;R.angle+=ddx*1.8;R.vel=ddx*1.5;R.startX=e.clientX;}};
-    _pcv.onpointerup=function(e){
-      if(!R.dragging){
-        // Short tap — punch or kick alternating
-        var pose=window._tapPose||'punch';
-        window._tapPose=(pose==='punch')?'kick':'punch';
-        R.showPose=pose;R.showcaseTimer=0;R.showcaseActive=false;
-        // Play for 40 frames then return to idle
-        R._tapTimer=40;
-        try{snd(pose);}catch(ex){}
-      } else {
-        R.showcaseActive=true;R.showcaseTimer=0;
-      }
-      R.dragging=false;R.autoRot=true;
-    };
+    // Canvas: drag only = rotate. Buttons handle animations.
+    _pcv.onpointerdown=function(e){R.dragging=true;R.startX=e.clientX;R.autoRot=false;R.vel=0;_pcv.setPointerCapture(e.pointerId);};
+    _pcv.onpointermove=function(e){if(!R.dragging)return;var dx=e.clientX-R.startX;R.angle+=dx*1.8;R.vel=dx*1.5;R.startX=e.clientX;};
+    _pcv.onpointerup=function(e){R.dragging=false;R.autoRot=true;};
     _pcv.onpointercancel=function(e){R.dragging=false;R.autoRot=true;};
-  }
+
+    // ── Action Buttons: PUNCH | KICK | POWER ──
+    var _oldBtns=document.getElementById('_previewActionBtns');
+    if(_oldBtns)_oldBtns.parentNode.removeChild(_oldBtns);
+    var _ab=document.createElement('div');
+    _ab.id='_previewActionBtns';
+    _ab.style.cssText='display:flex;gap:4px;justify-content:center;padding:4px 0 2px;width:100%;flex-shrink:0;';
+    var _actions=[['🥊','PUNCH','punch'],['🦵','KICK','kick'],['⚡',(_ac.spl||'POWER').split(' ').slice(0,1)[0],'punch']];
+    _actions.forEach(function(a){
+      var b=document.createElement('button');
+      b.style.cssText='flex:1;max-width:70px;padding:4px 2px;border:1px solid '+_ac.color+'55;border-radius:6px;background:'+_ac.color+'18;color:'+_ac.color+';font-size:9px;font-weight:700;letter-spacing:0.5px;cursor:pointer;outline:none;transition:background .15s;';
+      b.innerHTML=a[0]+'<br>'+a[1];
+      b.addEventListener('pointerdown',function(e){
+        e.stopPropagation();
+        R.showcaseActive=false;
+        R.showPose=a[2];R._tapTimer=45;
+        b.style.background=_ac.color+'44';
+        try{snd(a[2]==='punch'?'punch':'kick');}catch(ex){}
+      });
+      b.addEventListener('pointerup',function(e){
+        e.stopPropagation();
+        setTimeout(function(){b.style.background=_ac.color+'18';},200);
+      });
+      _ab.appendChild(b);
+    });
+    // Insert after canvas
+    _pcv.parentNode.insertBefore(_ab,_pcv.nextSibling);
+  } // end if(_pcv)
   // Name
   var ne=$('prev-name');
   if(ne){ne.textContent=c.name;ne.style.color=c.color;ne.style.textShadow='0 0 18px '+c.color;ne.style.animation='none';setTimeout(function(){ne.style.animation='';},10);}
