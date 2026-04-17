@@ -615,9 +615,9 @@ function drawBG(ctx,W,H,stage,t){
   var opp=TOWER[Math.min(stage-1,TOWER.length-1)];
   var bgKey=BG_MAP[opp.id]||'bg_fire';
   // Boss stage: use video background
-  if(opp.id==='goro'&&bossVideoReady){
+  if(opp.id==='goro'&&window.bossVideoReady){
     try{
-      if(BOSS_VIDEO.paused)BOSS_VIDEO.play();
+      if(window.BOSS_VIDEO&&window.BOSS_VIDEO.paused)window.BOSS_VIDEO.play();
       ctx.drawImage(BOSS_VIDEO,0,0,W,H);
       ctx.fillStyle='rgba(0,0,0,0.1)';ctx.fillRect(0,0,W,H);
     }catch(e){
@@ -1673,44 +1673,52 @@ function updatePreview(dir){
 // VS
 function initVS(){
   var opp=TOWER[Math.min(G.stage-1,TOWER.length-1)];
+  // Safety: if opp is somehow undefined (missing char in roster), skip to fight
+  if(!opp){G.screen='fight';showScreen('fight');initFight();return;}
+
   // Draw VS character previews
-  var vsE1=$('vs-p1-emoji');vsE1.innerHTML='';
-  var vc1=document.createElement('canvas');vc1.style.cssText='display:block;margin:0 auto;';
-  drawCharPreview(vc1,G.player,55);vsE1.appendChild(vc1);
-  $('vs-p1-name').textContent=G.player.name;$('vs-p1-name').style.color=G.player.color;
-  var vsE2=$('vs-p2-emoji');vsE2.innerHTML='';
-  var vc2=document.createElement('canvas');vc2.style.cssText='display:block;margin:0 auto;';
-  drawCharPreview(vc2,opp,55);vsE2.appendChild(vc2);
-  $('vs-p2-name').textContent=opp.name;$('vs-p2-name').style.color=opp.color;
-  $('vs-p2-role').textContent=opp.boss?'⚠️ FINAL BOSS':'STAGE '+G.stage+' · CPU';
-  $('vs-stage-label').textContent='STAGE '+G.stage+'/15';
-  $('vs-bg-l').style.setProperty('--c1',G.player.color+'33');
-  $('vs-bg-r').style.setProperty('--c2',opp.color+'33');
-  ['vs-p1','vs-p2'].forEach(function(id){var el=$(id);el.classList.remove('anim-l','anim-r');void el.offsetWidth;});
-  $('vs-p1').classList.add('anim-l');$('vs-p2').classList.add('anim-r');
-  // Render Tower Ladder
-  var tl=$('tower-ladder');
-  if(tl){
-    var html='';
-    for(var i=0;i<TOWER.length;i++){
-      var t=TOWER[i];
-      var cls='tower-step';
-      if(i<G.stage-1)cls+=' done';
-      else if(i===G.stage-1)cls+=' current';
-      if(t.boss)cls+=' boss';
-      html+='<div class="'+cls+'">';
-      html+='<span class="tower-em">'+t.name.charAt(0)+'</span>';
-      html+='<div class="tower-bar"></div>';
-      html+='<span class="tower-num">'+(i+1)+'</span>';
-      html+='</div>';
+  try{
+    var vsE1=$('vs-p1-emoji');if(vsE1){vsE1.innerHTML='';var vc1=document.createElement('canvas');vc1.style.cssText='display:block;margin:0 auto;';drawCharPreview(vc1,G.player,55);vsE1.appendChild(vc1);}
+    if($('vs-p1-name')){$('vs-p1-name').textContent=G.player.name;$('vs-p1-name').style.color=G.player.color;}
+    var vsE2=$('vs-p2-emoji');if(vsE2){vsE2.innerHTML='';var vc2=document.createElement('canvas');vc2.style.cssText='display:block;margin:0 auto;';drawCharPreview(vc2,opp,55);vsE2.appendChild(vc2);}
+    if($('vs-p2-name')){$('vs-p2-name').textContent=opp.name;$('vs-p2-name').style.color=opp.color;}
+    if($('vs-p2-role'))$('vs-p2-role').textContent=opp.boss?'⚠️ FINAL BOSS':'STAGE '+G.stage+' · CPU';
+    if($('vs-stage-label'))$('vs-stage-label').textContent='STAGE '+G.stage+'/15';
+    if($('vs-bg-l'))$('vs-bg-l').style.setProperty('--c1',G.player.color+'33');
+    if($('vs-bg-r'))$('vs-bg-r').style.setProperty('--c2',opp.color+'33');
+    ['vs-p1','vs-p2'].forEach(function(id){var el=$(id);if(el){el.classList.remove('anim-l','anim-r');void el.offsetWidth;}});
+    if($('vs-p1'))$('vs-p1').classList.add('anim-l');
+    if($('vs-p2'))$('vs-p2').classList.add('anim-r');
+  }catch(e){}
+
+  // Render Tower Ladder — guard against undefined TOWER entries (missing chars)
+  try{
+    var tl=$('tower-ladder');
+    if(tl){
+      var html='';
+      for(var i=0;i<TOWER.length;i++){
+        var t=TOWER[i];
+        if(!t)continue; // Skip undefined entries (reptile/kitana/mileena not in CHARS)
+        var cls='tower-step';
+        if(i<G.stage-1)cls+=' done';
+        else if(i===G.stage-1)cls+=' current';
+        if(t.boss)cls+=' boss';
+        html+='<div class="'+cls+'">';
+        html+='<span class="tower-em">'+t.name.charAt(0)+'</span>';
+        html+='<div class="tower-bar"></div>';
+        html+='<span class="tower-num">'+(i+1)+'</span>';
+        html+='</div>';
+      }
+      tl.innerHTML=html;
     }
-    tl.innerHTML=html;
-  }
-  snd('start');
-  if(opp.boss)announce('Final Boss! '+opp.name,300);
-  else announce('Stage '+G.stage,200);
+  }catch(e){}
+
+  try{snd('start');}catch(e){}
+  try{if(opp.boss)announce('Final Boss! '+opp.name,300);else announce('Stage '+G.stage,200);}catch(e){}
+
+  // Always set the timer — this must run no matter what
   var vsTimer=setTimeout(function(){G.screen='fight';showScreen('fight');initFight();},3000);
-  $('vs-screen').onclick=function(){clearTimeout(vsTimer);$('vs-screen').onclick=null;G.screen='fight';showScreen('fight');initFight();};
+  if($('vs-screen'))$('vs-screen').onclick=function(){clearTimeout(vsTimer);$('vs-screen').onclick=null;G.screen='fight';showScreen('fight');initFight();};
 }
 
 // RESULT
