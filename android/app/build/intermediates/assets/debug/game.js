@@ -1128,62 +1128,22 @@ function triggerXRay(gs){
 
 // End round - MK style
 function endRound(gs){
-  if(gs.over)return; // Guard: prevent repeated calls when hp stays at 0
-  gs.over=true;      // IMMEDIATELY block re-entry
-  stopBGMusic();gs.phase='roundOver';gs.shake=14;snd('ko');
+  if(gs.over)return;
+  gs.over=true;
+  stopBGMusic();gs.phase='roundOver';gs.shake=14;gs.roundOverTimer=0;snd('ko');
   var rw=gs.p1.hp>gs.p2.hp?'P1':gs.p2.hp>gs.p1.hp?'P2':'DRAW';
   if(rw==='P1')gs.p1r++;else if(rw==='P2')gs.p2r++;
   var winner=rw==='P1'?gs.p1:gs.p2;
   var loser=rw==='P1'?gs.p2:gs.p1;
   var flawless=winner.dmgTaken===0;
-
-  // ── KO ANIMATION: loser falls, winner victory pose ──
   if(rw!=='DRAW'){
-    loser.state='fallen';   // loser collapses to ground
-    winner.state='victory'; // winner faces forward, raises fist
-    // Winner always faces the loser (front-facing toward center)
-    winner.dir = winner.x < loser.x ? 1 : -1;
+    loser.state='fallen';
+    winner.state='victory';
+    winner.dir=winner.x<loser.x?1:-1;
   }
-
-  if(flawless){
-    gs.roundOverText='FLAWLESS VICTORY';
-    gs.roundOverColor='#f59e0b';
-    announce('Flawless Victory',400);
-  } else if(rw==='DRAW'){
-    gs.roundOverText='DRAW';
-    gs.roundOverColor='#94a3b8';
-    announce('Draw',400);
-  } else {
-    gs.roundOverText=loser.ch.name+' DEFEATED!';
-    gs.roundOverColor=winner.ch.color;
-    announce(winner.ch.name+' wins. '+loser.ch.name+' defeated!',500);
-  }
-  setTimeout(function(){
-    try{
-      if(G.stopped)return;
-      if(gs.p1r>=2||gs.p2r>=2){
-        gs.phase='matchOver';gs.over=true;
-        var win=gs.p1r>=2;
-        setTimeout(function(){try{if(!G.stopped)showResult(win,gs);}catch(e){gs.over=false;}},1000);
-      } else {
-        gs.over=false;
-        gs.p1.hp=gs.p1.maxHp;gs.p2.hp=gs.p2.maxHp;
-        gs.p1.dmgTaken=0;gs.p2.dmgTaken=0;
-        gs.p1.x=gs.W*0.28;gs.p2.x=gs.W*0.72;
-        gs.p1.y=gs.p2.y=gs.FLOOR;gs.p1.vy=gs.p2.vy=0;
-        gs.p1.state=gs.p2.state='idle';gs.p1.energy=gs.p2.energy=0;
-        gs.p1.cd=gs.p2.cd=0;gs.timer=300;gs.lastSec=Date.now();gs.round++;
-        COMBO.count=0;COMBO.timer=0;COMBO.lastHitter=null;
-        gs.finishHim=false;
-        gs.phase='roundAnnounce';gs.roundAnnTimer=40;
-        try{var rw2=ROUND_WORDS[gs.round]||String(gs.round);announce('Round '+rw2,200);}catch(e){}
-        try{startBGMusic();}catch(e){}
-      }
-    }catch(e){
-      // Emergency fallback — force next round regardless of error
-      try{gs.over=false;gs.p1.hp=gs.p1.maxHp;gs.p2.hp=gs.p2.maxHp;gs.timer=300;gs.lastSec=Date.now();gs.phase='roundAnnounce';gs.roundAnnTimer=40;}catch(e2){}
-    }
-  },1500);
+  if(flawless){gs.roundOverText='FLAWLESS VICTORY';gs.roundOverColor='#f59e0b';}
+  else if(rw==='DRAW'){gs.roundOverText='DRAW';gs.roundOverColor='#94a3b8';}
+  else{gs.roundOverText=loser.ch.name+' DEFEATED!';gs.roundOverColor=winner.ch.color;}
 }
 
 // =========================================================
@@ -1206,6 +1166,34 @@ function fightLoop(now){
   var ctx=cv.getContext('2d');
     var p1=gs.p1,p2=gs.p2;
   p1.H=p2.H=Math.round(gs.SC*110);
+
+  // -- ROUND OVER TIMER (frame-based, no setTimeout needed) --
+  if(gs.phase==='roundOver'||gs.phase==='matchOver'){
+    gs.roundOverTimer=(gs.roundOverTimer||0)+1;
+    if(gs.phase==='roundOver'&&gs.roundOverTimer>=90){
+      // 90 frames ~1.5s at 60fps
+      if(gs.p1r>=2||gs.p2r>=2){
+        gs.phase='matchOver';
+        if(gs.roundOverTimer===90){var _win=gs.p1r>=2;try{showResult(_win,gs);}catch(e){}}
+      } else {
+        gs.over=false;
+        gs.p1.hp=gs.p1.maxHp;gs.p2.hp=gs.p2.maxHp;
+        gs.p1.dmgTaken=0;gs.p2.dmgTaken=0;
+        gs.p1.x=gs.W*0.28;gs.p2.x=gs.W*0.72;
+        gs.p1.y=gs.p2.y=gs.FLOOR;gs.p1.vy=gs.p2.vy=0;
+        gs.p1.state=gs.p2.state='idle';gs.p1.energy=gs.p2.energy=0;
+        gs.p1.cd=gs.p2.cd=0;gs.timer=300;gs.lastSec=Date.now();gs.round++;
+        COMBO.count=0;COMBO.timer=0;COMBO.lastHitter=null;
+        gs.finishHim=false;gs.roundOverTimer=0;
+        gs.phase='roundAnnounce';gs.roundAnnTimer=40;
+        try{startBGMusic();}catch(e){}
+      }
+    }
+    if(gs.phase==='matchOver'&&gs.roundOverTimer>=150){
+      // If showResult failed, force it after 2.5s
+      if(gs.roundOverTimer===150){var _w2=gs.p1r>=2;try{showResult(_w2,gs);}catch(e){}}
+    }
+  }
 
   // -- ROUND ANNOUNCE (MK style: "ROUND ONE") --
   if(gs.phase==='roundAnnounce'){
