@@ -1754,46 +1754,57 @@ function initVS(){
 // RESULT
 function showResult(win,gs){
   stopFight();
-  var opp=TOWER[Math.min(G.stage-1,TOWER.length-1)];
   var champion=win&&G.stage>=15;
-  var em=$('res-emoji');
-  em.textContent=champion?'👑':win?'🏆':'💀';
-  em.style.display='block';
-  var title=champion?'CHAMPION!':win?'YOU WIN!':'YOU LOSE!';
-  var col=champion?'#f59e0b':win?'#22c55e':'#ef4444';
-  $('res-title').textContent=title;$('res-title').style.color=col;
-  $('res-title').style.textShadow='0 0 40px '+col+',0 0 80px '+col;
-  $('res-sub').textContent=win?'STAGE '+G.stage+(champion?' • ALL 15 COMPLETE':' COMPLETE'):'STAGE '+G.stage+' FAILED';
-  var sp=document.getElementById('res-stage-progress');
-  if(sp){var dh='';for(var d=0;d<15;d++){var dc=d<G.stage-1?'done':d===G.stage-1?'current':'';dh+='<div class="res-stage-dot '+dc+'"></div>';}sp.innerHTML=dh;}
-  var rs=document.getElementById('result-screen');
-  var rc=champion?'rgba(245,158,11,':win?'rgba(34,197,94,':'rgba(239,68,68,';
-  rs.style.background=champion?'radial-gradient(ellipse at 30% 20%,#1a0e00,#000)':win?'radial-gradient(ellipse at 30% 20%,#001a08,#000)':'radial-gradient(ellipse at 30% 20%,#1a0000,#000)';
-  var rings=rs.querySelectorAll('.res-ring');
-  if(rings[0])rings[0].style.borderColor=rc+'.25)';
-  if(rings[1])rings[1].style.borderColor=rc+'.12)';
-  if(rings[2])rings[2].style.borderColor=rc+'.06)';
-  if(champion)announce('You Win!',200);
-  else if(win)announce('You Win!',200);
-  else announce('You lose',200);
-  var nb=$('res-next'),rb=$('res-retry');
-  if(win&&!champion){nb.style.display='block';nb.textContent='⚔ NEXT STAGE ('+(G.stage+1)+'/15)';}
-  else if(champion){nb.style.display='block';nb.textContent='👑 PLAY AGAIN';}
-  else{nb.style.display='none';}
-  rb.style.display=win?'none':'block';rb.textContent='↺ RETRY';
-  G.screen='result';showScreen('result');
-  $('res-next').onclick=function(){
-    if(win&&!champion){
-      G.stage=Math.min(15,G.stage+1);save();
-      G.screen='vs';showScreen('vs');initVS();
-    } else if(champion){
-      G.stage=1;save();
-      bgmPlay('select');G.screen='select';showScreen('select');initSelect();
-    }
-  };
-  $('res-retry').onclick=function(){G.stage=1;save();bgmPlay('select');G.screen='select';showScreen('select');initSelect();};
-  $('res-menu').onclick=function(){G.stage=1;save();bgmPlay('menu');G.screen='splash';showScreen('splash');initSplash();};
 
+  // ── Set up navigation buttons FIRST (before any crash-prone visual ops) ──
+  var nb=$('res-next'),rb=$('res-retry'),rmenu=$('res-menu');
+  if(nb){
+    nb.style.display=(win)?'block':'none';
+    if(win&&!champion)nb.textContent='⚔ NEXT STAGE ('+(G.stage+1)+'/15)';
+    else if(champion)nb.textContent='👑 PLAY AGAIN';
+    nb.onclick=function(){
+      if(win&&!champion){G.stage=Math.min(15,G.stage+1);save();G.screen='vs';showScreen('vs');initVS();}
+      else if(champion){G.stage=1;save();bgmPlay('select');G.screen='select';showScreen('select');initSelect();}
+    };
+  }
+  if(rb){
+    rb.style.display=win?'none':'block';
+    rb.textContent='↺ RETRY';
+    rb.onclick=function(){G.stage=1;save();bgmPlay('select');G.screen='select';showScreen('select');initSelect();};
+  }
+  if(rmenu){
+    rmenu.onclick=function(){G.stage=1;save();bgmPlay('menu');G.screen='splash';showScreen('splash');initSplash();};
+  }
+
+  // ── Visual updates (wrapped in try-catch so crashes don't break navigation) ──
+  try{
+    var em=$('res-emoji');
+    if(em){em.textContent=champion?'👑':win?'🏆':'💀';em.style.display='block';}
+    var col=champion?'#f59e0b':win?'#22c55e':'#ef4444';
+    var rt=$('res-title');
+    if(rt){rt.textContent=champion?'CHAMPION!':win?'YOU WIN!':'YOU LOSE!';rt.style.color=col;rt.style.textShadow='0 0 40px '+col+',0 0 80px '+col;}
+    var rsub=$('res-sub');
+    if(rsub)rsub.textContent=win?'STAGE '+G.stage+(champion?' • ALL 15 COMPLETE':' COMPLETE'):'STAGE '+G.stage+' FAILED';
+    var sp=document.getElementById('res-stage-progress');
+    if(sp){var dh='';for(var d=0;d<15;d++){var dc=d<G.stage-1?'done':d===G.stage-1?'current':'';dh+='<div class="res-stage-dot '+dc+'"></div>';}sp.innerHTML=dh;}
+    var rs=document.getElementById('result-screen');
+    if(rs){
+      var rc=champion?'rgba(245,158,11,':win?'rgba(34,197,94,':'rgba(239,68,68,';
+      rs.style.background=win?'radial-gradient(ellipse at 30% 20%,#001a08,#000)':'radial-gradient(ellipse at 30% 20%,#1a0000,#000)';
+      var rings=rs.querySelectorAll('.res-ring');
+      if(rings[0])rings[0].style.borderColor=rc+'.25)';
+      if(rings[1])rings[1].style.borderColor=rc+'.12)';
+      if(rings[2])rings[2].style.borderColor=rc+'.06)';
+    }
+    try{if(win)announce('You Win!',200);else announce('You lose',200);}catch(e){}
+  }catch(e){}
+
+  // ── Show result screen ──
+  G.screen='result';
+  try{showScreen('result');}catch(e){
+    var _fui=document.getElementById('fight-ui');if(_fui)_fui.style.display='none';
+    var _rs=document.getElementById('result-screen');if(_rs)_rs.classList.add('active');
+  }
 }
 
 // =========================================================
