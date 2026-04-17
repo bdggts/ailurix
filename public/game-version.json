@@ -1,6 +1,6 @@
 {
-  "versionCode": 87,
-  "versionName": "13.1",
-  "apkUrl": "https://www.ailurix.com/ailurix_arena_v13_1.apk",
-  "changelog": "v13.1: Professional Combat Overhaul. Added high-fidelity punch/kick sounds and tightened hit detection reach."
+  "versionCode": 93,
+  "versionName": "15.5",
+  "apkUrl": "https://www.ailurix.com/ailurix_arena_v15_5.apk",
+  "changelog": "v15.5: Engine & Audio Restoration. Restored Combat Audio Pool, missing global engine objects, and VS stage transition logic."
 }

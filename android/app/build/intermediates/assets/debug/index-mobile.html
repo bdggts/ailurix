@@ -100,6 +100,20 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
     linear-gradient(90deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,.4) 45%, rgba(0,0,0,.7) 100%),
     linear-gradient(180deg, rgba(0,0,0,.6) 0%, rgba(0,0,0,.1) 30%, rgba(0,0,0,.6) 100%);
 }
+
+/* ══════════ ANNOUNCER OVERLAY ══════════ */
+.announce-overlay{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.85);
+  z-index:9999;pointer-events:none;padding:14px 45px;
+  background:rgba(5,3,15,.92);color:#fff;font-size:clamp(16px,4.5vmax,24px);
+  font-family:Impact,sans-serif;font-weight:900;letter-spacing:5px;text-transform:uppercase;
+  border-radius:1px;border:1px solid rgba(255,255,255,.08);
+  border-left:5px solid #f59e0b;border-right:5px solid #f59e0b;
+  box-shadow:0 0 50px rgba(0,0,0,.95),0 0 30px rgba(245,158,11,.25);
+  opacity:0;transition:all .35s cubic-bezier(.17, .67, .26, .99);white-space:nowrap;
+}
+.announce-overlay.active{opacity:1;transform:translate(-50%,-50%) scale(1);}
+
 /* TOP BAR */
 #sel-topbar{
   position:relative;z-index:10;flex-shrink:0;

@@ -37,6 +37,10 @@ var G={
   stopped:false,
   bgInt:null,
 };
+var COMBO = { count: 0, timer: 0, lastHitter: null, text: '', textTimer: 0, flash: 0 };
+var ROUND_WORDS = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN'];
+var KEYS = { left: false, right: false, jump: false, punch: false, kick: false, block: false };
+
 // SPRITE SYSTEM - PixelLab Frame Animation
 var SPRITES={};
 var SPRITE_ANIMS={}; // {charId_pose: [img0, img1, ...]}
@@ -106,7 +110,6 @@ function loadRotSprites(){
   });
 }
 loadRotSprites();
-var KEYS={left:false,right:false,jump:false};
 
 // =========================================================
 // AUDIO ENGINE
@@ -121,17 +124,31 @@ function playNoise(dur,vol,freq){var ac=AC();if(!ac)return;var buf=getNoise();if
 
 // -- SFX ENGINE --
 function snd(type){try{
-  // v15.2: Removed global lockout to ensure combat sounds play even when music is stopped
-  // Play real audio asset if available
-  var sfx=new Audio();
-  sfx.volume=0.65;
-  if(type==='punch') sfx.src='voice/punch.mp3';
-  else if(type==='kick') sfx.src='voice/kick.mp3';
-  else if(type==='hit') sfx.src='voice/hit.mp3';
-  else if(type==='block') sfx.src='voice/block.mp3';
-  if(sfx.src) {
-    sfx.play().catch(function(){}); // Silent catch if file missing
+  var src='';
+  if(type==='punch') src='voice/punch.mp3';
+  else if(type==='kick') src='voice/kick.mp3';
+  else if(type==='hit') src='voice/hit.mp3';
+  else if(type==='block') src='voice/block.mp3';
+
+  if(src) {
+    if(!window._sfxPool) window._sfxPool={};
+    if(!window._sfxPool[src]) {
+      window._sfxPool[src]=[];
+      for(var i=0;i<4;i++){var a=new Audio(src);a.volume=0.85;a.load();window._sfxPool[src].push(a);}
+    }
+    var pool=window._sfxPool[src];
+    var played=false;
+    for(var j=0;j<pool.length;j++){
+      if(pool[j].paused||pool[j].ended){
+        pool[j].currentTime=0;
+        var p=pool[j].play();
+        if(p&&p.catch)p.catch(function(){}); // Catch Android autoplay policy
+        played=true;break;
+      }
+    }
+    if(!played){var a2=new Audio(src);a2.volume=0.85;a2.play().catch(function(){});pool.push(a2);}
   }
+
 
   // Combined Synth layers for "weight"
   if(type==='punch')           {beep(180,'sawtooth',0.05,0.8);beep(90,'square',0.04,0.6);playNoise(0.07,0.6,1400);}
@@ -186,12 +203,10 @@ function _getVoice(){
 }
 function toSpeech(t){return t.replace(/\b[A-Z]+\b/g,function(w){return w.charAt(0)+w.slice(1).toLowerCase();});}
 
-var ROUND_WORDS=['','One','Two','Three'];
 
 // =========================================================
 // COMBO SYSTEM
 // =========================================================
-var COMBO={count:0,timer:0,lastHitter:null,text:'',textTimer:0,flash:0};
 function comboHit(hitter,dmg){
   if(COMBO.lastHitter===hitter&&COMBO.timer>0){
     COMBO.count++;
@@ -215,6 +230,15 @@ function tickCombo(){if(COMBO.timer>0)COMBO.timer--;else{COMBO.count=0;COMBO.las
 // UTILS
 // =========================================================
 function $(id){return document.getElementById(id);}
+function bgmStop(){if(window.MK_AUDIO){window.MK_CAN_PLAY=false;window.MK_AUDIO.pause();window.MK_AUDIO.currentTime=0;}}
+function bgmPlay(id){if(window.MK_PLAY){window._bgmKey=id;window.MK_PLAY();}}
+function announce(msg,dur){
+  var el=$('announce');
+  if(!el){el=document.createElement('div');el.id='announce';el.className='announce-overlay';document.body.appendChild(el);}
+  el.textContent=msg;el.classList.add('active');
+  if(window.speechSynthesis){var u=new SpeechSynthesisUtterance(toSpeech(msg));u.volume=1;u.rate=1.05;speechSynthesis.cancel();speechSynthesis.speak(u);}
+  setTimeout(function(){el.classList.remove('active');},dur||2500);
+}
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   if(name==='splash')$('splash').classList.add('active');
@@ -751,24 +775,6 @@ function stopFight(){
   try{BOSS_VIDEO.pause();BOSS_VIDEO.muted=true;}catch(e){}
 }
 
-// BG FIGHT MUSIC - DISABLED (music only on select screen)
-var _bgNodes=[];
-function startBGMusic(){
-  // Stop ALL audio when fight starts — access global MK_AUDIO directly
-  window.MK_CAN_PLAY = false;
-  if(window.MK_AUDIO){
-    try{ window.MK_AUDIO.volume=0; window.MK_AUDIO.pause(); window.MK_AUDIO.currentTime=0; }catch(e){}
-  }
-  // Also pause any audio elements on the page
-  document.querySelectorAll('audio').forEach(function(a){ try{a.pause(); a.volume=0;}catch(e){}});
-}
-function stopBGMusic(){
-  if(G.bgInt){clearInterval(G.bgInt);G.bgInt=null;}
-  window.MK_CAN_PLAY = false;
-  if(window.MK_AUDIO){
-    try{ window.MK_AUDIO.volume=0; window.MK_AUDIO.pause(); window.MK_AUDIO.currentTime=0; }catch(e){}
-  }
-}
 
 function hbox(f){return{x:f.x-26,y:f.y-f.H,w:52,h:f.H};}
 function abox(f,type){
