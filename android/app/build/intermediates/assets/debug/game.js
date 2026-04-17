@@ -1171,11 +1171,38 @@ function fightLoop(now){
   if(gs.phase==='roundOver'||gs.phase==='matchOver'){
     gs.roundOverTimer=(gs.roundOverTimer||0)+1;
     if(gs.phase==='roundOver'&&gs.roundOverTimer>=90){
-      // 90 frames ~1.5s at 60fps
       if(gs.p1r>=2||gs.p2r>=2){
-        gs.phase='matchOver';
-        if(gs.roundOverTimer===90){var _win=gs.p1r>=2;try{showResult(_win,gs);}catch(e){}}
+        // MATCH OVER — stop loop now, show result after frame
+        if(!gs._resultScheduled){
+          gs._resultScheduled=true;
+          gs.phase='matchOver';
+          var _win=gs.p1r>=2;
+          // Stop the animation loop immediately
+          G.stopped=true;
+          if(G.raf){cancelAnimationFrame(G.raf);G.raf=null;}
+          G.gs=null;
+          // Run showResult after current frame completes
+          Promise.resolve().then(function(){
+            try{showResult(_win,gs);}catch(e){
+              // Direct DOM fallback if showResult crashes
+              try{
+                document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+                var _rs=document.getElementById('result-screen');
+                if(_rs)_rs.classList.add('active');
+                var _fui=document.getElementById('fight-ui');
+                if(_fui)_fui.style.display='none';
+                var _rt=document.getElementById('res-title');
+                if(_rt){_rt.textContent=_win?'YOU WIN!':'YOU LOSE!';_rt.style.color=_win?'#22c55e':'#ef4444';}
+                var _rn=document.getElementById('res-next');
+                var _rr=document.getElementById('res-retry');
+                if(_win){if(_rn){_rn.style.display='block';_rn.textContent='NEXT STAGE';}}
+                else{if(_rr){_rr.style.display='block';}}
+              }catch(e2){}
+            }
+          });
+        }
       } else {
+        // Next round
         gs.over=false;
         gs.p1.hp=gs.p1.maxHp;gs.p2.hp=gs.p2.maxHp;
         gs.p1.dmgTaken=0;gs.p2.dmgTaken=0;
@@ -1184,14 +1211,10 @@ function fightLoop(now){
         gs.p1.state=gs.p2.state='idle';gs.p1.energy=gs.p2.energy=0;
         gs.p1.cd=gs.p2.cd=0;gs.timer=300;gs.lastSec=Date.now();gs.round++;
         COMBO.count=0;COMBO.timer=0;COMBO.lastHitter=null;
-        gs.finishHim=false;gs.roundOverTimer=0;
+        gs.finishHim=false;gs.roundOverTimer=0;gs._resultScheduled=false;
         gs.phase='roundAnnounce';gs.roundAnnTimer=40;
         try{startBGMusic();}catch(e){}
       }
-    }
-    if(gs.phase==='matchOver'&&gs.roundOverTimer>=150){
-      // If showResult failed, force it after 2.5s
-      if(gs.roundOverTimer===150){var _w2=gs.p1r>=2;try{showResult(_w2,gs);}catch(e){}}
     }
   }
 
