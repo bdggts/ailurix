@@ -4,6 +4,7 @@
 // =========================================================
 // DATA
 // =========================================================
+var CHARS=[
   {id:'scorpion', name:'INFERNUS',   title:'Fire Warrior',    color:'#f59e0b',accent:'#fbbf24',hp:500,spd:8, pow:9, def:7, rarity:'Common',   spl:'Inferno Strike', em:'',bW:1.1,bH:1.0,offY:4},
   {id:'subzero',  name:'GLACIUS',    title:'Ice Phantom',     color:'#38bdf8',accent:'#0c4a6e',hp:475,spd:7, pow:8, def:9, rarity:'Common',   spl:'Freeze Breath',  em:'',bW:1.1,bH:1.0,offY:4},
   {id:'liukang',  name:'PYROVEX',    title:'Flame Striker',   color:'#ef4444',accent:'#fca5a5',hp:450,spd:9, pow:9, def:7, rarity:'Rare',     spl:'Fire Kick',      em:'',bW:0.9, bH:1.05},
