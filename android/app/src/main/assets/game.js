@@ -1159,27 +1159,31 @@ function endRound(gs){
     announce(winner.ch.name+' wins. '+loser.ch.name+' defeated!',500);
   }
   setTimeout(function(){
-    if(G.stopped)return;
-    if(gs.p1r>=2||gs.p2r>=2){
-      gs.phase='matchOver';gs.over=true;
-      var win=gs.p1r>=2;
-      setTimeout(function(){if(!G.stopped)showResult(win,gs);},1800);
-    } else {
-      gs.over=false; // Reset for next round
-      gs.p1.hp=gs.p1.maxHp;gs.p2.hp=gs.p2.maxHp;
-      gs.p1.dmgTaken=0;gs.p2.dmgTaken=0;
-      gs.p1.x=gs.W*0.28;gs.p2.x=gs.W*0.72;
-      gs.p1.y=gs.p2.y=gs.FLOOR;gs.p1.vy=gs.p2.vy=0;
-      gs.p1.state=gs.p2.state='idle';gs.p1.energy=gs.p2.energy=0;
-      gs.p1.cd=gs.p2.cd=0;gs.timer=300;gs.lastSec=Date.now();gs.round++;
-      COMBO.count=0;COMBO.timer=0;COMBO.lastHitter=null;
-      gs.finishHim=false;
-      gs.phase='roundAnnounce';gs.roundAnnTimer=40;
-      var rw2=ROUND_WORDS[gs.round]||String(gs.round);
-      announce('Round '+rw2,200);
-      startBGMusic();
+    try{
+      if(G.stopped)return;
+      if(gs.p1r>=2||gs.p2r>=2){
+        gs.phase='matchOver';gs.over=true;
+        var win=gs.p1r>=2;
+        setTimeout(function(){try{if(!G.stopped)showResult(win,gs);}catch(e){gs.over=false;}},1000);
+      } else {
+        gs.over=false;
+        gs.p1.hp=gs.p1.maxHp;gs.p2.hp=gs.p2.maxHp;
+        gs.p1.dmgTaken=0;gs.p2.dmgTaken=0;
+        gs.p1.x=gs.W*0.28;gs.p2.x=gs.W*0.72;
+        gs.p1.y=gs.p2.y=gs.FLOOR;gs.p1.vy=gs.p2.vy=0;
+        gs.p1.state=gs.p2.state='idle';gs.p1.energy=gs.p2.energy=0;
+        gs.p1.cd=gs.p2.cd=0;gs.timer=300;gs.lastSec=Date.now();gs.round++;
+        COMBO.count=0;COMBO.timer=0;COMBO.lastHitter=null;
+        gs.finishHim=false;
+        gs.phase='roundAnnounce';gs.roundAnnTimer=40;
+        try{var rw2=ROUND_WORDS[gs.round]||String(gs.round);announce('Round '+rw2,200);}catch(e){}
+        try{startBGMusic();}catch(e){}
+      }
+    }catch(e){
+      // Emergency fallback — force next round regardless of error
+      try{gs.over=false;gs.p1.hp=gs.p1.maxHp;gs.p2.hp=gs.p2.maxHp;gs.timer=300;gs.lastSec=Date.now();gs.phase='roundAnnounce';gs.roundAnnTimer=40;}catch(e2){}
     }
-  },2400);
+  },1500);
 }
 
 // =========================================================
