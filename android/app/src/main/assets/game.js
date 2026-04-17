@@ -1692,12 +1692,12 @@ function updatePreview(dir){
     if(_oldBtns)_oldBtns.parentNode.removeChild(_oldBtns);
     var _ab=document.createElement('div');
     _ab.id='_previewActionBtns';
-    _ab.style.cssText='display:flex;gap:4px;justify-content:center;padding:4px 0 2px;width:100%;flex-shrink:0;';
+    _ab.style.cssText='display:flex;gap:6px;justify-content:center;align-items:stretch;padding:6px 8px;width:100%;box-sizing:border-box;flex-shrink:0;background:rgba(0,0,0,0.45);border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);';
     var _actions=[['🥊','PUNCH','punch'],['🦵','KICK','kick'],['⚡',(_ac.spl||'POWER').split(' ').slice(0,1)[0],'punch']];
     _actions.forEach(function(a){
       var b=document.createElement('button');
-      b.style.cssText='flex:1;max-width:70px;padding:4px 2px;border:1px solid '+_ac.color+'55;border-radius:6px;background:'+_ac.color+'18;color:'+_ac.color+';font-size:9px;font-weight:700;letter-spacing:0.5px;cursor:pointer;outline:none;transition:background .15s;';
-      b.innerHTML=a[0]+'<br>'+a[1];
+      b.style.cssText='flex:1;padding:8px 4px;border:2px solid '+_ac.color+'66;border-radius:10px;background:linear-gradient(160deg,'+_ac.color+'28,'+_ac.color+'0a);color:'+_ac.color+';font-size:12px;font-weight:900;letter-spacing:0.5px;cursor:pointer;outline:none;transition:all .15s;text-align:center;line-height:1.4;box-shadow:0 0 8px '+_ac.color+'22;';
+      b.innerHTML='<span style="font-size:18px;display:block">'+a[0]+'</span>'+a[1];
       b.addEventListener('pointerdown',function(e){
         e.stopPropagation();
         R.showcaseActive=false;
@@ -1711,8 +1711,10 @@ function updatePreview(dir){
       });
       _ab.appendChild(b);
     });
-    // Insert after canvas
-    _pcv.parentNode.insertBefore(_ab,_pcv.nextSibling);
+    // Insert AFTER showcase (sibling, not inside canvas area)
+    var _showcase=_pcv.parentNode;
+    var _showcaseParent=_showcase.parentNode;
+    _showcaseParent.insertBefore(_ab,_showcase.nextSibling);
   } // end if(_pcv)
   // Name
   var ne=$('prev-name');
