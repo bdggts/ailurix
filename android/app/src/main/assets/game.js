@@ -1128,6 +1128,8 @@ function triggerXRay(gs){
 
 // End round - MK style
 function endRound(gs){
+  if(gs.over)return; // Guard: prevent repeated calls when hp stays at 0
+  gs.over=true;      // IMMEDIATELY block re-entry
   stopBGMusic();gs.phase='roundOver';gs.shake=14;snd('ko');
   var rw=gs.p1.hp>gs.p2.hp?'P1':gs.p2.hp>gs.p1.hp?'P2':'DRAW';
   if(rw==='P1')gs.p1r++;else if(rw==='P2')gs.p2r++;
@@ -1163,6 +1165,7 @@ function endRound(gs){
       var win=gs.p1r>=2;
       setTimeout(function(){if(!G.stopped)showResult(win,gs);},1800);
     } else {
+      gs.over=false; // Reset for next round
       gs.p1.hp=gs.p1.maxHp;gs.p2.hp=gs.p2.maxHp;
       gs.p1.dmgTaken=0;gs.p2.dmgTaken=0;
       gs.p1.x=gs.W*0.28;gs.p2.x=gs.W*0.72;
