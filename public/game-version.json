@@ -1,6 +1,6 @@
 {
-  "versionCode": 94,
-  "versionName": "15.6",
-  "apkUrl": "https://www.ailurix.com/ailurix_arena_v15_6.apk",
-  "changelog": "v15.6: Fixed VS Screen crash and clipping bug!"
+  "versionCode": 95,
+  "versionName": "15.6.1",
+  "apkUrl": "https://www.ailurix.com/ailurix_arena_v15_6_1.apk",
+  "changelog": "v15.6.1: Critical fix — VS screen stall after character select!"
 }

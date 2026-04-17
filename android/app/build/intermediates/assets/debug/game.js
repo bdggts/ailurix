@@ -751,8 +751,7 @@ function initFight(){
     // Video stages: play video audio instead of synth music
     var bgKey2=BG_MAP[opp.id]||'bg_fire';
     if(opp.id==='goro'&&window.bossVideoReady){
-      stopBGMusic();BOSS_VIDEO.currentTime=0;BOSS_VIDEO.muted=false;BOSS_VIDEO.volume=0.4;
-      try{BOSS_VIDEO.play();}catch(e){}
+      try{stopBGMusic();BOSS_VIDEO.currentTime=0;BOSS_VIDEO.muted=false;BOSS_VIDEO.volume=0.4;BOSS_VIDEO.play();}catch(e){}
     } else {
       startBGMusic();
     }
@@ -2099,24 +2098,35 @@ function MK_PLAY(){
   });
 }
 
+// ── Safe MK_STOP (was never defined, caused ReferenceError on VS→Fight) ──
+window.MK_STOP = function(){
+  try{
+    if(window.MK_AUDIO){
+      window.MK_CAN_PLAY = false;
+      window.MK_AUDIO.pause();
+      window.MK_AUDIO.currentTime = 0;
+    }
+  }catch(e){}
+};
+var MK_STOP = window.MK_STOP;
+
 // Override ALL music functions
 window.bgmPlay = function(key){
   if(key === 'menu' || key === 'select'){
     window.MK_CAN_PLAY = true;
-    MK_PLAY();
+    if(window.MK_PLAY) MK_PLAY();
   }
-  // fight keys: do nothing — no music in fight
 };
 
 window.bgmStop = function(){ MK_STOP(); };
 
-// Called when fight STARTS — STOP music
+// Called when fight STARTS — stop menu music
 window.startBGMusic = function(){ MK_STOP(); };
-startBGMusic = window.startBGMusic; // also override the local declaration
+startBGMusic = window.startBGMusic;
 
-// Called on KO / fight end — STOP music
+// Called on KO / fight end — stop music
 window.stopBGMusic = function(){
-  if(window.G && G.bgInt){ clearInterval(G.bgInt); G.bgInt = null; }
+  try{ if(window.G && G.bgInt){ clearInterval(G.bgInt); G.bgInt = null; } }catch(e){}
   MK_STOP();
 };
 stopBGMusic = window.stopBGMusic;
