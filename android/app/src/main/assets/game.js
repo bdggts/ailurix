@@ -235,7 +235,11 @@ function tickCombo(){if(COMBO.timer>0)COMBO.timer--;else{COMBO.count=0;COMBO.las
 // =========================================================
 function $(id){return document.getElementById(id);}
 function bgmStop(){if(window.MK_AUDIO){window.MK_CAN_PLAY=false;window.MK_AUDIO.pause();window.MK_AUDIO.currentTime=0;}}
-function bgmPlay(id){if(window.MK_PLAY){window._bgmKey=id;window.MK_PLAY();}}
+function bgmPlay(id){
+  // MUST set MK_CAN_PLAY=true for select/menu before calling MK_PLAY
+  if(id==='menu'||id==='select'){window.MK_CAN_PLAY=true;}
+  if(window.MK_PLAY){window._bgmKey=id;window.MK_PLAY();}
+}
 
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
@@ -1532,6 +1536,8 @@ function initSplash(){
 // No complex loading screen - direct navigation
 
 function initSelect(){
+  // Pre-load voice MP3s NOW — user has ~10-30s before fight starts = plenty of buffer time
+  setTimeout(function(){_preloadVoices();},100);
   if(window._selAnimInt){clearInterval(window._selAnimInt);window._selAnimInt=null;}
   $('sel-stage-info').textContent='STAGE '+G.stage+' OF 15';
   var grid=$('char-grid');
@@ -2268,11 +2274,12 @@ function _playVoice(text,delayMs){
     try{
       var a=_VA[file];
       if(!a){a=new Audio('voice/'+file);a.load();_VA[file]=a;}
-      // Reset and play — same pattern as snd() pool
-      if(a.paused||a.ended){a.currentTime=0;}
-      else{a.pause();a.currentTime=0;}
+      if(a.paused||a.ended){a.currentTime=0;}else{a.pause();a.currentTime=0;}
       var p=a.play();
-      if(p&&p.catch)p.catch(function(){});
+      if(p&&p.catch)p.catch(function(){
+        // Retry after 600ms if autoplay blocked or file still loading
+        setTimeout(function(){try{a.currentTime=0;a.play().catch(function(){});}catch(e){}},600);
+      });
     }catch(e){}
   },delayMs||0);
   return true;
