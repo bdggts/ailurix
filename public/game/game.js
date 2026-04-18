@@ -1974,35 +1974,34 @@ function showResult(win,gs){
     var sp=$('res-stage-progress');
     if(sp){var dh='';for(var d=0;d<15;d++){var dc=d<G.stage-1?'done':d===G.stage-1?'current':'';dh+='<div class="res-stage-dot '+dc+'"></div>';}sp.innerHTML=dh;}
 
-    // ── Draw winning/losing character - fills res-char-area ──
+    // ── Draw winning/losing character - fixed resolution, CSS scaled ──
     var charArea=$('res-char-area');
     if(charArea){
       charArea.innerHTML='';
       var winCh=win?G.player:opp;
       if(!winCh)winCh=G.player;
-      // Use screen dimensions to match the area (100% wide, 60% tall)
-      var _rW=window.innerWidth||360;
-      var _rH=Math.round((window.innerHeight||640)*0.60);
+      // Fixed canvas resolution — CSS will scale to fill the area
+      var _cW=300, _cH=460;
       var rCv=document.createElement('canvas');
-      rCv.width=_rW;rCv.height=_rH;
-      // Fill the char-area completely
-      rCv.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;filter:drop-shadow(0 0 32px '+charCol+'bb);';
-      // Character height = 80% of area height so head doesn't clip
-      var _charH=Math.round(_rH*0.80);
+      rCv.width=_cW; rCv.height=_cH;
+      // Scale canvas to fill the area height, center horizontally
+      rCv.style.cssText='position:absolute;bottom:0;left:50%;transform:translateX(-50%);height:100%;width:auto;filter:drop-shadow(0 0 30px '+charCol+'bb);';
+      var _charH=Math.round(_cH*0.85); // 85% of canvas = 391px
       var _rF=0;
       var _rPose=win?'punch':'idle';
       if(window._resCharAnim){cancelAnimationFrame(window._resCharAnim);window._resCharAnim=null;}
       function _drawResChar(){
         if(!$('result-screen').classList.contains('active')){window._resCharAnim=null;return;}
         _rF+=1.5;
-        var ctx2=rCv.getContext('2d');ctx2.clearRect(0,0,_rW,_rH);
-        // Draw centered horizontally, feet at bottom of canvas
-        drawFighter(ctx2,{x:_rW/2,y:_rH-4,dir:1,ch:winCh,H:_charH,state:_rPose,af:Math.floor(_rF%24),vy:0,rotAngle:0},_rF);
+        var ctx2=rCv.getContext('2d');ctx2.clearRect(0,0,_cW,_cH);
+        // Feet at bottom center of canvas
+        drawFighter(ctx2,{x:_cW/2,y:_cH-6,dir:1,ch:winCh,H:_charH,state:_rPose,af:Math.floor(_rF%24),vy:0,rotAngle:0},_rF);
         window._resCharAnim=requestAnimationFrame(_drawResChar);
       }
       charArea.appendChild(rCv);
       window._resCharAnim=requestAnimationFrame(_drawResChar);
     }
+
 
     // ── Particles (only for win) using character color ──
     var pp=$('res-particles');
