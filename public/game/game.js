@@ -2224,32 +2224,62 @@ function _mkVoiceEffect(durationMs){
 }
 
 // MK ANNOUNCER — exact Mortal Kombat style
-var _VM={'round one':'v_round1.mp3','round two':'v_round2.mp3','round three':'v_round3.mp3','flawless':'v_flawless.mp3','finish him':'v_finishhim.mp3','finish her':'v_finishher.mp3','you win':'v_youwin.mp3'};
-var _VA={};
-function _playVoice(text,delayMs){
-  var key=text.toLowerCase(),file=null;
-  for(var k in _VM){if(key.indexOf(k)>=0){file=_VM[k];break;}}
-  if(!file)return false;
-  setTimeout(function(){try{var a=_VA[file];if(!a){a=new Audio('voice/'+file);_VA[file]=a;}a.currentTime=0;a.volume=1;var p=a.play();if(p&&p.catch)p.catch(function(){});}catch(e){}},delayMs||0);
-  return true;
-}
+var _VM={
+  'fight':'v_fight.mp3',
+  'round one':'v_round1.mp3','round two':'v_round2.mp3','round three':'v_round3.mp3',
+  'flawless':'v_flawless.mp3',
+  'finish him':'v_finishhim.mp3','finish her':'v_finishher.mp3',
+  'you win':'v_youwin.mp3','you lose':'v_youwin.mp3'
+};
+var _VA={}, _VB={}; // audio elements cache, AudioContext buffer cache
 
-var _VM={'fight':'v_fight.mp3','round one':'v_round1.mp3','round two':'v_round2.mp3','round three':'v_round3.mp3','flawless':'v_flawless.mp3','finish him':'v_finishhim.mp3','finish her':'v_finishher.mp3','you win':'v_youwin.mp3','you lose':'v_youwin.mp3'};
-var _VA={};
 function _playVoice(text,delayMs){
   var key=text.toLowerCase(),file=null;
   for(var k in _VM){if(key.indexOf(k)>=0){file=_VM[k];break;}}
   if(!file)return false;
   setTimeout(function(){
     try{
-      if(_VA[file]&&!_VA[file].paused){_VA[file].pause();_VA[file].currentTime=0;}
-      var a=_VA[file]||(new Audio('voice/'+file));
-      _VA[file]=a;a.currentTime=0;a.volume=1;
-      var p=a.play();if(p&&p.catch)p.catch(function(){});
+      var ac=window._AC;
+      if(ac&&ac.state!=='closed'){
+        // AudioContext path — unlocked, works on Android without user gesture
+        if(_VB[file]){
+          var s=ac.createBufferSource();
+          s.buffer=_VB[file];s.connect(ac.destination);s.start(0);
+        } else {
+          fetch('voice/'+file).then(function(r){return r.arrayBuffer();}).then(function(buf){
+            ac.decodeAudioData(buf,function(dec){
+              _VB[file]=dec;
+              var s2=ac.createBufferSource();
+              s2.buffer=dec;s2.connect(ac.destination);s2.start(0);
+            });
+          }).catch(function(){});
+        }
+      } else {
+        // Fallback: new Audio
+        var a=_VA[file]||(new Audio('voice/'+file));
+        _VA[file]=a;a.currentTime=0;a.volume=1;
+        var p=a.play();if(p&&p.catch)p.catch(function(){});
+      }
     }catch(e){}
   },delayMs||0);
   return true;
 }
+
+// Pre-load voice buffers after first user click (AudioContext must be unlocked first)
+function _preloadVoices(){
+  try{
+    var ac=window._AC;if(!ac||ac.state==='closed')return;
+    for(var k in _VM){
+      (function(f){
+        if(_VB[f])return;
+        fetch('voice/'+f).then(function(r){return r.arrayBuffer();}).then(function(buf){
+          ac.decodeAudioData(buf,function(dec){_VB[f]=dec;});
+        }).catch(function(){});
+      })(_VM[k]);
+    }
+  }catch(e){}
+}
+document.addEventListener('click',function _pre(){_preloadVoices();document.removeEventListener('click',_pre);},{once:true});
 
 function announce(text,delayMs){
   // -- UI Overlay --
