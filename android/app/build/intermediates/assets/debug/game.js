@@ -1977,15 +1977,16 @@ function showResult(win,gs){
     var sp=$('res-stage-progress');
     if(sp){var dh='';for(var d=0;d<15;d++){var dc=d<G.stage-1?'done':d===G.stage-1?'current':'';dh+='<div class="res-stage-dot '+dc+'"></div>';}sp.innerHTML=dh;}
 
-    // ── CHARACTER: pixel-art style via drawCharPreview ──
+    // ── CHARACTER: explicit px size via window.innerHeight ──
     var charArea=$('res-char-area');
     if(charArea){
       charArea.innerHTML='';
       var winCh=win?G.player:opp;
       if(!winCh)winCh=G.player;
       var rCv=document.createElement('canvas');
-      // drawCharPreview: proven 128×128 canvas, CSS scale up = pixel art
-      rCv.style.cssText='display:block;height:80%;width:auto;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 0 20px '+charCol+'aa);';
+      // Explicit px size — CSS % failed in flex, use innerHeight directly
+      var _cvSz=Math.round(window.innerHeight*0.50);
+      rCv.style.cssText='display:block;width:'+_cvSz+'px;height:'+_cvSz+'px;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 0 18px '+charCol+'aa);';
       var _rF=0;
       if(window._resCharAnim){cancelAnimationFrame(window._resCharAnim);window._resCharAnim=null;}
       function _animResChar(){
@@ -2231,55 +2232,58 @@ var _VM={
   'finish him':'v_finishhim.mp3','finish her':'v_finishher.mp3',
   'you win':'v_youwin.mp3','you lose':'v_youwin.mp3'
 };
-var _VA={}, _VB={}; // audio elements cache, AudioContext buffer cache
+var _VA={}, _VB={};
+
+function _xhrLoadVoice(file, cb){
+  if(_VB[file]){cb(_VB[file]);return;}
+  var ac=AC();if(!ac)return;
+  var xhr=new XMLHttpRequest();
+  xhr.open('GET','voice/'+file,true);
+  xhr.responseType='arraybuffer';
+  xhr.onload=function(){
+    if(xhr.status===0||xhr.status===200){
+      ac.decodeAudioData(xhr.response,function(dec){_VB[file]=dec;cb(dec);},function(){});
+    }
+  };
+  xhr.onerror=function(){};
+  xhr.send();
+}
 
 function _playVoice(text,delayMs){
   var key=text.toLowerCase(),file=null;
   for(var k in _VM){if(key.indexOf(k)>=0){file=_VM[k];break;}}
   if(!file)return false;
   setTimeout(function(){
-    try{
-      var ac=window._AC;
-      if(ac&&ac.state!=='closed'){
-        // AudioContext path — unlocked, works on Android without user gesture
-        if(_VB[file]){
+    // Try AudioContext (XHR-based, works in Android file:// WebView)
+    var ac=AC();
+    if(ac&&ac.state!=='closed'){
+      _xhrLoadVoice(file,function(decoded){
+        try{
           var s=ac.createBufferSource();
-          s.buffer=_VB[file];s.connect(ac.destination);s.start(0);
-        } else {
-          fetch('voice/'+file).then(function(r){return r.arrayBuffer();}).then(function(buf){
-            ac.decodeAudioData(buf,function(dec){
-              _VB[file]=dec;
-              var s2=ac.createBufferSource();
-              s2.buffer=dec;s2.connect(ac.destination);s2.start(0);
-            });
-          }).catch(function(){});
-        }
-      } else {
-        // Fallback: new Audio
-        var a=_VA[file]||(new Audio('voice/'+file));
-        _VA[file]=a;a.currentTime=0;a.volume=1;
-        var p=a.play();if(p&&p.catch)p.catch(function(){});
-      }
-    }catch(e){}
+          s.buffer=decoded;
+          var g=ac.createGain();g.gain.value=1.0;
+          s.connect(g);g.connect(ac.destination);s.start(0);
+        }catch(e){}
+      });
+    } else {
+      // Fallback: new Audio (pre-loaded)
+      var a=_VA[file];
+      if(!a){a=new Audio('voice/'+file);a.load();_VA[file]=a;}
+      a.currentTime=0;var p=a.play();
+      if(p&&p.catch)p.catch(function(){});
+    }
   },delayMs||0);
   return true;
 }
 
-// Pre-load voice buffers after first user click (AudioContext must be unlocked first)
+// Pre-load all voice files into AudioContext buffers (called on first user click)
 function _preloadVoices(){
-  try{
-    var ac=window._AC;if(!ac||ac.state==='closed')return;
-    for(var k in _VM){
-      (function(f){
-        if(_VB[f])return;
-        fetch('voice/'+f).then(function(r){return r.arrayBuffer();}).then(function(buf){
-          ac.decodeAudioData(buf,function(dec){_VB[f]=dec;});
-        }).catch(function(){});
-      })(_VM[k]);
-    }
-  }catch(e){}
+  for(var k in _VM){(function(f){_xhrLoadVoice(f,function(){});})(_VM[k]);}
 }
-document.addEventListener('click',function _pre(){_preloadVoices();document.removeEventListener('click',_pre);},{once:true});
+document.addEventListener('click',function _pre(){
+  setTimeout(_preloadVoices,200); // slight delay so AC is ready
+  document.removeEventListener('click',_pre);
+},{once:true});
 
 function announce(text,delayMs){
   // -- UI Overlay --
