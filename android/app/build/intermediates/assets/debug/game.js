@@ -1552,7 +1552,8 @@ function initSelect(){
   $('select-btn').onclick=function(){
     G.player=PLAYABLE[G.selIdx];snd('start');
     if(window._selAnimInt){cancelAnimationFrame(window._selAnimInt);window._selAnimInt=null;}
-    initStageIntro();
+    // Go directly to VS screen (like real mobile fighting games)
+    G.screen='vs';showScreen('vs');initVS();
   };
 }
 function updateGrid(){
