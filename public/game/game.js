@@ -1917,11 +1917,12 @@ function initVS(){
 function showResult(win,gs){
   stopFight();
   var champion=win&&G.stage>=15;
+  var opp=TOWER[Math.min(G.stage-1,TOWER.length-1)];
 
-  // ── Set up navigation buttons FIRST (before any crash-prone visual ops) ──
+  // ── Set up navigation buttons FIRST ──
   var nb=$('res-next'),rb=$('res-retry'),rmenu=$('res-menu');
   if(nb){
-    nb.style.display=(win)?'block':'none';
+    nb.style.display=win?'block':'none';
     if(win&&!champion)nb.textContent='⚔ NEXT STAGE ('+(G.stage+1)+'/15)';
     else if(champion)nb.textContent='👑 PLAY AGAIN';
     nb.onclick=function(){
@@ -1938,34 +1939,84 @@ function showResult(win,gs){
     rmenu.onclick=function(){G.stage=1;save();bgmPlay('menu');G.screen='splash';showScreen('splash');initSplash();};
   }
 
-  // ── Visual updates (wrapped in try-catch so crashes don't break navigation) ──
+  // ── Visual: dynamic background + character canvas + particles ──
   try{
-    var em=$('res-emoji');
-    if(em){em.textContent=champion?'👑':win?'🏆':'💀';em.style.display='block';}
     var col=champion?'#f59e0b':win?'#22c55e':'#ef4444';
-    var rt=$('res-title');
-    if(rt){rt.textContent=champion?'CHAMPION!':win?'YOU WIN!':'YOU LOSE!';rt.style.color=col;rt.style.textShadow='0 0 40px '+col+',0 0 80px '+col;}
-    var rsub=$('res-sub');
-    if(rsub)rsub.textContent=win?'STAGE '+G.stage+(champion?' • ALL 15 COMPLETE':' COMPLETE'):'STAGE '+G.stage+' FAILED';
-    var sp=document.getElementById('res-stage-progress');
-    if(sp){var dh='';for(var d=0;d<15;d++){var dc=d<G.stage-1?'done':d===G.stage-1?'current':'';dh+='<div class="res-stage-dot '+dc+'"></div>';}sp.innerHTML=dh;}
-    var rs=document.getElementById('result-screen');
+    var glowCol=champion?'rgba(245,158,11,':'rgba(34,197,94,';
+    var c1=champion?'rgba(245,158,11,.38)':win?'rgba(34,197,94,.32)':'rgba(220,38,38,.38)';
+
+    // Set CSS vars for dynamic background glow
+    var rs=$('result-screen');
     if(rs){
-      var rc=champion?'rgba(245,158,11,':win?'rgba(34,197,94,':'rgba(239,68,68,';
-      rs.style.background=win?'radial-gradient(ellipse at 30% 20%,#001a08,#000)':'radial-gradient(ellipse at 30% 20%,#1a0000,#000)';
-      var rings=rs.querySelectorAll('.res-ring');
-      if(rings[0])rings[0].style.borderColor=rc+'.25)';
-      if(rings[1])rings[1].style.borderColor=rc+'.12)';
-      if(rings[2])rings[2].style.borderColor=rc+'.06)';
+      rs.style.setProperty('--res-c1',c1);
+      rs.style.setProperty('--res-glow',col);
     }
-    try{if(win)announce('You Win!',200);else announce('You lose',200);}catch(e){}
+
+    // Title + sub
+    var rt=$('res-title');
+    if(rt){
+      rt.textContent=champion?'CHAMPION!':win?'YOU WIN!':'DEFEAT!';
+      rt.style.color=col;
+    }
+    var rsub=$('res-sub');
+    if(rsub)rsub.textContent=win?'STAGE '+G.stage+(champion?' · ALL 15 COMPLETE':' COMPLETE'):'STAGE '+G.stage+' FAILED';
+
+    // Stage progress dots
+    var sp=$('res-stage-progress');
+    if(sp){var dh='';for(var d=0;d<15;d++){var dc=d<G.stage-1?'done':d===G.stage-1?'current':'';dh+='<div class="res-stage-dot '+dc+'"></div>';}sp.innerHTML=dh;}
+
+    // ── Draw winning/losing character on canvas in result screen ──
+    var charArea=$('res-char-area');
+    if(charArea){
+      charArea.innerHTML='';
+      var winCh=win?G.player:opp;
+      if(!winCh)winCh=G.player;
+      var _rH=Math.round(Math.min(window.innerHeight*0.52,280));
+      var _rW=Math.round(_rH*0.72);
+      var rCv=document.createElement('canvas');
+      rCv.width=_rW;rCv.height=_rH;
+      rCv.style.cssText='display:block;filter:drop-shadow(0 0 28px '+col+'88);';
+      // Animate the character
+      var _rF=0;
+      var _rPose=win?'punch':'idle';
+      if(window._resCharAnim){cancelAnimationFrame(window._resCharAnim);window._resCharAnim=null;}
+      function _drawResChar(){
+        if(!$('result-screen').classList.contains('active')){window._resCharAnim=null;return;}
+        _rF+=1.5;
+        var ctx2=rCv.getContext('2d');ctx2.clearRect(0,0,_rW,_rH);
+        drawFighter(ctx2,{x:_rW/2,y:_rH-2,dir:1,ch:winCh,H:_rH*0.84,state:_rPose,af:Math.floor(_rF%24),vy:0,rotAngle:0},_rF);
+        window._resCharAnim=requestAnimationFrame(_drawResChar);
+      }
+      charArea.appendChild(rCv);
+      window._resCharAnim=requestAnimationFrame(_drawResChar);
+    }
+
+    // ── Particles (only for win) ──
+    var pp=$('res-particles');
+    if(pp){
+      pp.innerHTML='';
+      if(win){
+        for(var pi=0;pi<18;pi++){
+          var pd=document.createElement('div');
+          pd.className='res-particle';
+          var ps=4+Math.random()*8;
+          var px=Math.random()*100;
+          var pDelay=Math.random()*2;
+          var pDur=2.5+Math.random()*2.5;
+          pd.style.cssText='width:'+ps+'px;height:'+ps+'px;left:'+px+'%;bottom:0;background:'+col+';opacity:'+(0.4+Math.random()*0.5)+';animation-duration:'+pDur+'s;animation-delay:-'+pDelay+'s;box-shadow:0 0 6px '+col+';';
+          pp.appendChild(pd);
+        }
+      }
+    }
+
+    try{if(win)announce(champion?'Champion!':'You Win!',200);else announce('Defeat!',200);}catch(e){}
   }catch(e){}
 
   // ── Show result screen ──
   G.screen='result';
   try{showScreen('result');}catch(e){
     var _fui=document.getElementById('fight-ui');if(_fui)_fui.style.display='none';
-    var _rs=document.getElementById('result-screen');if(_rs)_rs.classList.add('active');
+    var _rs2=document.getElementById('result-screen');if(_rs2)_rs2.classList.add('active');
   }
 }
 

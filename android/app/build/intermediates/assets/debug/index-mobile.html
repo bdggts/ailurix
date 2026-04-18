@@ -497,102 +497,112 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
 .tower-step.done .tower-num{color:rgba(34,197,94,.6);}
 @keyframes tP{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* ══════════ RESULT — EPIC PREMIUM ══════════ */
+/* ══════════ RESULT — MK DRAMATIC ══════════ */
 #result-screen{
-  padding:24px 20px;
-  position:relative;overflow:hidden;
-  justify-content:center;
+  background:#000;overflow:hidden;
+  position:relative;justify-content:flex-end;
+  align-items:stretch;padding:0;
 }
-/* Shimmer scan lines */
-#result-screen::before{content:'';position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.012) 2px,rgba(255,255,255,.012) 4px);
-  z-index:0;}
-/* Winner/Loser rings */
-.res-ring{position:absolute;border-radius:50%;pointer-events:none;
-  border:1px solid;animation:ringOut 1.5s ease-out both;}
-.res-ring:nth-child(1){width:200%;padding-bottom:200%;top:50%;left:50%;transform:translate(-50%,-50%);
-  animation-delay:0s;}
-.res-ring:nth-child(2){width:160%;padding-bottom:160%;top:50%;left:50%;transform:translate(-50%,-50%);
-  animation-delay:.15s;}
-.res-ring:nth-child(3){width:120%;padding-bottom:120%;top:50%;left:50%;transform:translate(-50%,-50%);
-  animation-delay:.3s;}
-@keyframes ringOut{0%{opacity:.6;transform:translate(-50%,-50%) scale(.1);}100%{opacity:0;transform:translate(-50%,-50%) scale(1);}}
-
-.res-emoji{
-  position:relative;z-index:2;
-  font-size:clamp(56px,15vmax,88px);line-height:1;text-align:center;margin-bottom:6px;
-  animation:emojiBounce .6s cubic-bezier(.2,1,.3,1) both .2s;
-  filter:drop-shadow(0 0 20px rgba(245,158,11,.6));
+#res-bg{
+  position:absolute;inset:0;z-index:0;
+  background:radial-gradient(ellipse at 50% 18%,var(--res-c1,rgba(245,158,11,.38)) 0%,transparent 65%),
+             linear-gradient(180deg,transparent 35%,rgba(0,0,0,.92) 100%);
+  animation:resBgPulse 2.2s ease-in-out infinite alternate;
 }
-@keyframes emojiBounce{0%{transform:scale(0) rotate(-20deg);opacity:0;}80%{transform:scale(1.15) rotate(3deg);}100%{transform:scale(1) rotate(0);opacity:1;}}
-
+@keyframes resBgPulse{from{filter:brightness(.8);}to{filter:brightness(1.15);}}
+#res-scanlines{
+  position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.1) 3px,rgba(0,0,0,.1) 6px);
+}
+#res-char-area{
+  position:absolute;top:0;left:0;right:0;height:58%;
+  z-index:2;display:flex;align-items:flex-end;justify-content:center;
+}
+#res-fade{
+  position:absolute;z-index:3;left:0;right:0;
+  height:90px;pointer-events:none;
+  background:linear-gradient(to bottom,transparent,#000);
+}
+#res-particles{
+  position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;
+}
+.res-particle{
+  position:absolute;border-radius:50%;
+  animation:resPart linear infinite;
+}
+@keyframes resPart{
+  0%{transform:translateY(0) scale(1);opacity:.8;}
+  100%{transform:translateY(-110vh) scale(0.2);opacity:0;}
+}
+#res-panel{
+  position:relative;z-index:5;
+  width:100%;padding:10px 20px 22px;
+  display:flex;flex-direction:column;align-items:center;
+  background:linear-gradient(to top,rgba(0,0,0,.98) 75%,transparent);
+  margin-top:auto;
+  animation:panelUp .5s cubic-bezier(.22,1,.36,1) both .15s;
+}
+@keyframes panelUp{from{transform:translateY(60px);opacity:0;}to{transform:none;opacity:1;}}
 .res-title{
   position:relative;z-index:2;
-  font-size:clamp(32px,10vmax,58px);font-weight:900;text-align:center;line-height:1;
-  animation:titleSlam .5s cubic-bezier(.2,1,.3,1) both .1s;
-  letter-spacing:2px;
+  font-size:clamp(34px,11vmax,66px);font-weight:900;
+  font-family:Impact,'Arial Black',sans-serif;
+  text-align:center;line-height:1;letter-spacing:3px;
+  text-shadow:0 0 40px var(--res-glow,#f59e0b),0 0 80px var(--res-glow,#f59e0b44),0 4px 0 rgba(0,0,0,.9);
+  animation:titleSlam .55s cubic-bezier(.2,1,.3,1) both .1s;
 }
 @keyframes titleSlam{0%{transform:scale(2.5);opacity:0;}100%{transform:scale(1);opacity:1;}}
-
 .res-sub{
   position:relative;z-index:2;
-  font-size:clamp(10px,2.8vmax,14px);font-weight:700;text-align:center;margin-top:8px;
-  color:rgba(255,255,255,.45);letter-spacing:3px;
-  background:rgba(255,255,255,.04);padding:5px 16px;border-radius:20px;
-  border:1px solid rgba(255,255,255,.08);display:inline-block;
+  font-size:clamp(9px,2.5vmax,13px);font-weight:700;letter-spacing:3px;
+  color:rgba(255,255,255,.5);margin-top:4px;text-align:center;
   animation:fadeUp .4s ease-out both .3s;
 }
 .res-stage-progress{
-  position:relative;z-index:2;display:flex;gap:4px;margin-top:12px;
+  position:relative;z-index:2;display:flex;gap:5px;margin-top:10px;
   animation:fadeUp .4s ease-out both .4s;
 }
 .res-stage-dot{
   width:8px;height:8px;border-radius:50%;
-  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.1);
-  transition:all .3s;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.1);
 }
-.res-stage-dot.done{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.6);border-color:#22c55e;}
-.res-stage-dot.current{background:#f59e0b;box-shadow:0 0 8px rgba(245,158,11,.8);border-color:#f59e0b;
+.res-stage-dot.done{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.7);border-color:#22c55e;}
+.res-stage-dot.current{background:#f59e0b;box-shadow:0 0 8px rgba(245,158,11,.9);border-color:#f59e0b;
   animation:dotPulse 1s ease-in-out infinite;}
 @keyframes dotPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.3);}}
-@keyframes fadeUp{from{transform:translateY(12px);opacity:0;}to{transform:none;opacity:1;}}
-
+@keyframes fadeUp{from{transform:translateY(14px);opacity:0;}to{transform:none;opacity:1;}}
 .res-xp{
   position:relative;z-index:2;
-  display:inline-flex;align-items:center;gap:6px;margin-top:12px;
-  padding:6px 20px;border-radius:30px;background:rgba(245,158,11,.1);
+  display:inline-flex;align-items:center;gap:6px;margin-top:10px;
+  padding:5px 18px;border-radius:30px;background:rgba(245,158,11,.12);
   border:1px solid rgba(245,158,11,.4);font-size:12px;font-weight:900;color:#f59e0b;
-  box-shadow:0 0 16px rgba(245,158,11,.2);animation:fadeUp .4s ease-out both .5s;
+  animation:fadeUp .4s ease-out both .5s;
 }
 .res-btns{
   position:relative;z-index:2;
-  display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;
-  margin-top:20px;animation:fadeUp .4s ease-out both .5s;
+  display:flex;flex-direction:column;gap:8px;width:100%;max-width:340px;
+  margin-top:16px;animation:fadeUp .4s ease-out both .5s;
 }
 .res-btn{
-  padding:clamp(14px,3.5vmax,18px);border-radius:14px;font-weight:900;
-  font-size:clamp(14px,4vmax,17px);letter-spacing:3px;
+  padding:clamp(13px,3.5vmax,18px);border-radius:12px;font-weight:900;
+  font-size:clamp(13px,3.8vmax,16px);letter-spacing:3px;
   font-family:Impact,'Arial Black',sans-serif;touch-action:manipulation;
-  transition:transform .1s, box-shadow .1s;position:relative;overflow:hidden;
+  transition:transform .1s,box-shadow .1s;border:none;
 }
-.res-btn::after{content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,.15),transparent 50%);
-  pointer-events:none;}
 .res-btn:active{transform:scale(.96);}
 .res-btn.primary{
-  background:linear-gradient(135deg,#22c55e,#16a34a);color:#000;
-  box-shadow:0 0 24px rgba(34,197,94,.4),0 4px 16px rgba(0,0,0,.4);
-  animation:primaryPulse 2s ease-in-out infinite;
+  background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;
+  box-shadow:0 0 28px rgba(245,158,11,.5),0 4px 18px rgba(0,0,0,.5);
+  animation:primaryPulse 1.6s ease-in-out infinite;
 }
-@keyframes primaryPulse{0%,100%{box-shadow:0 0 20px rgba(34,197,94,.3),0 4px 14px rgba(0,0,0,.4);}50%{box-shadow:0 0 40px rgba(34,197,94,.6),0 6px 20px rgba(0,0,0,.4);}}
+@keyframes primaryPulse{0%,100%{box-shadow:0 0 18px rgba(245,158,11,.4),0 4px 14px rgba(0,0,0,.4);}50%{box-shadow:0 0 44px rgba(245,158,11,.8),0 6px 22px rgba(0,0,0,.5);}}
 .res-btn.danger{
-  background:linear-gradient(135deg,#ef4444,#f59e0b);color:#000;
-  box-shadow:0 0 20px rgba(239,68,68,.3),0 4px 14px rgba(0,0,0,.4);
+  background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;
+  box-shadow:0 0 18px rgba(220,38,38,.35),0 4px 14px rgba(0,0,0,.4);
 }
 .res-btn.ghost{
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
-  color:#64748b;font-size:clamp(11px,3vmax,13px);padding:12px;
-  letter-spacing:2px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.35);font-size:clamp(10px,2.8vmax,12px);padding:10px;
 }
 
 /* ══════════ FIGHT HUD ══════════ */
@@ -873,19 +883,21 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
 
   <!-- RESULT — EPIC PREMIUM -->
   <div class="screen" id="result-screen">
-    <!-- Animated rings (injected by JS or static) -->
-    <div class="res-ring" style="border-color:rgba(245,158,11,.15)"></div>
-    <div class="res-ring" style="border-color:rgba(245,158,11,.1)"></div>
-    <div class="res-ring" style="border-color:rgba(245,158,11,.06)"></div>
-    <div class="res-emoji" id="res-emoji">🏆</div>
-    <div class="res-title" id="res-title">YOU WIN!</div>
-    <div class="res-sub" id="res-sub">Stage Complete!</div>
-    <div class="res-stage-progress" id="res-stage-progress"></div>
-    <div class="res-xp" id="res-xp" style="display:none">⚡ +250 XP</div>
-    <div class="res-btns">
-      <button class="res-btn primary" id="res-next">NEXT STAGE ▶</button>
-      <button class="res-btn danger"  id="res-retry">↺ RETRY</button>
-      <button class="res-btn ghost"   id="res-menu">MAIN MENU</button>
+    <div id="res-bg"></div>
+    <div id="res-scanlines"></div>
+    <div id="res-particles"></div>
+    <div id="res-char-area"></div>
+    <div id="res-fade" style="bottom:42%"></div>
+    <div id="res-panel">
+      <div class="res-title" id="res-title">YOU WIN!</div>
+      <div class="res-sub" id="res-sub">Stage Complete!</div>
+      <div class="res-stage-progress" id="res-stage-progress"></div>
+      <div class="res-xp" id="res-xp" style="display:none">&#x26A1; +250 XP</div>
+      <div class="res-btns">
+        <button class="res-btn primary" id="res-next">NEXT STAGE &#x25B6;</button>
+        <button class="res-btn danger"  id="res-retry">&#x21BA; RETRY</button>
+        <button class="res-btn ghost"   id="res-menu">MAIN MENU</button>
+      </div>
     </div>
   </div>
 
