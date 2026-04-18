@@ -2326,13 +2326,15 @@ function announce(text,delayMs){
   el.textContent=text;el.classList.add('active');
   setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs, 1000):2500);
 
-  // -- MK AUDIO --
-  // Only pre-recorded MP3 on Android. AndroidTTS removed (caused double voice)  
+  // -- MK AUDIO (ANDROID) --
+  // AndroidTTS = Java native TTS (guaranteed). MP3 also tried as bonus.
   if(window.AndroidTTS){
-    if(!_playVoice(text,delayMs)){
-      // No MP3 match on Android — play short beep so it's not silent
-      setTimeout(function(){try{snd('cd');}catch(e){}},delayMs||0);
-    }
+    // Java TTS is GUARANTEED to work (native Android) — use as primary
+    setTimeout(function(){
+      try{window.AndroidTTS.speak(toSpeech(text));}catch(e){}
+    }, delayMs||0);
+    // Also try MP3 (bonus — if it works, great; if not, TTS covers it)
+    _playVoice(text,delayMs);
     return;
   }
   // Browser fallback (web version)
