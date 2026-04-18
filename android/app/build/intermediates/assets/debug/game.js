@@ -1867,7 +1867,7 @@ function initStageIntro(){
   if(fb){fb.onclick=function(){
     if(window._siAnim1){cancelAnimationFrame(window._siAnim1);window._siAnim1=null;}
     if(window._siAnim2){cancelAnimationFrame(window._siAnim2);window._siAnim2=null;}
-    snd('fight');bgmStop();G.screen='vs';showScreen('vs');initVS();
+    snd('fight');G.screen='vs';showScreen('vs');initVS();
   };}
 }
 
@@ -2415,8 +2415,11 @@ window.bgmPlay = function(key){
 
 window.bgmStop = function(){ MK_STOP(); };
 
-// Called when fight STARTS — stop menu music
-window.startBGMusic = function(){ MK_STOP(); };
+// Called when fight STARTS — play fight BGM
+window.startBGMusic = function(){
+  window.MK_CAN_PLAY = true;
+  if(window.MK_PLAY) MK_PLAY();
+};
 startBGMusic = window.startBGMusic;
 
 // Called on KO / fight end — stop music
