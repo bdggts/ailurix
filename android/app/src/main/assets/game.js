@@ -2277,17 +2277,27 @@ function _preloadVoices(){
   }
 }
 
-// Unlock all voice Audio elements during user gesture (play+pause at 0 volume)
-// MUST be called from direct user click — unlocks Android autoplay
+// Unlock voice Audio elements during user gesture — stored in _sfxPool (same as snd())
+// Called from fight button click so Android autoplay is authorized for these elements
 function _unlockVoices(){
-  for(var k in _VM){
-    (function(f){
-      var a=_VA[f];
-      if(!a){a=new Audio('voice/'+f);a.load();_VA[f]=a;}
-      var old=a.volume;a.volume=0;
-      a.play().then(function(){a.pause();a.currentTime=0;a.volume=old;}).catch(function(){});
-    })(_VM[k]);
-  }
+  if(!window._sfxPool) window._sfxPool={};
+  var voiceSrcs=[
+    'voice/v_round1.mp3','voice/v_round2.mp3','voice/v_round3.mp3',
+    'voice/v_fight.mp3','voice/v_youwin.mp3',
+    'voice/v_finishhim.mp3','voice/v_finishher.mp3','voice/v_flawless.mp3'
+  ];
+  voiceSrcs.forEach(function(src){
+    // Create pool if not yet created (same as snd() would do)
+    if(!window._sfxPool[src]){
+      window._sfxPool[src]=[];
+      for(var i=0;i<2;i++){var a=new Audio(src);a.volume=0.95;a.load();window._sfxPool[src].push(a);}
+    }
+    // Play+pause each at vol=0 during gesture = UNLOCKED for future play()
+    window._sfxPool[src].forEach(function(a){
+      a.volume=0;
+      a.play().then(function(){a.pause();a.currentTime=0;a.volume=0.95;}).catch(function(){});
+    });
+  });
 }
 
 function _playVoice(text,delayMs){
