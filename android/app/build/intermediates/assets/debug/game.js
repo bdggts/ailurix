@@ -133,6 +133,15 @@ function snd(type){try{
   else if(type==='kick') src='voice/kick.mp3';
   else if(type==='hit') src='voice/hit.mp3';
   else if(type==='block') src='voice/block.mp3';
+  // MK VOICE LINES — same pool as SFX (PROVEN to work)
+  else if(type==='v_round1') src='voice/v_round1.mp3';
+  else if(type==='v_round2') src='voice/v_round2.mp3';
+  else if(type==='v_round3') src='voice/v_round3.mp3';
+  else if(type==='v_fight') src='voice/v_fight.mp3';
+  else if(type==='v_youwin') src='voice/v_youwin.mp3';
+  else if(type==='v_finishhim') src='voice/v_finishhim.mp3';
+  else if(type==='v_finishher') src='voice/v_finishher.mp3';
+  else if(type==='v_flawless') src='voice/v_flawless.mp3';
 
   if(src) {
     if(!window._sfxPool) window._sfxPool={};
@@ -2282,21 +2291,18 @@ function _unlockVoices(){
 }
 
 function _playVoice(text,delayMs){
-  var key=text.toLowerCase(),file=null;
-  for(var k in _VM){if(key.indexOf(k)>=0){file=_VM[k];break;}}
-  if(!file)return false;
-  setTimeout(function(){
-    try{
-      var a=_VA[file];
-      if(!a){a=new Audio('voice/'+file);a.load();_VA[file]=a;}
-      if(a.paused||a.ended){a.currentTime=0;}else{a.pause();a.currentTime=0;}
-      var p=a.play();
-      if(p&&p.catch)p.catch(function(){
-        // Retry after 600ms if autoplay blocked or file still loading
-        setTimeout(function(){try{a.currentTime=0;a.play().catch(function(){});}catch(e){}},600);
-      });
-    }catch(e){}
-  },delayMs||0);
+  var key=text.toLowerCase(),type=null;
+  // Map text to snd() type — uses PROVEN pool system same as punch/kick
+  if(key.indexOf('round one')>=0) type='v_round1';
+  else if(key.indexOf('round two')>=0) type='v_round2';
+  else if(key.indexOf('round three')>=0) type='v_round3';
+  else if(key.indexOf('fight')>=0) type='v_fight';
+  else if(key.indexOf('you win')>=0||key.indexOf('you lose')>=0) type='v_youwin';
+  else if(key.indexOf('finish him')>=0) type='v_finishhim';
+  else if(key.indexOf('finish her')>=0) type='v_finishher';
+  else if(key.indexOf('flawless')>=0) type='v_flawless';
+  if(!type) return false;
+  setTimeout(function(){snd(type);},delayMs||0);
   return true;
 }
 
