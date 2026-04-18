@@ -242,6 +242,7 @@ function showScreen(name){
   if(name==='splash')$('splash').classList.add('active');
   else if(name==='select')$('select').classList.add('active');
   else if(name==='vs')$('vs-screen').classList.add('active');
+  else if(name==='stage-intro')$('stage-intro').classList.add('active');
   else if(name==='result')$('result-screen').classList.add('active');
   $('fight-ui').style.display=name==='fight'?'flex':'none';
 }
@@ -1620,9 +1621,10 @@ function updatePreview(dir){
           else if(R.showcaseTimer < 100){ if(R.showcaseTimer===66)snd('kick'); R.showPose = 'kick'; }
           else { R.showPose = 'idle'; R.showcaseActive = false; }
         } else if(R._tapTimer>0){
-          // Tap-triggered punch/kick — hold pose for N frames then back to idle
+          // Tap-triggered punch/kick/special — hold pose for N frames
           R._tapTimer--;
-          if(R._tapTimer<=0){R.showPose='idle';}
+          R.showTimer++; // advance animation frame for special effects
+          if(R._tapTimer<=0){R.showPose='idle';R.showTimer=0;}
           if(R.autoRot){if(Math.abs(R.vel)<1.0)R.angle+=0.25;}
         } else {
           R.showPose = 'idle';
@@ -1740,7 +1742,7 @@ function updatePreview(dir){
         R.showcaseActive=false;
         if(a[2]==='power'){
           R._powerTimer=60;
-          R.showPose='special';R._tapTimer=60;
+          R.showPose='special';R._tapTimer=60;R.showTimer=0;
           try{snd('special');}catch(ex){}
         } else {
           R._powerTimer=0;
@@ -1773,7 +1775,7 @@ function updatePreview(dir){
   }
   // FIGHT button
   var btn=$('select-btn');
-  if(btn){btn.textContent='FIGHT!';btn.style.background='linear-gradient(135deg,'+c.color+','+c.color+'99)';btn.style.boxShadow='0 0 24px '+c.color+'55,0 4px 14px rgba(0,0,0,.7)';}
+  if(btn){btn.textContent='NEXT →';btn.style.background='linear-gradient(135deg,'+c.color+','+c.color+'99)';btn.style.boxShadow='0 0 24px '+c.color+'55,0 4px 14px rgba(0,0,0,.7)';}
 }
 // VS
 // ─── Stage data ───
