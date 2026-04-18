@@ -2237,7 +2237,7 @@ function _mkVoiceEffect(durationMs){
   }catch(e){}
 }
 
-// MK ANNOUNCER — exact Mortal Kombat style
+// MK ANNOUNCER — Mortal Kombat style voice lines
 var _VM={
   'fight':'v_fight.mp3',
   'round one':'v_round1.mp3','round two':'v_round2.mp3','round three':'v_round3.mp3',
@@ -2245,21 +2245,19 @@ var _VM={
   'finish him':'v_finishhim.mp3','finish her':'v_finishher.mp3',
   'you win':'v_youwin.mp3','you lose':'v_youwin.mp3'
 };
-var _VA={}, _VB={};
+var _VA={}; // pre-loaded Audio pool, same pattern as snd()
 
-function _xhrLoadVoice(file, cb){
-  if(_VB[file]){cb(_VB[file]);return;}
-  var ac=AC();if(!ac)return;
-  var xhr=new XMLHttpRequest();
-  xhr.open('GET','voice/'+file,true);
-  xhr.responseType='arraybuffer';
-  xhr.onload=function(){
-    if(xhr.status===0||xhr.status===200){
-      ac.decodeAudioData(xhr.response,function(dec){_VB[file]=dec;cb(dec);},function(){});
-    }
-  };
-  xhr.onerror=function(){};
-  xhr.send();
+// Preload all voices — call from button click so autoplay is unlocked
+function _preloadVoices(){
+  for(var k in _VM){
+    (function(f){
+      if(!_VA[f]){
+        var a=new Audio('voice/'+f);
+        a.volume=1;a.load();
+        _VA[f]=a;
+      }
+    })(_VM[k]);
+  }
 }
 
 function _playVoice(text,delayMs){
@@ -2267,36 +2265,21 @@ function _playVoice(text,delayMs){
   for(var k in _VM){if(key.indexOf(k)>=0){file=_VM[k];break;}}
   if(!file)return false;
   setTimeout(function(){
-    // Try AudioContext (XHR-based, works in Android file:// WebView)
-    var ac=AC();
-    if(ac&&ac.state!=='closed'){
-      _xhrLoadVoice(file,function(decoded){
-        try{
-          var s=ac.createBufferSource();
-          s.buffer=decoded;
-          var g=ac.createGain();g.gain.value=1.0;
-          s.connect(g);g.connect(ac.destination);s.start(0);
-        }catch(e){}
-      });
-    } else {
-      // Fallback: new Audio (pre-loaded)
+    try{
       var a=_VA[file];
       if(!a){a=new Audio('voice/'+file);a.load();_VA[file]=a;}
-      a.currentTime=0;var p=a.play();
+      // Reset and play — same pattern as snd() pool
+      if(a.paused||a.ended){a.currentTime=0;}
+      else{a.pause();a.currentTime=0;}
+      var p=a.play();
       if(p&&p.catch)p.catch(function(){});
-    }
+    }catch(e){}
   },delayMs||0);
   return true;
 }
 
-// Pre-load all voice files into AudioContext buffers (called on first user click)
-function _preloadVoices(){
-  for(var k in _VM){(function(f){_xhrLoadVoice(f,function(){});})(_VM[k]);}
-}
-document.addEventListener('click',function _pre(){
-  setTimeout(_preloadVoices,200); // slight delay so AC is ready
-  document.removeEventListener('click',_pre);
-},{once:true});
+
+
 
 function announce(text,delayMs){
   // -- UI Overlay --
