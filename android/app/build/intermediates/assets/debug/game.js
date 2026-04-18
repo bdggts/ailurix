@@ -1974,28 +1974,44 @@ function showResult(win,gs){
     var sp=$('res-stage-progress');
     if(sp){var dh='';for(var d=0;d<15;d++){var dc=d<G.stage-1?'done':d===G.stage-1?'current':'';dh+='<div class="res-stage-dot '+dc+'"></div>';}sp.innerHTML=dh;}
 
-    // ── Draw winning/losing character - fixed resolution, CSS scaled ──
+    // ── Draw winning/losing character — proven approach ──
     var charArea=$('res-char-area');
     if(charArea){
       charArea.innerHTML='';
       var winCh=win?G.player:opp;
       if(!winCh)winCh=G.player;
-      // Fixed canvas resolution — CSS will scale to fill the area
-      var _cW=300, _cH=460;
+      // Fixed canvas — SAME approach as drawCharPreview which is proven to work
+      var _cW=240,_cH=360;
       var rCv=document.createElement('canvas');
-      rCv.width=_cW; rCv.height=_cH;
-      // Scale canvas to fill the area height, center horizontally
-      rCv.style.cssText='position:absolute;bottom:0;left:50%;transform:translateX(-50%);height:100%;width:auto;filter:drop-shadow(0 0 30px '+charCol+'bb);';
-      var _charH=Math.round(_cH*0.85); // 85% of canvas = 391px
+      rCv.width=_cW;rCv.height=_cH;
+      // CSS: scale to fill height of flex:1 area, auto width preserves ratio
+      rCv.style.cssText='display:block;max-height:100%;width:auto;filter:drop-shadow(0 0 22px '+charCol+'aa);';
+      var _charH=Math.round(_cH*0.76); // 273px — 76% like drawCharPreview
+      var _footY=_cH-14; // feet near bottom, 14px margin like drawCharPreview
       var _rF=0;
-      var _rPose=win?'punch':'idle';
       if(window._resCharAnim){cancelAnimationFrame(window._resCharAnim);window._resCharAnim=null;}
       function _drawResChar(){
         if(!$('result-screen').classList.contains('active')){window._resCharAnim=null;return;}
-        _rF+=1.5;
-        var ctx2=rCv.getContext('2d');ctx2.clearRect(0,0,_cW,_cH);
-        // Feet at bottom center of canvas
-        drawFighter(ctx2,{x:_cW/2,y:_cH-6,dir:1,ch:winCh,H:_charH,state:_rPose,af:Math.floor(_rF%24),vy:0,rotAngle:0},_rF);
+        _rF+=1;
+        var ctx2=rCv.getContext('2d');
+        ctx2.clearRect(0,0,_cW,_cH);
+        // Mirror drawCharPreview: center x, feet at _footY
+        var _key=winCh.id+'_idle';
+        var _frames=SPRITE_ANIMS[_key];
+        var _spr=null;
+        if(_frames){for(var _fi=0;_fi<_frames.length;_fi++){if(_frames[_fi]){_spr=_frames[Math.floor(_rF/8)%_frames.length];break;}}}
+        if(!_spr)_spr=SPRITES[_key];
+        if(_spr){
+          var _sH=_charH,_sW=_sH*(_spr.width/_spr.height);
+          var _bob=Math.sin(_rF*0.08)*3; // gentle bob
+          ctx2.drawImage(_spr,(_cW-_sW)/2,_footY-_sH+_bob,_sW,_sH);
+          // Glow ring
+          ctx2.strokeStyle=charCol+'55';ctx2.lineWidth=2;
+          ctx2.beginPath();ctx2.ellipse(_cW/2,_footY,_sW*0.38,7,0,0,Math.PI*2);ctx2.stroke();
+        } else {
+          // Silhouette fallback
+          drawFighter(ctx2,{x:_cW/2,y:_footY,dir:1,ch:winCh,H:_charH,state:'idle',af:_rF%20,vy:0,rotAngle:0},_rF);
+        }
         window._resCharAnim=requestAnimationFrame(_drawResChar);
       }
       charArea.appendChild(rCv);

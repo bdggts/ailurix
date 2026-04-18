@@ -500,8 +500,10 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
 /* ══════════ RESULT — MK DRAMATIC ══════════ */
 #result-screen{
   background:#000;overflow:hidden;
-  position:relative;justify-content:flex-end;
+  position:relative;
+  justify-content:flex-start;
   align-items:stretch;padding:0;
+  flex-direction:column;
 }
 #res-bg{
   position:absolute;inset:0;z-index:0;
@@ -515,12 +517,15 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
   background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.1) 3px,rgba(0,0,0,.1) 6px);
 }
 #res-char-area{
-  position:absolute;top:0;left:0;right:0;height:60%;
-  z-index:2;display:block;overflow:hidden;
+  flex:1;min-height:0;
+  position:relative;z-index:2;
+  display:flex;align-items:flex-end;justify-content:center;
+  overflow:hidden;
+  padding-bottom:4px;
 }
 #res-fade{
   position:absolute;z-index:3;left:0;right:0;
-  height:90px;pointer-events:none;
+  height:80px;pointer-events:none;
   background:linear-gradient(to bottom,transparent,#000);
 }
 #res-particles{
@@ -536,11 +541,11 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
 }
 #res-panel{
   position:relative;z-index:5;
-  width:100%;padding:10px 20px 22px;
+  width:100%;padding:10px 20px 18px;
   display:flex;flex-direction:column;align-items:center;
-  background:linear-gradient(to top,rgba(0,0,0,.98) 75%,transparent);
-  margin-top:auto;
+  background:linear-gradient(to top,rgba(0,0,0,.98) 80%,transparent);
   animation:panelUp .5s cubic-bezier(.22,1,.36,1) both .15s;
+  flex-shrink:0;
 }
 @keyframes panelUp{from{transform:translateY(60px);opacity:0;}to{transform:none;opacity:1;}}
 .res-title{
