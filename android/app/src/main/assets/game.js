@@ -776,6 +776,15 @@ function initFight(){
     }catch(e){}
     // CRITICAL: Always start the fight loop no matter what
     G.raf=requestAnimationFrame(fightLoop);
+    // Pre-load voice MP3s now (called from button = autoplay unlocked)
+    setTimeout(function(){
+      for(var k in _VM){
+        (function(f){
+          if(!_VA[f]){_VA[f]=new Audio('voice/'+f);_VA[f].load();_VA[f].volume=1;}
+        })(_VM[k]);
+      }
+      _preloadVoices(); // Also try AudioContext XHR path
+    },100);
   }
   waitAndInit(0);
 }
@@ -1977,26 +1986,30 @@ function showResult(win,gs){
     var sp=$('res-stage-progress');
     if(sp){var dh='';for(var d=0;d<15;d++){var dc=d<G.stage-1?'done':d===G.stage-1?'current':'';dh+='<div class="res-stage-dot '+dc+'"></div>';}sp.innerHTML=dh;}
 
-    // ── CHARACTER: explicit px size via window.innerHeight ──
+    // ── CHARACTER: dynamic px size after layout ──
     var charArea=$('res-char-area');
     if(charArea){
       charArea.innerHTML='';
       var winCh=win?G.player:opp;
       if(!winCh)winCh=G.player;
       var rCv=document.createElement('canvas');
-      // Explicit px size — CSS % failed in flex, use innerHeight directly
-      var _cvSz=Math.round(window.innerHeight*0.50);
-      rCv.style.cssText='display:block;width:'+_cvSz+'px;height:'+_cvSz+'px;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 0 18px '+charCol+'aa);';
+      rCv.style.cssText='display:block;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 0 18px '+charCol+'aa);';
+      charArea.appendChild(rCv);
       var _rF=0;
       if(window._resCharAnim){cancelAnimationFrame(window._resCharAnim);window._resCharAnim=null;}
       function _animResChar(){
         if(!$('result-screen').classList.contains('active')){window._resCharAnim=null;return;}
         _rF+=1;
+        // Measure actual area height on first frame for correct sizing
+        if(_rF===1){
+          var ah=charArea.clientHeight||Math.round(window.innerHeight*0.52);
+          var _sz=Math.min(ah-8,Math.round(window.innerWidth*0.85));
+          rCv.style.width=_sz+'px';rCv.style.height=_sz+'px';
+        }
         drawCharPreview(rCv,winCh,55,_rF,'idle');
         window._resCharAnim=requestAnimationFrame(_animResChar);
       }
-      charArea.appendChild(rCv);
-      _animResChar();
+      requestAnimationFrame(_animResChar);
     }
 
 
