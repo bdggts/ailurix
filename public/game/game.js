@@ -1885,7 +1885,9 @@ function initStageIntro(){
   if(fb){fb.onclick=function(){
     if(window._siAnim1){cancelAnimationFrame(window._siAnim1);window._siAnim1=null;}
     if(window._siAnim2){cancelAnimationFrame(window._siAnim2);window._siAnim2=null;}
-    snd('fight');bgmStop();G.screen='vs';showScreen('vs');initVS();
+    snd('fight');
+    _unlockVoices(); // Unlock voice Audio elements NOW (user gesture = autoplay allowed)
+    bgmStop();G.screen='vs';showScreen('vs');initVS();
   };}
 }
 
@@ -2262,6 +2264,19 @@ function _preloadVoices(){
         a.volume=1;a.load();
         _VA[f]=a;
       }
+    })(_VM[k]);
+  }
+}
+
+// Unlock all voice Audio elements during user gesture (play+pause at 0 volume)
+// MUST be called from direct user click — unlocks Android autoplay
+function _unlockVoices(){
+  for(var k in _VM){
+    (function(f){
+      var a=_VA[f];
+      if(!a){a=new Audio('voice/'+f);a.load();_VA[f]=a;}
+      var old=a.volume;a.volume=0;
+      a.play().then(function(){a.pause();a.currentTime=0;a.volume=old;}).catch(function(){});
     })(_VM[k]);
   }
 }
