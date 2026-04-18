@@ -765,7 +765,8 @@ function initFight(){
       roundOverText:'',roundOverColor:'#fff',
     };
     // Wrap non-critical setup in try-catch — G.raf MUST always be called
-    try{announce('Round One',200);}catch(e){}
+    // Round announcement is handled by roundAnnounce phase in fightLoop
+
     try{
       if(opp.id==='goro'&&window.bossVideoReady){
         try{stopBGMusic();if(window.BOSS_VIDEO){window.BOSS_VIDEO.currentTime=0;window.BOSS_VIDEO.muted=false;window.BOSS_VIDEO.volume=0.4;window.BOSS_VIDEO.play();}}catch(e){}
@@ -831,6 +832,7 @@ function doAttack(attacker,defender,type,gs){
       if(gs.finishHim&&defender.hp<=0){
         gs.finishHim=false;
         announce(attacker.ch.name+' wins',100);
+        endRound(gs); // ← finish him killing blow → end round
       }
     }
   },delay);
@@ -1228,6 +1230,12 @@ function fightLoop(now){
   // -- ROUND ANNOUNCE (MK style: "ROUND ONE") --
   if(gs.phase==='roundAnnounce'){
     gs.roundAnnTimer--;
+    // Announce round number on FIRST frame of roundAnnounce
+    if(gs.roundAnnTimer===39){
+      var _rNames=['Round One','Round Two','Round Three'];
+      var _rStr=_rNames[gs.round-1]||('Round '+gs.round);
+      announce(_rStr,0);
+    }
     if(gs.roundAnnTimer<=0){gs.phase='countdown';gs.cd=3;gs.cdTick=22;}
   }
 
@@ -1966,19 +1974,21 @@ function showResult(win,gs){
     var sp=$('res-stage-progress');
     if(sp){var dh='';for(var d=0;d<15;d++){var dc=d<G.stage-1?'done':d===G.stage-1?'current':'';dh+='<div class="res-stage-dot '+dc+'"></div>';}sp.innerHTML=dh;}
 
-    // ── Draw winning/losing character on canvas in result screen ──
+    // ── Draw winning/losing character - fills res-char-area ──
     var charArea=$('res-char-area');
     if(charArea){
       charArea.innerHTML='';
       var winCh=win?G.player:opp;
       if(!winCh)winCh=G.player;
-      // Fill the char-area: use screen dimensions
-      var _rH=Math.round(Math.min(window.innerHeight*0.58,320));
-      var _rW=Math.round(Math.min(window.innerWidth*0.65,260));
+      // Use screen dimensions to match the area (100% wide, 60% tall)
+      var _rW=window.innerWidth||360;
+      var _rH=Math.round((window.innerHeight||640)*0.60);
       var rCv=document.createElement('canvas');
       rCv.width=_rW;rCv.height=_rH;
-      rCv.style.cssText='display:block;filter:drop-shadow(0 0 32px '+charCol+'cc);';
-      // Animate the character
+      // Fill the char-area completely
+      rCv.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;filter:drop-shadow(0 0 32px '+charCol+'bb);';
+      // Character height = 80% of area height so head doesn't clip
+      var _charH=Math.round(_rH*0.80);
       var _rF=0;
       var _rPose=win?'punch':'idle';
       if(window._resCharAnim){cancelAnimationFrame(window._resCharAnim);window._resCharAnim=null;}
@@ -1986,7 +1996,8 @@ function showResult(win,gs){
         if(!$('result-screen').classList.contains('active')){window._resCharAnim=null;return;}
         _rF+=1.5;
         var ctx2=rCv.getContext('2d');ctx2.clearRect(0,0,_rW,_rH);
-        drawFighter(ctx2,{x:_rW/2,y:_rH-2,dir:1,ch:winCh,H:_rH*0.9,state:_rPose,af:Math.floor(_rF%24),vy:0,rotAngle:0},_rF);
+        // Draw centered horizontally, feet at bottom of canvas
+        drawFighter(ctx2,{x:_rW/2,y:_rH-4,dir:1,ch:winCh,H:_charH,state:_rPose,af:Math.floor(_rF%24),vy:0,rotAngle:0},_rF);
         window._resCharAnim=requestAnimationFrame(_drawResChar);
       }
       charArea.appendChild(rCv);
@@ -2228,7 +2239,7 @@ function _playVoice(text,delayMs){
   return true;
 }
 
-var _VM={'round one':'v_round1.mp3','round two':'v_round2.mp3','round three':'v_round3.mp3','flawless':'v_flawless.mp3','finish him':'v_finishhim.mp3','finish her':'v_finishher.mp3','you win':'v_youwin.mp3'};
+var _VM={'fight':'v_fight.mp3','round one':'v_round1.mp3','round two':'v_round2.mp3','round three':'v_round3.mp3','flawless':'v_flawless.mp3','finish him':'v_finishhim.mp3','finish her':'v_finishher.mp3','you win':'v_youwin.mp3','you lose':'v_youwin.mp3'};
 var _VA={};
 function _playVoice(text,delayMs){
   var key=text.toLowerCase(),file=null;
@@ -2255,8 +2266,11 @@ function announce(text,delayMs){
   // -- MK AUDIO --
   // Only pre-recorded MP3 on Android. AndroidTTS removed (caused double voice)  
   if(window.AndroidTTS){
-    if(_playVoice(text,delayMs))return; // MP3 matched
-    return; // no match, skip TTS to avoid robot voice
+    if(!_playVoice(text,delayMs)){
+      // No MP3 match on Android — play short beep so it's not silent
+      setTimeout(function(){try{snd('cd');}catch(e){}},delayMs||0);
+    }
+    return;
   }
   // Browser fallback (web version)
   if(_playVoice(text,delayMs))return;
