@@ -147,7 +147,7 @@ function snd(type){try{
     if(!window._sfxPool) window._sfxPool={};
     if(!window._sfxPool[src]) {
       window._sfxPool[src]=[];
-      for(var i=0;i<4;i++){var a=new Audio(src);a.volume=0.85;a.load();window._sfxPool[src].push(a);}
+      for(var i=0;i<4;i++){var a=new Audio(src);a.volume=1.0;a.load();window._sfxPool[src].push(a);}
     }
     var pool=window._sfxPool[src];
     var played=false;
@@ -1895,7 +1895,6 @@ function initStageIntro(){
     if(window._siAnim1){cancelAnimationFrame(window._siAnim1);window._siAnim1=null;}
     if(window._siAnim2){cancelAnimationFrame(window._siAnim2);window._siAnim2=null;}
     snd('fight');
-    _unlockVoices(); // Unlock voice Audio elements NOW (user gesture = autoplay allowed)
     bgmStop();G.screen='vs';showScreen('vs');initVS();
   };}
 }
@@ -2277,28 +2276,9 @@ function _preloadVoices(){
   }
 }
 
-// Unlock voice Audio elements during user gesture — stored in _sfxPool (same as snd())
-// Called from fight button click so Android autoplay is authorized for these elements
-function _unlockVoices(){
-  if(!window._sfxPool) window._sfxPool={};
-  var voiceSrcs=[
-    'voice/v_round1.mp3','voice/v_round2.mp3','voice/v_round3.mp3',
-    'voice/v_fight.mp3','voice/v_youwin.mp3',
-    'voice/v_finishhim.mp3','voice/v_finishher.mp3','voice/v_flawless.mp3'
-  ];
-  voiceSrcs.forEach(function(src){
-    // Create pool if not yet created (same as snd() would do)
-    if(!window._sfxPool[src]){
-      window._sfxPool[src]=[];
-      for(var i=0;i<2;i++){var a=new Audio(src);a.volume=0.95;a.load();window._sfxPool[src].push(a);}
-    }
-    // Play+pause each at vol=0 during gesture = UNLOCKED for future play()
-    window._sfxPool[src].forEach(function(a){
-      a.volume=0;
-      a.play().then(function(){a.pause();a.currentTime=0;a.volume=0.95;}).catch(function(){});
-    });
-  });
-}
+// Voice pools are created by snd() on first call — no unlock needed
+// (setMediaPlaybackRequiresUserGesture=false in MainActivity)
+function _unlockVoices(){/* Not needed — MediaPlaybackRequiresUserGesture=false */}
 
 function _playVoice(text,delayMs){
   var key=text.toLowerCase(),type=null;
