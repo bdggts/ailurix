@@ -1941,9 +1941,10 @@ function showResult(win,gs){
 
   // ── Visual: dynamic background + character canvas + particles ──
   try{
-    var col=champion?'#f59e0b':win?'#22c55e':'#ef4444';
-    var glowCol=champion?'rgba(245,158,11,':'rgba(34,197,94,';
-    var c1=champion?'rgba(245,158,11,.38)':win?'rgba(34,197,94,.32)':'rgba(220,38,38,.38)';
+    // WIN = gold, LOSE = dark red (no green)
+    var col=champion?'#f59e0b':win?'#f59e0b':'#dc2626';
+    var c1=champion?'rgba(245,158,11,.45)':win?'rgba(245,158,11,.35)':'rgba(220,38,38,.4)';
+    var charCol=win?(G.player?G.player.color:'#f59e0b'):(opp?opp.color:'#ef4444');
 
     // Set CSS vars for dynamic background glow
     var rs=$('result-screen');
@@ -1971,11 +1972,12 @@ function showResult(win,gs){
       charArea.innerHTML='';
       var winCh=win?G.player:opp;
       if(!winCh)winCh=G.player;
-      var _rH=Math.round(Math.min(window.innerHeight*0.52,280));
-      var _rW=Math.round(_rH*0.72);
+      // Fill the char-area: use screen dimensions
+      var _rH=Math.round(Math.min(window.innerHeight*0.58,320));
+      var _rW=Math.round(Math.min(window.innerWidth*0.65,260));
       var rCv=document.createElement('canvas');
       rCv.width=_rW;rCv.height=_rH;
-      rCv.style.cssText='display:block;filter:drop-shadow(0 0 28px '+col+'88);';
+      rCv.style.cssText='display:block;filter:drop-shadow(0 0 32px '+charCol+'cc);';
       // Animate the character
       var _rF=0;
       var _rPose=win?'punch':'idle';
@@ -1984,26 +1986,28 @@ function showResult(win,gs){
         if(!$('result-screen').classList.contains('active')){window._resCharAnim=null;return;}
         _rF+=1.5;
         var ctx2=rCv.getContext('2d');ctx2.clearRect(0,0,_rW,_rH);
-        drawFighter(ctx2,{x:_rW/2,y:_rH-2,dir:1,ch:winCh,H:_rH*0.84,state:_rPose,af:Math.floor(_rF%24),vy:0,rotAngle:0},_rF);
+        drawFighter(ctx2,{x:_rW/2,y:_rH-2,dir:1,ch:winCh,H:_rH*0.9,state:_rPose,af:Math.floor(_rF%24),vy:0,rotAngle:0},_rF);
         window._resCharAnim=requestAnimationFrame(_drawResChar);
       }
       charArea.appendChild(rCv);
       window._resCharAnim=requestAnimationFrame(_drawResChar);
     }
 
-    // ── Particles (only for win) ──
+    // ── Particles (only for win) using character color ──
     var pp=$('res-particles');
     if(pp){
       pp.innerHTML='';
       if(win){
-        for(var pi=0;pi<18;pi++){
+        for(var pi=0;pi<20;pi++){
           var pd=document.createElement('div');
           pd.className='res-particle';
-          var ps=4+Math.random()*8;
+          var ps=3+Math.random()*9;
           var px=Math.random()*100;
-          var pDelay=Math.random()*2;
-          var pDur=2.5+Math.random()*2.5;
-          pd.style.cssText='width:'+ps+'px;height:'+ps+'px;left:'+px+'%;bottom:0;background:'+col+';opacity:'+(0.4+Math.random()*0.5)+';animation-duration:'+pDur+'s;animation-delay:-'+pDelay+'s;box-shadow:0 0 6px '+col+';';
+          var pDelay=Math.random()*2.5;
+          var pDur=2+Math.random()*3;
+          // Mix character color with gold
+          var pCol=pi%3===0?'#f59e0b':charCol;
+          pd.style.cssText='width:'+ps+'px;height:'+ps+'px;left:'+px+'%;bottom:0;background:'+pCol+';opacity:'+(0.45+Math.random()*0.5)+';animation-duration:'+pDur+'s;animation-delay:-'+pDelay+'s;box-shadow:0 0 8px '+pCol+';';
           pp.appendChild(pd);
         }
       }
