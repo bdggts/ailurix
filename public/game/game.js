@@ -1906,7 +1906,15 @@ function initStageIntro(){
         _loadVoiceBuffers();
       }
     }catch(e){}
-    // GESTURE TEST: Play voice directly from click — if heard = Java works ✓
+    // DEBUG OVERLAY: Show if AndroidAudio/TTS accessible in JS
+    (function(){
+      var dbg=document.createElement('div');
+      dbg.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.9);color:#0f0;font-size:18px;padding:20px;z-index:9999;border:2px solid #0f0;text-align:center;';
+      dbg.innerHTML='AA:'+(typeof window.AndroidAudio)+'<br>TTS:'+(typeof window.AndroidTTS)+'<br>AC:'+(typeof window.AudioContext);
+      document.body.appendChild(dbg);
+      setTimeout(function(){document.body.removeChild(dbg);},4000);
+    })();
+    // GESTURE TEST: Play voice directly from click
     try{if(window.AndroidAudio)window.AndroidAudio.playVoice('voice/v_round1.mp3');}catch(e){}
     try{if(window.AndroidTTS)window.AndroidTTS.speak('Round One. Fight!');}catch(e){}
     snd('fight');
