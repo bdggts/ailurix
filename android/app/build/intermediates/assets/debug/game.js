@@ -2321,6 +2321,8 @@ function announce(text,delayMs){
   if(!el){el=document.createElement('div');el.id='announce';el.className='announce-overlay';document.body.appendChild(el);}
   el.textContent=text;el.classList.add('active');
   setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs, 1000):2500);
+  // DIAGNOSTIC: AudioContext beep (same as countdown, PROVEN to work) — remove after debug
+  try{beep(880,'sine',0.4,0.15);setTimeout(function(){beep(1100,'sine',0.3,0.1);},180);}catch(e){}
 
   // -- AUDIO: All 3 layers — MP3, Java TTS, Web Speech --
   _playVoice(text,delayMs); // MP3 pool
