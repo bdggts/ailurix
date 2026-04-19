@@ -2315,47 +2315,25 @@ function announce(text,delayMs){
   el.textContent=text;el.classList.add('active');
   setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs, 1000):2500);
 
-  // -- MK AUDIO (ANDROID) --
-  // AndroidTTS = Java native TTS (guaranteed). MP3 also tried as bonus.
-  if(window.AndroidTTS){
-    // Java TTS is GUARANTEED to work (native Android) — use as primary
-    setTimeout(function(){
-      try{window.AndroidTTS.speak(toSpeech(text));}catch(e){}
-    }, delayMs||0);
-    // Also try MP3 (bonus — if it works, great; if not, TTS covers it)
-    _playVoice(text,delayMs);
-    return;
-  }
-  // Browser fallback (web version)
-  if(_playVoice(text,delayMs))return;
+  // -- AUDIO: MP3 + Speech (both layers for maximum reliability) --
+  // MP3 pool attempt (bonus if loaded)
+  _playVoice(text,delayMs);
+  // Speech voice — GUARANTEED: either Android TTS or Web Speech Synthesis
   setTimeout(function(){
     try{
-      if(!window.speechSynthesis)return;
-      if(!_voicesLoaded)_loadVoices();
+      if(window.AndroidTTS){
+        // Java native TTS
+        window.AndroidTTS.speak(toSpeech(text));
+        return;
+      }
+      // Web Speech (confirmed working in earlier builds)
+      if(!window.speechSynthesis) return;
       speechSynthesis.cancel();
-
-      // Estimate speech duration (rough: 1 char = 60ms at rate 0.48)
-      var estDur=Math.max(800, toSpeech(text).length*65);
-      _mkVoiceEffect(estDur);
-
-      setTimeout(function(){
-        try{
-          var u=new SpeechSynthesisUtterance(toSpeech(text));
-          // MK exact settings — pitch=0 = lowest possible = DEEPEST
-          u.rate=0.48; u.pitch=0; u.volume=1;
-          var v=null;
-          if(_selectedVoiceIdx>=0){
-            var all3=speechSynthesis.getVoices();
-            var eng3=all3.filter(function(x){return x.lang.indexOf('en')===0;});
-            v=eng3[_selectedVoiceIdx]||null;
-          }
-          if(!v)v=_getVoice();
-          if(v)u.voice=v;
-          _lastUtterance=u;speechSynthesis.speak(u);
-        }catch(e){}
-      },80);
+      var u=new SpeechSynthesisUtterance(toSpeech(text));
+      u.rate=0.52; u.pitch=0.1; u.volume=1;
+      speechSynthesis.speak(u);
     }catch(e){}
-  },delayMs||0);
+  }, delayMs||0);
 }
 
 (function initVoicePickerUI(){
