@@ -1894,6 +1894,18 @@ function initStageIntro(){
   if(fb){fb.onclick=function(){
     if(window._siAnim1){cancelAnimationFrame(window._siAnim1);window._siAnim1=null;}
     if(window._siAnim2){cancelAnimationFrame(window._siAnim2);window._siAnim2=null;}
+    // CRITICAL: Resume AudioContext NOW in gesture context (required on Android)
+    try{
+      if(!AC_ctx)AC_ctx=new(window.AudioContext||window.webkitAudioContext)();
+      if(AC_ctx.state==='suspended'){
+        AC_ctx.resume().then(function(){
+          // AC is now running — preload voice files as AudioBuffers
+          _loadVoiceBuffers();
+        }).catch(function(){});
+      } else {
+        _loadVoiceBuffers();
+      }
+    }catch(e){}
     snd('fight');
     bgmStop();G.screen='vs';showScreen('vs');initVS();
   };}
@@ -2263,8 +2275,42 @@ var _VM={
 };
 var _VA={}; // pre-loaded Audio pool, same pattern as snd()
 
-// Preload all voice MP3s into _sfxPool (SAME pool snd() uses)
-// Called from initSelect → user has 10-30s to browse chars = files fully loaded by fight time
+// Voice AudioBuffers — loaded via XHR + decodeAudioData (WebAudio API, no HTML5 restrictions)
+var _voiceBufs={};
+var _voiceFiles={
+  'v_round1':'voice/v_round1.mp3','v_round2':'voice/v_round2.mp3',
+  'v_round3':'voice/v_round3.mp3','v_fight':'voice/v_fight.mp3',
+  'v_youwin':'voice/v_youwin.mp3','v_finishhim':'voice/v_finishhim.mp3',
+  'v_finishher':'voice/v_finishhim.mp3','v_flawless':'voice/v_flawless.mp3'
+};
+
+// Load all voice files via XHR → decodeAudioData (WebAudio, works in Android WebView assets)
+function _loadVoiceBuffers(){
+  var ac=AC();if(!ac)return;
+  Object.keys(_voiceFiles).forEach(function(k){
+    if(_voiceBufs[k])return; // already loaded
+    (function(key,src){
+      try{
+        var xhr=new XMLHttpRequest();
+        xhr.open('GET',src,true);
+        xhr.responseType='arraybuffer';
+        xhr.onload=function(){
+          if(xhr.status===200||xhr.status===0){
+            try{
+              ac.decodeAudioData(xhr.response,function(buf){
+                _voiceBufs[key]=buf;
+              },function(){});
+            }catch(e){}
+          }
+        };
+        xhr.onerror=function(){};
+        xhr.send();
+      }catch(e){}
+    })(k,_voiceFiles[k]);
+  });
+}
+
+// Also try preloading into snd() pool (HTML5 audio fallback)
 function _preloadVoices(){
   if(!window._sfxPool) window._sfxPool={};
   var voiceSrcs=[
@@ -2276,18 +2322,15 @@ function _preloadVoices(){
     if(!window._sfxPool[src]){
       window._sfxPool[src]=[];
       for(var i=0;i<3;i++){
-        var a=new Audio(src);
-        a.volume=1.0;
-        a.load(); // Start loading NOW while user is on select screen
+        var a=new Audio(src);a.volume=1.0;a.load();
         window._sfxPool[src].push(a);
       }
     }
   });
 }
 
-// Voice pools are created by snd() on first call — no unlock needed
-// (setMediaPlaybackRequiresUserGesture=false in MainActivity)
-function _unlockVoices(){/* Not needed — MediaPlaybackRequiresUserGesture=false */}
+// No unlock needed: setMediaPlaybackRequiresUserGesture=false in MainActivity
+function _unlockVoices(){}// stub
 
 function _playVoice(text,delayMs){
   var key=text.toLowerCase(),type=null,elId=null;
@@ -2301,12 +2344,24 @@ function _playVoice(text,delayMs){
   else if(key.indexOf('flawless')>=0){type='v_flawless';elId='va_flawless';}
   if(!type) return false;
   setTimeout(function(){
-    // PRIMARY: HTML <audio> element (preloaded in index-mobile.html, no autoplay issues)
-    var el=document.getElementById(elId);
-    if(el){
-      try{el.currentTime=0;var p=el.play();if(p&&p.catch)p.catch(function(){});}catch(e){}
+    var played=false;
+    // PRIMARY: WebAudio AudioBuffer (XHR loaded, no HTML5 restriction)
+    var ac=AC();
+    if(ac&&ac.state==='running'&&_voiceBufs[type]){
+      try{
+        var src2=ac.createBufferSource();
+        src2.buffer=_voiceBufs[type];
+        src2.connect(ac.destination);
+        src2.start(0);
+        played=true;
+      }catch(e){}
     }
-    // FALLBACK: snd() pool
+    // FALLBACK: HTML <audio> element (preloaded in HTML)
+    if(!played){
+      var el=document.getElementById(elId);
+      if(el){try{el.currentTime=0;var p=el.play();if(p&&p.catch)p.catch(function(){});}catch(e){}}
+    }
+    // FALLBACK2: snd() pool
     snd(type);
   },delayMs||0);
   return true;

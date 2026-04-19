@@ -1,9 +1,10 @@
 {
     "versionCode":  106,
     "versionName":  "15.7.2",
-    "apkUrl":  "https://github.com/bdggts/ailurix/raw/refs/heads/main/public/ailurix_arena_v15_11_1.apk",
+    "apkUrl":  "https://github.com/bdggts/ailurix/raw/refs/heads/main/public/ailurix_arena_v15_11_2.apk",
     "changelog":  "v15.7.2: Tap preview to punch/kick, no text labels, fix tall char height"
 }
+
 
 
 
