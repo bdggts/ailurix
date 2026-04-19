@@ -2315,23 +2315,19 @@ function announce(text,delayMs){
   el.textContent=text;el.classList.add('active');
   setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs, 1000):2500);
 
-  // -- AUDIO: MP3 + Speech (both layers for maximum reliability) --
-  // MP3 pool attempt (bonus if loaded)
-  _playVoice(text,delayMs);
-  // Speech voice — GUARANTEED: either Android TTS or Web Speech Synthesis
+  // -- AUDIO: All 3 layers — MP3, Java TTS, Web Speech --
+  _playVoice(text,delayMs); // MP3 pool
   setTimeout(function(){
     try{
-      if(window.AndroidTTS){
-        // Java native TTS
-        window.AndroidTTS.speak(toSpeech(text));
-        return;
+      // Java TTS (if available)
+      if(window.AndroidTTS) window.AndroidTTS.speak(toSpeech(text));
+      // Web Speech Synthesis — ALWAYS run (confirmed working, no conditions)
+      if(window.speechSynthesis){
+        speechSynthesis.cancel();
+        var u=new SpeechSynthesisUtterance(toSpeech(text));
+        u.rate=0.52; u.pitch=0.1; u.volume=1;
+        speechSynthesis.speak(u);
       }
-      // Web Speech (confirmed working in earlier builds)
-      if(!window.speechSynthesis) return;
-      speechSynthesis.cancel();
-      var u=new SpeechSynthesisUtterance(toSpeech(text));
-      u.rate=0.52; u.pitch=0.1; u.volume=1;
-      speechSynthesis.speak(u);
     }catch(e){}
   }, delayMs||0);
 }
