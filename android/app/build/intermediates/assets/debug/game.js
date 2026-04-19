@@ -2290,18 +2290,25 @@ function _preloadVoices(){
 function _unlockVoices(){/* Not needed — MediaPlaybackRequiresUserGesture=false */}
 
 function _playVoice(text,delayMs){
-  var key=text.toLowerCase(),type=null;
-  // Map text to snd() type — uses PROVEN pool system same as punch/kick
-  if(key.indexOf('round one')>=0) type='v_round1';
-  else if(key.indexOf('round two')>=0) type='v_round2';
-  else if(key.indexOf('round three')>=0) type='v_round3';
-  else if(key.indexOf('fight')>=0) type='v_fight';
-  else if(key.indexOf('you win')>=0||key.indexOf('you lose')>=0) type='v_youwin';
-  else if(key.indexOf('finish him')>=0) type='v_finishhim';
-  else if(key.indexOf('finish her')>=0) type='v_finishher';
-  else if(key.indexOf('flawless')>=0) type='v_flawless';
+  var key=text.toLowerCase(),type=null,elId=null;
+  if(key.indexOf('round one')>=0){type='v_round1';elId='va_round1';}
+  else if(key.indexOf('round two')>=0){type='v_round2';elId='va_round2';}
+  else if(key.indexOf('round three')>=0){type='v_round3';elId='va_round3';}
+  else if(key.indexOf('fight')>=0){type='v_fight';elId='va_fight';}
+  else if(key.indexOf('you win')>=0||key.indexOf('you lose')>=0){type='v_youwin';elId='va_youwin';}
+  else if(key.indexOf('finish him')>=0){type='v_finishhim';elId='va_finishhim';}
+  else if(key.indexOf('finish her')>=0){type='v_finishhim';elId='va_finishhim';}
+  else if(key.indexOf('flawless')>=0){type='v_flawless';elId='va_flawless';}
   if(!type) return false;
-  setTimeout(function(){snd(type);},delayMs||0);
+  setTimeout(function(){
+    // PRIMARY: HTML <audio> element (preloaded in index-mobile.html, no autoplay issues)
+    var el=document.getElementById(elId);
+    if(el){
+      try{el.currentTime=0;var p=el.play();if(p&&p.catch)p.catch(function(){});}catch(e){}
+    }
+    // FALLBACK: snd() pool
+    snd(type);
+  },delayMs||0);
   return true;
 }
 
