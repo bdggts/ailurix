@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
+import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -31,7 +34,7 @@ import java.net.URL;
 public class MainActivity extends Activity {
 
     // Current APK version — bump this with every new build
-    private static final int    CURRENT_VERSION_CODE = 139;
+    private static final int    CURRENT_VERSION_CODE = 140;
     private static final String VERSION_CHECK_URL    = "https://www.ailurix.com/game-version.json";
 
     private WebView webView;
@@ -100,8 +103,10 @@ public class MainActivity extends Activity {
             }
         });
 
-        // Android TTS interface — replaces unreliable WebView SpeechSynthesis
+        // Android TTS interface
         webView.addJavascriptInterface(new AndroidTTS(), "AndroidTTS");
+        // Native MediaPlayer interface — 100% reliable, no WebView audio restrictions
+        webView.addJavascriptInterface(new SoundPlayer(), "AndroidAudio");
 
         // Load mobile-optimized UI (Chrome keeps index.html, app uses index-mobile.html)
         webView.loadUrl("file:///android_asset/index-mobile.html");
@@ -176,6 +181,36 @@ public class MainActivity extends Activity {
     }
 
     @Override public void onBackPressed() { /* Block back button */ }
+
+    // ── NATIVE MEDIAPLAYER INTERFACE ─────────────────────────────────
+    // Called from JS as: window.AndroidAudio.playVoice('voice/v_round1.mp3')
+    // Uses Android AssetManager + MediaPlayer — zero WebView audio restrictions
+    private class SoundPlayer {
+        @JavascriptInterface
+        public void playVoice(final String assetPath) {
+            new Thread(new Runnable() {
+                @Override public void run() {
+                    MediaPlayer mp = new MediaPlayer();
+                    try {
+                        AssetFileDescriptor afd = getAssets().openFd(assetPath);
+                        mp.setDataSource(afd.getFileDescriptor(),
+                                         afd.getStartOffset(),
+                                         afd.getLength());
+                        afd.close();
+                        mp.prepare();
+                        mp.setVolume(1f, 1f);
+                        mp.start();
+                        // Release after playback finishes
+                        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            @Override public void onCompletion(MediaPlayer p) { p.release(); }
+                        });
+                    } catch (Exception e) {
+                        mp.release();
+                    }
+                }
+            }).start();
+        }
+    }
 
     // ── ANDROID TTS INTERFACE ────────────────────────────────────────
     // NOTE: @JavascriptInterface runs on BG thread — must runOnUiThread!

@@ -2344,8 +2344,14 @@ function _playVoice(text,delayMs){
   else if(key.indexOf('flawless')>=0){type='v_flawless';elId='va_flawless';}
   if(!type) return false;
   setTimeout(function(){
+    var voiceSrc=_voiceFiles[type]||('voice/'+type+'.mp3');
+    // PRIMARY: Native Android MediaPlayer (Java, zero WebView restrictions)
+    if(window.AndroidAudio){
+      try{window.AndroidAudio.playVoice(voiceSrc);}catch(e){}
+      return; // Java MediaPlayer handles it — no need for fallbacks
+    }
+    // FALLBACK: WebAudio AudioBuffer (XHR loaded)
     var played=false;
-    // PRIMARY: WebAudio AudioBuffer (XHR loaded, no HTML5 restriction)
     var ac=AC();
     if(ac&&ac.state==='running'&&_voiceBufs[type]){
       try{
@@ -2356,12 +2362,12 @@ function _playVoice(text,delayMs){
         played=true;
       }catch(e){}
     }
-    // FALLBACK: HTML <audio> element (preloaded in HTML)
+    // FALLBACK2: HTML <audio> element
     if(!played){
       var el=document.getElementById(elId);
       if(el){try{el.currentTime=0;var p=el.play();if(p&&p.catch)p.catch(function(){});}catch(e){}}
     }
-    // FALLBACK2: snd() pool
+    // FALLBACK3: snd() pool
     snd(type);
   },delayMs||0);
   return true;
