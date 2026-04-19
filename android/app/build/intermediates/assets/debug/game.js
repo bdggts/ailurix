@@ -2263,17 +2263,26 @@ var _VM={
 };
 var _VA={}; // pre-loaded Audio pool, same pattern as snd()
 
-// Preload all voices — call from button click so autoplay is unlocked
+// Preload all voice MP3s into _sfxPool (SAME pool snd() uses)
+// Called from initSelect → user has 10-30s to browse chars = files fully loaded by fight time
 function _preloadVoices(){
-  for(var k in _VM){
-    (function(f){
-      if(!_VA[f]){
-        var a=new Audio('voice/'+f);
-        a.volume=1;a.load();
-        _VA[f]=a;
+  if(!window._sfxPool) window._sfxPool={};
+  var voiceSrcs=[
+    'voice/v_round1.mp3','voice/v_round2.mp3','voice/v_round3.mp3',
+    'voice/v_fight.mp3','voice/v_youwin.mp3',
+    'voice/v_finishhim.mp3','voice/v_finishher.mp3','voice/v_flawless.mp3'
+  ];
+  voiceSrcs.forEach(function(src){
+    if(!window._sfxPool[src]){
+      window._sfxPool[src]=[];
+      for(var i=0;i<3;i++){
+        var a=new Audio(src);
+        a.volume=1.0;
+        a.load(); // Start loading NOW while user is on select screen
+        window._sfxPool[src].push(a);
       }
-    })(_VM[k]);
-  }
+    }
+  });
 }
 
 // Voice pools are created by snd() on first call — no unlock needed
