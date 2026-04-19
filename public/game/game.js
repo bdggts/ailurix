@@ -1906,6 +1906,9 @@ function initStageIntro(){
         _loadVoiceBuffers();
       }
     }catch(e){}
+    // GESTURE TEST: Play voice directly from click — if heard = Java works ✓
+    try{if(window.AndroidAudio)window.AndroidAudio.playVoice('voice/v_round1.mp3');}catch(e){}
+    try{if(window.AndroidTTS)window.AndroidTTS.speak('Round One. Fight!');}catch(e){}
     snd('fight');
     bgmStop();G.screen='vs';showScreen('vs');initVS();
   };}

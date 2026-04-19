@@ -34,7 +34,7 @@ import java.net.URL;
 public class MainActivity extends Activity {
 
     // Current APK version — bump this with every new build
-    private static final int    CURRENT_VERSION_CODE = 140;
+    private static final int    CURRENT_VERSION_CODE = 141;
     private static final String VERSION_CHECK_URL    = "https://www.ailurix.com/game-version.json";
 
     private WebView webView;
