@@ -2286,16 +2286,18 @@ function _announceType(text){
 
 
 function announce(text,delayMs){
-  // UI Overlay
+  // UI Overlay — shows AC state + AA status for diagnostics
+  var ac=AC();
+  var acState=ac?ac.state:'no-ac';
+  var aaState=window.AndroidAudio?'AA:ok':'AA:no';
   var el=$('announce');
   if(!el){el=document.createElement('div');el.id='announce';el.className='announce-overlay';document.body.appendChild(el);}
-  el.textContent=text;
+  el.textContent=text+'\n['+acState+'|'+aaState+']';
   el.classList.add('active');
   setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs,1000):2500);
-  // Audio: PRIMARY = Java MediaPlayer (no restrictions), FALLBACK = snd() beep+pool
+  // Audio: PRIMARY = Java MediaPlayer, FALLBACK = force-resume AC then beep
   var type=_announceType(text);
   if(type){
-    var voiceFile='voice/'+type.replace('v_','')+'.mp3';
     var voiceSrcMap={
       'v_round1':'voice/v_round1.mp3','v_round2':'voice/v_round2.mp3',
       'v_round3':'voice/v_round3.mp3','v_fight':'voice/v_fight.mp3',
@@ -2303,10 +2305,22 @@ function announce(text,delayMs){
       'v_finishher':'voice/v_finishhim.mp3','v_flawless':'voice/v_flawless.mp3'
     };
     var vf=voiceSrcMap[type]||('voice/'+type+'.mp3');
+    var t=type;
     setTimeout(function(){
+      // Try Java MediaPlayer first
       var played=false;
       if(window.AndroidAudio){try{window.AndroidAudio.playVoice(vf);played=true;}catch(e){}}
-      if(!played)snd(type); // beep() fallback
+      // Fallback: force AC resume then beep
+      if(!played){
+        var a=AC();
+        if(a){
+          if(a.state==='suspended'){
+            a.resume().then(function(){snd(t);}).catch(function(){snd(t);});
+          }else{
+            snd(t);
+          }
+        }
+      }
     },delayMs||0);
   }
 }
