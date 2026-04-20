@@ -1894,29 +1894,39 @@ function initStageIntro(){
   if(fb){fb.onclick=function(){
     if(window._siAnim1){cancelAnimationFrame(window._siAnim1);window._siAnim1=null;}
     if(window._siAnim2){cancelAnimationFrame(window._siAnim2);window._siAnim2=null;}
-    // CRITICAL: Resume AudioContext NOW in gesture context (required on Android)
+    // PRIME VOICES IN GESTURE CONTEXT: start+pause each voice file so Android
+    // grants playback permission. Later play() from RAF will work on these elements.
+    try{
+      var voiceList=[
+        'voice/v_round1.mp3','voice/v_round2.mp3','voice/v_round3.mp3',
+        'voice/v_fight.mp3','voice/v_youwin.mp3',
+        'voice/v_finishhim.mp3','voice/v_flawless.mp3'
+      ];
+      window._primedVoices={};
+      voiceList.forEach(function(src){
+        var a=new Audio(src);
+        a.volume=0.001; // near-silent so priming isn't heard
+        var p=a.play();
+        if(p&&p.then){
+          p.then(function(){
+            a.pause();
+            a.currentTime=0;
+            a.volume=1.0;
+            window._primedVoices[src]=a; // ready to play
+          }).catch(function(){});
+        }else{
+          try{a.pause();a.currentTime=0;a.volume=1.0;window._primedVoices[src]=a;}catch(e){}
+        }
+      });
+    }catch(e){}
+    // Resume AudioContext in gesture
     try{
       if(!AC_ctx)AC_ctx=new(window.AudioContext||window.webkitAudioContext)();
-      if(AC_ctx.state==='suspended'){
-        AC_ctx.resume().then(function(){
-          // AC is now running — preload voice files as AudioBuffers
-          _loadVoiceBuffers();
-        }).catch(function(){});
-      } else {
-        _loadVoiceBuffers();
-      }
+      if(AC_ctx.state==='suspended'){AC_ctx.resume().then(function(){_loadVoiceBuffers();}).catch(function(){});}
+      else{_loadVoiceBuffers();}
     }catch(e){}
-    // DEBUG OVERLAY: Show if AndroidAudio/TTS accessible in JS
-    (function(){
-      var dbg=document.createElement('div');
-      dbg.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.9);color:#0f0;font-size:18px;padding:20px;z-index:9999;border:2px solid #0f0;text-align:center;';
-      dbg.innerHTML='AA:'+(typeof window.AndroidAudio)+'<br>TTS:'+(typeof window.AndroidTTS)+'<br>AC:'+(typeof window.AudioContext);
-      document.body.appendChild(dbg);
-      setTimeout(function(){document.body.removeChild(dbg);},4000);
-    })();
-    // GESTURE TEST: Play voice directly from click
-    try{if(window.AndroidAudio)window.AndroidAudio.playVoice('voice/v_round1.mp3');}catch(e){}
-    try{if(window.AndroidTTS)window.AndroidTTS.speak('Round One. Fight!');}catch(e){}
+    // TTS test from gesture
+    try{if(window.AndroidTTS)window.AndroidTTS.speak('round one. fight');}catch(e){}
     snd('fight');
     bgmStop();G.screen='vs';showScreen('vs');initVS();
   };}
@@ -2356,28 +2366,35 @@ function _playVoice(text,delayMs){
   if(!type) return false;
   setTimeout(function(){
     var voiceSrc=_voiceFiles[type]||('voice/'+type+'.mp3');
-    // PRIMARY: Native Android MediaPlayer (Java, zero WebView restrictions)
-    if(window.AndroidAudio){
-      try{window.AndroidAudio.playVoice(voiceSrc);}catch(e){}
-      return; // Java MediaPlayer handles it — no need for fallbacks
-    }
-    // FALLBACK: WebAudio AudioBuffer (XHR loaded)
     var played=false;
-    var ac=AC();
-    if(ac&&ac.state==='running'&&_voiceBufs[type]){
+    // PRIMARY: Primed Audio element (play+paused in fight gesture — Android unlocked)
+    if(window._primedVoices&&window._primedVoices[voiceSrc]){
       try{
-        var src2=ac.createBufferSource();
-        src2.buffer=_voiceBufs[type];
-        src2.connect(ac.destination);
-        src2.start(0);
+        var pa=window._primedVoices[voiceSrc];
+        delete window._primedVoices[voiceSrc]; // use once
+        pa.currentTime=0;pa.volume=1;
+        pa.play().catch(function(){});
         played=true;
       }catch(e){}
     }
-    // FALLBACK2: HTML <audio> element
-    if(!played){
-      var el=document.getElementById(elId);
-      if(el){try{el.currentTime=0;var p=el.play();if(p&&p.catch)p.catch(function(){});}catch(e){}}
+    // FALLBACK: Native Android MediaPlayer
+    if(!played&&window.AndroidAudio){
+      try{window.AndroidAudio.playVoice(voiceSrc);played=true;}catch(e){}
     }
+    // FALLBACK2: WebAudio AudioBuffer
+    if(!played){
+      var ac=AC();
+      if(ac&&ac.state==='running'&&_voiceBufs[type]){
+        try{var bs=ac.createBufferSource();bs.buffer=_voiceBufs[type];bs.connect(ac.destination);bs.start(0);played=true;}catch(e){}
+      }
+    }
+    // FALLBACK3: HTML audio element
+    if(!played){
+      var el2=document.getElementById(elId);
+      if(el2){try{el2.currentTime=0;el2.play().catch(function(){});}catch(e){}}
+    }
+    // FALLBACK4: snd() pool
+    snd(type);
     // FALLBACK3: snd() pool
     snd(type);
   },delayMs||0);
@@ -2391,17 +2408,9 @@ function announce(text,delayMs){
   // -- UI Overlay --
   var el=$('announce');
   if(!el){el=document.createElement('div');el.id='announce';el.className='announce-overlay';document.body.appendChild(el);}
-  // Debug: first announcement shows interface status
-  if(!window._dbgDone){
-    window._dbgDone=true;
-    el.innerHTML=text+'<br><small style="font-size:12px;color:#0f0">AA:'+(typeof window.AndroidAudio)+' TTS:'+(typeof window.AndroidTTS)+'</small>';
-  } else {
-    el.textContent=text;
-  }
+  el.textContent=text;
   el.classList.add('active');
-  setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs, 2000):3500);
-  // DIAGNOSTIC: AudioContext beep (same as countdown, PROVEN to work) — remove after debug
-  try{beep(880,'sine',0.4,0.15);setTimeout(function(){beep(1100,'sine',0.3,0.1);},180);}catch(e){}
+  setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs, 1000):2500);
 
   // -- AUDIO: All 3 layers — MP3, Java TTS, Web Speech --
   _playVoice(text,delayMs); // MP3 pool
