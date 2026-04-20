@@ -2303,7 +2303,9 @@ function announce(text,delayMs){
   // UI Overlay (restored plain textContent — CSS is white-space:nowrap so no multi-line)
   var el=$('announce');
   if(!el){el=document.createElement('div');el.id='announce';el.className='announce-overlay';document.body.appendChild(el);}
-  el.textContent=text;
+  // Show diagnostic INSIDE the large announce text (CSS will uppercase it — can't miss it)
+  el.style.whiteSpace='pre-wrap';
+  el.textContent=acState+'|AA:'+aaState+'\n'+text;
   el.classList.add('active');
   setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs,1000):2500);
   // Audio
