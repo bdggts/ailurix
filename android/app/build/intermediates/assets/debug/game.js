@@ -2286,16 +2286,27 @@ function _announceType(text){
 
 
 function announce(text,delayMs){
-  // UI Overlay — shows AC state + AA status for diagnostics
   var ac=AC();
   var acState=ac?ac.state:'no-ac';
-  var aaState=window.AndroidAudio?'AA:ok':'AA:no';
+  var aaState=window.AndroidAudio?'Y':'N';
+  // Always-visible diagnostic div (bottom-left, not clipped by announce overlay)
+  try{
+    var dbg=document.getElementById('__dbg__');
+    if(!dbg){dbg=document.createElement('div');dbg.id='__dbg__';
+      dbg.style.cssText='position:fixed;bottom:10px;left:10px;background:rgba(0,0,0,.9);color:#0f0;'+
+        'font-size:11px;padding:3px 6px;z-index:99999;font-family:monospace;border-radius:3px';
+      document.body.appendChild(dbg);}
+    dbg.textContent='AC:'+acState+'|AA:'+aaState;
+  }catch(e){}
+  // Native Toast if bridge exists
+  try{if(window.AndroidAudio)window.AndroidAudio.showToast('AC:'+acState+'|AA:Y');}catch(e){}
+  // UI Overlay (restored plain textContent — CSS is white-space:nowrap so no multi-line)
   var el=$('announce');
   if(!el){el=document.createElement('div');el.id='announce';el.className='announce-overlay';document.body.appendChild(el);}
-  el.innerHTML='<b>'+text+'</b><br><span style="font-size:0.45em;font-weight:normal;opacity:0.9">['+acState+'|'+aaState+']</span>';
+  el.textContent=text;
   el.classList.add('active');
   setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs,1000):2500);
-  // Audio: PRIMARY = Java MediaPlayer, FALLBACK = force-resume AC then beep
+  // Audio
   var type=_announceType(text);
   if(type){
     var voiceSrcMap={
@@ -2307,18 +2318,13 @@ function announce(text,delayMs){
     var vf=voiceSrcMap[type]||('voice/'+type+'.mp3');
     var t=type;
     setTimeout(function(){
-      // Try Java MediaPlayer first
       var played=false;
       if(window.AndroidAudio){try{window.AndroidAudio.playVoice(vf);played=true;}catch(e){}}
-      // Fallback: force AC resume then beep
       if(!played){
         var a=AC();
         if(a){
-          if(a.state==='suspended'){
-            a.resume().then(function(){snd(t);}).catch(function(){snd(t);});
-          }else{
-            snd(t);
-          }
+          if(a.state==='suspended'){a.resume().then(function(){snd(t);}).catch(function(){snd(t);});}
+          else{snd(t);}
         }
       }
     },delayMs||0);
