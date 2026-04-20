@@ -201,7 +201,6 @@ function bgmPlay(key){
 // =========================================================
 var _voices=[];
 var _voicesLoaded=false;
-var _lastUtterance=null;
 function _loadVoices(){
   if(!window.speechSynthesis)return;
   try{var v=speechSynthesis.getVoices();if(v&&v.length>0){_voices=v;_voicesLoaded=true;}}catch(e){}
@@ -209,7 +208,6 @@ function _loadVoices(){
 _loadVoices();
 if(window.speechSynthesis){
   try{speechSynthesis.onvoiceschanged=function(){_loadVoices();};}catch(e){}
-  setTimeout(_loadVoices,500);setTimeout(_loadVoices,2000);
 }
 function _getVoice(){
   if(!_voicesLoaded)_loadVoices();
@@ -798,15 +796,7 @@ function initFight(){
     }catch(e){}
     // CRITICAL: Always start the fight loop no matter what
     G.raf=requestAnimationFrame(fightLoop);
-    // Pre-load voice MP3s now (called from button = autoplay unlocked)
-    setTimeout(function(){
-      for(var k in _VM){
-        (function(f){
-          if(!_VA[f]){_VA[f]=new Audio('voice/'+f);_VA[f].load();_VA[f].volume=1;}
-        })(_VM[k]);
-      }
-      _preloadVoices(); // Also try AudioContext XHR path
-    },100);
+    // Voice preload removed — snd() pool handles on-demand creation
   }
   waitAndInit(0);
 }
@@ -1554,8 +1544,7 @@ function initSplash(){
 // No complex loading screen - direct navigation
 
 function initSelect(){
-  // Pre-load voice MP3s NOW — user has ~10-30s before fight starts = plenty of buffer time
-  setTimeout(function(){_preloadVoices();},100);
+
   if(window._selAnimInt){clearInterval(window._selAnimInt);window._selAnimInt=null;}
   $('sel-stage-info').textContent='STAGE '+G.stage+' OF 15';
   var grid=$('char-grid');
@@ -1903,39 +1892,19 @@ function initStageIntro(){
   if(fb){fb.onclick=function(){
     if(window._siAnim1){cancelAnimationFrame(window._siAnim1);window._siAnim1=null;}
     if(window._siAnim2){cancelAnimationFrame(window._siAnim2);window._siAnim2=null;}
-    // PRIME VOICES IN GESTURE CONTEXT: start+pause each voice file so Android
-    // grants playback permission. Later play() from RAF will work on these elements.
-    try{
-      var voiceList=[
-        'voice/v_round1.mp3','voice/v_round2.mp3','voice/v_round3.mp3',
-        'voice/v_fight.mp3','voice/v_youwin.mp3',
-        'voice/v_finishhim.mp3','voice/v_flawless.mp3'
-      ];
-      window._primedVoices={};
-      voiceList.forEach(function(src){
-        var a=new Audio(src);
-        a.volume=0.001; // near-silent so priming isn't heard
-        var p=a.play();
-        if(p&&p.then){
-          p.then(function(){
-            a.pause();
-            a.currentTime=0;
-            a.volume=1.0;
-            window._primedVoices[src]=a; // ready to play
-          }).catch(function(){});
-        }else{
-          try{a.pause();a.currentTime=0;a.volume=1.0;window._primedVoices[src]=a;}catch(e){}
-        }
-      });
-    }catch(e){}
-    // Resume AudioContext in gesture
+    // Resume AudioContext in gesture + keep alive during VS screen (OEM auto-suspend prevention)
     try{
       if(!AC_ctx)AC_ctx=new(window.AudioContext||window.webkitAudioContext)();
-      if(AC_ctx.state==='suspended'){AC_ctx.resume().then(function(){_loadVoiceBuffers();}).catch(function(){});}
-      else{_loadVoiceBuffers();}
+      AC_ctx.resume().then(function(){
+        // Silent oscillator keeps AC in 'running' during 3s VS screen so beeps work in roundAnnounce
+        try{
+          var g=AC_ctx.createGain();g.gain.value=0.001;
+          var o=AC_ctx.createOscillator();o.type='sine';o.frequency.value=1;
+          o.connect(g);g.connect(AC_ctx.destination);
+          o.start();o.stop(AC_ctx.currentTime+6);
+        }catch(e){}
+      }).catch(function(){});
     }catch(e){}
-    // TTS test from gesture
-    try{if(window.AndroidTTS)window.AndroidTTS.speak('round one. fight');}catch(e){}
     snd('fight');
     bgmStop();G.screen='vs';showScreen('vs');initVS();
   };}
@@ -2295,147 +2264,35 @@ function _mkVoiceEffect(durationMs){
   }catch(e){}
 }
 
-// MK ANNOUNCER — Mortal Kombat style voice lines
-var _VM={
-  'fight':'v_fight.mp3',
-  'round one':'v_round1.mp3','round two':'v_round2.mp3','round three':'v_round3.mp3',
-  'flawless':'v_flawless.mp3',
-  'finish him':'v_finishhim.mp3','finish her':'v_finishher.mp3',
-  'you win':'v_youwin.mp3','you lose':'v_youwin.mp3'
-};
-var _VA={}; // pre-loaded Audio pool, same pattern as snd()
-
-// Voice AudioBuffers — loaded via XHR + decodeAudioData (WebAudio API, no HTML5 restrictions)
-var _voiceBufs={};
-var _voiceFiles={
-  'v_round1':'voice/v_round1.mp3','v_round2':'voice/v_round2.mp3',
-  'v_round3':'voice/v_round3.mp3','v_fight':'voice/v_fight.mp3',
-  'v_youwin':'voice/v_youwin.mp3','v_finishhim':'voice/v_finishhim.mp3',
-  'v_finishher':'voice/v_finishhim.mp3','v_flawless':'voice/v_flawless.mp3'
-};
-
-// Load all voice files via XHR → decodeAudioData (WebAudio, works in Android WebView assets)
-function _loadVoiceBuffers(){
-  var ac=AC();if(!ac)return;
-  Object.keys(_voiceFiles).forEach(function(k){
-    if(_voiceBufs[k])return; // already loaded
-    (function(key,src){
-      try{
-        var xhr=new XMLHttpRequest();
-        xhr.open('GET',src,true);
-        xhr.responseType='arraybuffer';
-        xhr.onload=function(){
-          if(xhr.status===200||xhr.status===0){
-            try{
-              ac.decodeAudioData(xhr.response,function(buf){
-                _voiceBufs[key]=buf;
-              },function(){});
-            }catch(e){}
-          }
-        };
-        xhr.onerror=function(){};
-        xhr.send();
-      }catch(e){}
-    })(k,_voiceFiles[k]);
-  });
-}
-
-// Also try preloading into snd() pool (HTML5 audio fallback)
-function _preloadVoices(){
-  if(!window._sfxPool) window._sfxPool={};
-  var voiceSrcs=[
-    'voice/v_round1.mp3','voice/v_round2.mp3','voice/v_round3.mp3',
-    'voice/v_fight.mp3','voice/v_youwin.mp3',
-    'voice/v_finishhim.mp3','voice/v_finishher.mp3','voice/v_flawless.mp3'
-  ];
-  voiceSrcs.forEach(function(src){
-    if(!window._sfxPool[src]){
-      window._sfxPool[src]=[];
-      for(var i=0;i<3;i++){
-        var a=new Audio(src);a.volume=1.0;a.load();
-        window._sfxPool[src].push(a);
-      }
-    }
-  });
-}
-
-// No unlock needed: setMediaPlaybackRequiresUserGesture=false in MainActivity
-function _unlockVoices(){}// stub
-
-function _playVoice(text,delayMs){
-  var key=text.toLowerCase(),type=null,elId=null;
-  if(key.indexOf('round one')>=0){type='v_round1';elId='va_round1';}
-  else if(key.indexOf('round two')>=0){type='v_round2';elId='va_round2';}
-  else if(key.indexOf('round three')>=0){type='v_round3';elId='va_round3';}
-  else if(key.indexOf('fight')>=0){type='v_fight';elId='va_fight';}
-  else if(key.indexOf('you win')>=0||key.indexOf('you lose')>=0){type='v_youwin';elId='va_youwin';}
-  else if(key.indexOf('finish him')>=0){type='v_finishhim';elId='va_finishhim';}
-  else if(key.indexOf('finish her')>=0){type='v_finishhim';elId='va_finishhim';}
-  else if(key.indexOf('flawless')>=0){type='v_flawless';elId='va_flawless';}
-  if(!type) return false;
-  setTimeout(function(){
-    var voiceSrc=_voiceFiles[type]||('voice/'+type+'.mp3');
-    var played=false;
-    // PRIMARY: Primed Audio element (play+paused in fight gesture — Android unlocked)
-    if(window._primedVoices&&window._primedVoices[voiceSrc]){
-      try{
-        var pa=window._primedVoices[voiceSrc];
-        delete window._primedVoices[voiceSrc]; // use once
-        pa.currentTime=0;pa.volume=1;
-        pa.play().catch(function(){});
-        played=true;
-      }catch(e){}
-    }
-    // FALLBACK: Native Android MediaPlayer
-    if(!played&&window.AndroidAudio){
-      try{window.AndroidAudio.playVoice(voiceSrc);played=true;}catch(e){}
-    }
-    // FALLBACK2: WebAudio AudioBuffer
-    if(!played){
-      var ac=AC();
-      if(ac&&ac.state==='running'&&_voiceBufs[type]){
-        try{var bs=ac.createBufferSource();bs.buffer=_voiceBufs[type];bs.connect(ac.destination);bs.start(0);played=true;}catch(e){}
-      }
-    }
-    // FALLBACK3: HTML audio element
-    if(!played){
-      var el2=document.getElementById(elId);
-      if(el2){try{el2.currentTime=0;el2.play().catch(function(){});}catch(e){}}
-    }
-    // FALLBACK4: snd() pool
-    snd(type);
-    // FALLBACK3: snd() pool
-    snd(type);
-  },delayMs||0);
-  return true;
+// =========================================================
+// ANNOUNCE VOICE — uses same snd() pool + beep() as SFX
+// =========================================================
+function _announceType(text){
+  var k=text.toLowerCase();
+  if(k.indexOf('round one')>=0)return 'v_round1';
+  if(k.indexOf('round two')>=0)return 'v_round2';
+  if(k.indexOf('round three')>=0)return 'v_round3';
+  if(k.indexOf('fight')>=0)return 'v_fight';
+  if(k.indexOf('you win')>=0||k.indexOf('you lose')>=0||k.indexOf('win!')>=0)return 'v_youwin';
+  if(k.indexOf('finish him')>=0)return 'v_finishhim';
+  if(k.indexOf('finish her')>=0)return 'v_finishher';
+  if(k.indexOf('flawless')>=0)return 'v_flawless';
+  return null;
 }
 
 
 
 
 function announce(text,delayMs){
-  // -- UI Overlay --
+  // UI Overlay
   var el=$('announce');
   if(!el){el=document.createElement('div');el.id='announce';el.className='announce-overlay';document.body.appendChild(el);}
   el.textContent=text;
   el.classList.add('active');
-  setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs, 1000):2500);
-
-  // -- AUDIO: All 3 layers — MP3, Java TTS, Web Speech --
-  _playVoice(text,delayMs); // MP3 pool
-  setTimeout(function(){
-    try{
-      // Java TTS (if available)
-      if(window.AndroidTTS) window.AndroidTTS.speak(toSpeech(text));
-      // Web Speech Synthesis — ALWAYS run (confirmed working, no conditions)
-      if(window.speechSynthesis){
-        speechSynthesis.cancel();
-        var u=new SpeechSynthesisUtterance(toSpeech(text));
-        u.rate=0.52; u.pitch=0.1; u.volume=1;
-        speechSynthesis.speak(u);
-      }
-    }catch(e){}
-  }, delayMs||0);
+  setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs,1000):2500);
+  // Audio: snd() handles MP3 pool + beep() synth fallback (same as punch/kick)
+  var type=_announceType(text);
+  if(type) setTimeout(function(){snd(type);},delayMs||0);
 }
 
 (function initVoicePickerUI(){
