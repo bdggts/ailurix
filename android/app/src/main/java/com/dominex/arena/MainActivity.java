@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.media.MediaPlayer;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -25,7 +27,11 @@ import android.webkit.WebViewClient;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONObject;
 
@@ -37,16 +43,27 @@ import java.net.URL;
 public class MainActivity extends Activity {
 
     // Current APK version — bump this with every new build
-    private static final int    CURRENT_VERSION_CODE = 151;
+    private static final int    CURRENT_VERSION_CODE = 152;
     private static final String VERSION_CHECK_URL    = "https://www.ailurix.com/game-version.json";
 
     private WebView webView;
-
     private TextToSpeech tts;
+
+    // SoundPool for instant, gesture-free voice playback
+    private SoundPool mPool;
+    private Map<String,Integer> mSoundIds = new HashMap<>();
+    private Set<Integer> mLoaded = new HashSet<>();
+    private static final String[] VOICES = {
+        "v_round1","v_round2","v_round3","v_fight",
+        "v_youwin","v_finishhim","v_flawless"
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Init SoundPool — preload all voice clips NOW, before any user interaction
+        initSoundPool();
 
         // Init native TTS for announcer voice
         tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
@@ -106,10 +123,10 @@ public class MainActivity extends Activity {
             }
         });
 
-        // Android TTS interface
-        webView.addJavascriptInterface(new AndroidTTS(), "AndroidTTS");
-        // Native MediaPlayer interface — 100% reliable, no WebView audio restrictions
+        // SoundPool + MediaPlayer interfaces
         webView.addJavascriptInterface(new SoundPlayer(), "AndroidAudio");
+        // TTS interface
+        webView.addJavascriptInterface(new AndroidTTS(), "AndroidTTS");
 
         // Load mobile-optimized UI (Chrome keeps index.html, app uses index-mobile.html)
         webView.loadUrl("file:///android_asset/index-mobile.html");
@@ -185,8 +202,31 @@ public class MainActivity extends Activity {
 
     @Override public void onBackPressed() { /* Block back button */ }
 
-    // ── NATIVE MEDIAPLAYER INTERFACE ─────────────────────────────────
-    // Called from JS as: window.AndroidAudio.playVoice('voice/v_round1.mp3')
+    // ── SOUNDPOOL INIT ────────────────────────────────────────────────
+    private void initSoundPool() {
+        try {
+            AudioAttributes attrs = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+            mPool = new SoundPool.Builder().setMaxStreams(4).setAudioAttributes(attrs).build();
+            mPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+                @Override public void onLoadComplete(SoundPool sp, int id, int status) {
+                    if (status == 0) mLoaded.add(id);
+                }
+            });
+            for (String name : VOICES) {
+                try {
+                    AssetFileDescriptor afd = getAssets().openFd("voice/" + name + ".mp3");
+                    int id = mPool.load(afd, 1);
+                    mSoundIds.put(name, id);
+                    afd.close();
+                } catch (Exception e) {}
+            }
+        } catch (Exception e) {}
+    }
+
+    // ── NATIVE MEDIAPLAYER + SOUNDPOOL INTERFACE ───────────────────────
     private class SoundPlayer {
         @JavascriptInterface
         public void showToast(final String msg) {
@@ -197,38 +237,66 @@ public class MainActivity extends Activity {
             });
         }
 
+        // Play immediately via SoundPool (instant, no gesture restriction)
         @JavascriptInterface
-        public void playVoice(final String assetPath) {
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
+        public void playVoice(final String name) {
+            // name = 'v_round1', 'v_fight', etc. (key in mSoundIds)
+            runOnUiThread(new Runnable() {
                 @Override public void run() {
-                    try {
-                        final MediaPlayer mp = new MediaPlayer();
-                        AssetFileDescriptor afd = getAssets().openFd(assetPath);
-                        mp.setDataSource(afd.getFileDescriptor(),
-                                         afd.getStartOffset(),
-                                         afd.getLength());
-                        afd.close();
-                        mp.setVolume(1f, 1f);
-                        mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                            @Override public void onPrepared(MediaPlayer m) {
-                                m.start();
-                            }
-                        });
-                        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                            @Override public void onCompletion(MediaPlayer m) { m.release(); }
-                        });
-                        mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-                            @Override public boolean onError(MediaPlayer m, int w, int e) {
-                                m.release(); return true;
-                            }
-                        });
-                        mp.prepareAsync();
-                    } catch (Exception e) {
-                        Toast.makeText(MainActivity.this,
-                            "Audio err: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    if (mPool == null) return;
+                    String key = name.contains("/") ? nameFromPath(name) : name;
+                    Integer id = mSoundIds.get(key);
+                    if (id != null && mLoaded.contains(id)) {
+                        mPool.play(id, 1f, 1f, 1, 0, 1f);
+                    } else {
+                        // Fallback: MediaPlayer for files not in pool
+                        playWithMediaPlayer(name.contains("/") ? name : "voice/" + key + ".mp3");
                     }
                 }
             });
+        }
+
+        // Schedule voice playback after delayMs — called FROM gesture context, fires from Java
+        @JavascriptInterface
+        public void playVoiceDelayed(final String name, final long delayMs) {
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override public void run() {
+                    if (mPool == null) return;
+                    String key = name.contains("/") ? nameFromPath(name) : name;
+                    Integer id = mSoundIds.get(key);
+                    if (id != null && mLoaded.contains(id)) {
+                        mPool.play(id, 1f, 1f, 1, 0, 1f);
+                    } else {
+                        playWithMediaPlayer(name.contains("/") ? name : "voice/" + key + ".mp3");
+                    }
+                }
+            }, delayMs);
+        }
+
+        private String nameFromPath(String path) {
+            // Extract 'v_round1' from 'voice/v_round1.mp3'
+            String n = path.replaceAll(".*/", "").replaceAll("\\..*", "");
+            return n;
+        }
+
+        private void playWithMediaPlayer(final String assetPath) {
+            try {
+                final MediaPlayer mp = new MediaPlayer();
+                AssetFileDescriptor afd = getAssets().openFd(assetPath);
+                mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                afd.close();
+                mp.setVolume(1f, 1f);
+                mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                    @Override public void onPrepared(MediaPlayer m) { m.start(); }
+                });
+                mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override public void onCompletion(MediaPlayer m) { m.release(); }
+                });
+                mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                    @Override public boolean onError(MediaPlayer m, int w, int e) { m.release(); return true; }
+                });
+                mp.prepareAsync();
+            } catch (Exception e) {}
         }
     }
 

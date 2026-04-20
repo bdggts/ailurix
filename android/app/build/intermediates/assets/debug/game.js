@@ -1892,21 +1892,27 @@ function initStageIntro(){
   if(fb){fb.onclick=function(){
     if(window._siAnim1){cancelAnimationFrame(window._siAnim1);window._siAnim1=null;}
     if(window._siAnim2){cancelAnimationFrame(window._siAnim2);window._siAnim2=null;}
-    // Resume AudioContext in gesture + keep alive during VS screen (OEM auto-suspend prevention)
+    // PRE-SCHEDULE voices FROM GESTURE via Java Handler.postDelayed (no WebView restriction!)
+    // VS screen = 3000ms, roundAnnounce = ~650ms into fight → total ~3650ms
+    try{
+      if(window.AndroidAudio){
+        window.AndroidAudio.showToast('SoundPool v15.12.6');
+        window.AndroidAudio.playVoiceDelayed('v_round1',3650);
+        window.AndroidAudio.playVoiceDelayed('v_fight',4400);
+      }
+    }catch(e){}
+    // AC keepalive at 220Hz for 10s (ensures AC stays running through VS screen)
     try{
       if(!AC_ctx)AC_ctx=new(window.AudioContext||window.webkitAudioContext)();
       AC_ctx.resume().then(function(){
-        // Silent oscillator keeps AC in 'running' during 3s VS screen so beeps work in roundAnnounce
         try{
           var g=AC_ctx.createGain();g.gain.value=0.001;
-          var o=AC_ctx.createOscillator();o.type='sine';o.frequency.value=1;
+          var o=AC_ctx.createOscillator();o.type='sine';o.frequency.value=220;
           o.connect(g);g.connect(AC_ctx.destination);
-          o.start();o.stop(AC_ctx.currentTime+6);
+          o.start();o.stop(AC_ctx.currentTime+10);
         }catch(e){}
       }).catch(function(){});
     }catch(e){}
-    // showToast confirms AndroidAudio bridge is accessible from JS
-    try{if(window.AndroidAudio)window.AndroidAudio.showToast('AA ready v15.12.1');}catch(e){}
     snd('fight');
     bgmStop();G.screen='vs';showScreen('vs');initVS();
   };}
