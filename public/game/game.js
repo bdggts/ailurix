@@ -2391,8 +2391,15 @@ function announce(text,delayMs){
   // -- UI Overlay --
   var el=$('announce');
   if(!el){el=document.createElement('div');el.id='announce';el.className='announce-overlay';document.body.appendChild(el);}
-  el.textContent=text;el.classList.add('active');
-  setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs, 1000):2500);
+  // Debug: first announcement shows interface status
+  if(!window._dbgDone){
+    window._dbgDone=true;
+    el.innerHTML=text+'<br><small style="font-size:12px;color:#0f0">AA:'+(typeof window.AndroidAudio)+' TTS:'+(typeof window.AndroidTTS)+'</small>';
+  } else {
+    el.textContent=text;
+  }
+  el.classList.add('active');
+  setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs, 2000):3500);
   // DIAGNOSTIC: AudioContext beep (same as countdown, PROVEN to work) — remove after debug
   try{beep(880,'sine',0.4,0.15);setTimeout(function(){beep(1100,'sine',0.3,0.1);},180);}catch(e){}
 
