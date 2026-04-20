@@ -1892,25 +1892,30 @@ function initStageIntro(){
   if(fb){fb.onclick=function(){
     if(window._siAnim1){cancelAnimationFrame(window._siAnim1);window._siAnim1=null;}
     if(window._siAnim2){cancelAnimationFrame(window._siAnim2);window._siAnim2=null;}
-    // PRE-SCHEDULE voices FROM GESTURE via Java Handler.postDelayed (no WebView restriction!)
-    // VS screen = 3000ms, roundAnnounce = ~650ms into fight → total ~3650ms
-    try{
-      if(window.AndroidAudio){
-        window.AndroidAudio.showToast('SoundPool v15.12.7');
-        window.AndroidAudio.playVoiceDelayed('v_round1',3650);
-        window.AndroidAudio.playVoiceDelayed('v_fight',4400);
-      }
-    }catch(e){}
-    // AC keepalive at 220Hz for 10s (ensures AC stays running through VS screen)
     try{
       if(!AC_ctx)AC_ctx=new(window.AudioContext||window.webkitAudioContext)();
       AC_ctx.resume().then(function(){
-        try{
-          var g=AC_ctx.createGain();g.gain.value=0.001;
-          var o=AC_ctx.createOscillator();o.type='sine';o.frequency.value=220;
-          o.connect(g);g.connect(AC_ctx.destination);
-          o.start();o.stop(AC_ctx.currentTime+10);
-        }catch(e){}
+        var now=AC_ctx.currentTime;
+        // Keepalive: 220Hz silent oscillator for 10s
+        try{var g=AC_ctx.createGain();g.gain.value=0.001;var o=AC_ctx.createOscillator();o.type='sine';o.frequency.value=220;o.connect(g);g.connect(AC_ctx.destination);o.start();o.stop(now+10);}catch(e){}
+        // PRE-SCHEDULE voices: XHR decode MP3 → AudioBufferSource at exact future time
+        // No gesture needed after scheduling — fires automatically from running AC
+        [{file:'voice/v_round1.mp3',delay:3.65},{file:'voice/v_fight.mp3',delay:4.45}].forEach(function(v){
+          try{
+            var xhr=new XMLHttpRequest();
+            xhr.open('GET',v.file,true);xhr.responseType='arraybuffer';
+            var d=v.delay;
+            xhr.onload=function(){
+              if(!xhr.response)return;
+              try{AC_ctx.decodeAudioData(xhr.response,function(decoded){
+                try{var s=AC_ctx.createBufferSource();s.buffer=decoded;s.connect(AC_ctx.destination);s.start(now+d);}catch(e){}
+              });}catch(e){}
+            };
+            xhr.send();
+          }catch(e){}
+        });
+        // Java SoundPool fallback (if AndroidAudio bridge works)
+        try{if(window.AndroidAudio){window.AndroidAudio.playVoiceDelayed('v_round1',3650);window.AndroidAudio.playVoiceDelayed('v_fight',4450);}}catch(e){}
       }).catch(function(){});
     }catch(e){}
     snd('fight');

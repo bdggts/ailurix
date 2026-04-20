@@ -43,7 +43,7 @@ import java.net.URL;
 public class MainActivity extends Activity {
 
     // Current APK version — bump this with every new build
-    private static final int    CURRENT_VERSION_CODE = 153;
+    private static final int    CURRENT_VERSION_CODE = 154;
     private static final String VERSION_CHECK_URL    = "https://www.ailurix.com/game-version.json";
 
     private WebView webView;
@@ -102,6 +102,8 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(true);
         s.setAllowContentAccess(true);
         s.setMediaPlaybackRequiresUserGesture(false);
+        s.setAllowFileAccessFromFileURLs(true);
+        s.setAllowUniversalAccessFromFileURLs(true);
         s.setLoadWithOverviewMode(true);
         s.setUseWideViewPort(true);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
