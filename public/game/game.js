@@ -2292,7 +2292,7 @@ function announce(text,delayMs){
   var aaState=window.AndroidAudio?'AA:ok':'AA:no';
   var el=$('announce');
   if(!el){el=document.createElement('div');el.id='announce';el.className='announce-overlay';document.body.appendChild(el);}
-  el.textContent=text+'\n['+acState+'|'+aaState+']';
+  el.innerHTML='<b>'+text+'</b><br><span style="font-size:0.45em;font-weight:normal;opacity:0.9">['+acState+'|'+aaState+']</span>';
   el.classList.add('active');
   setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs,1000):2500);
   // Audio: PRIMARY = Java MediaPlayer, FALLBACK = force-resume AC then beep
