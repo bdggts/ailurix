@@ -1892,29 +1892,34 @@ function initStageIntro(){
   if(fb){fb.onclick=function(){
     if(window._siAnim1){cancelAnimationFrame(window._siAnim1);window._siAnim1=null;}
     if(window._siAnim2){cancelAnimationFrame(window._siAnim2);window._siAnim2=null;}
+    // AUDIO UNLOCK PATTERN: prime elements with volume=0 DURING gesture
+    // → unlocks them for future play() calls from setTimeout (no gesture needed)
+    try{
+      var _vf={'v_round1':'voice/v_round1.mp3','v_fight':'voice/v_fight.mp3'};
+      window._pv={};
+      Object.keys(_vf).forEach(function(k){
+        try{
+          var a=new Audio(_vf[k]);
+          a.volume=0;
+          var p=a.play();
+          if(p)p.then(function(){try{a.pause();a.currentTime=0;a.volume=1;}catch(e){}}).catch(function(){});
+          window._pv[k]=a;
+        }catch(e){}
+      });
+    }catch(e){}
+    // Schedule playback AFTER unlock
+    setTimeout(function(){try{var a=window._pv&&window._pv['v_round1'];if(a){a.currentTime=0;a.volume=1;a.play().catch(function(){});}}catch(e){}},3650);
+    setTimeout(function(){try{var a=window._pv&&window._pv['v_fight'];if(a){a.currentTime=0;a.volume=1;a.play().catch(function(){});}}catch(e){}},4450);
+    // AC keepalive + XHR AudioBuffer as additional backup
     try{
       if(!AC_ctx)AC_ctx=new(window.AudioContext||window.webkitAudioContext)();
       AC_ctx.resume().then(function(){
         var now=AC_ctx.currentTime;
-        // Keepalive: 220Hz silent oscillator for 10s
         try{var g=AC_ctx.createGain();g.gain.value=0.001;var o=AC_ctx.createOscillator();o.type='sine';o.frequency.value=220;o.connect(g);g.connect(AC_ctx.destination);o.start();o.stop(now+10);}catch(e){}
-        // PRE-SCHEDULE voices: XHR decode MP3 → AudioBufferSource at exact future time
-        // No gesture needed after scheduling — fires automatically from running AC
         [{file:'voice/v_round1.mp3',delay:3.65},{file:'voice/v_fight.mp3',delay:4.45}].forEach(function(v){
-          try{
-            var xhr=new XMLHttpRequest();
-            xhr.open('GET',v.file,true);xhr.responseType='arraybuffer';
-            var d=v.delay;
-            xhr.onload=function(){
-              if(!xhr.response)return;
-              try{AC_ctx.decodeAudioData(xhr.response,function(decoded){
-                try{var s=AC_ctx.createBufferSource();s.buffer=decoded;s.connect(AC_ctx.destination);s.start(now+d);}catch(e){}
-              });}catch(e){}
-            };
-            xhr.send();
-          }catch(e){}
+          try{var xhr=new XMLHttpRequest();xhr.open('GET',v.file,true);xhr.responseType='arraybuffer';var d=v.delay;
+          xhr.onload=function(){if(!xhr.response)return;try{AC_ctx.decodeAudioData(xhr.response,function(decoded){try{var s=AC_ctx.createBufferSource();s.buffer=decoded;s.connect(AC_ctx.destination);s.start(now+d);}catch(e){}});}catch(e){}};xhr.send();}catch(e){}
         });
-        // Java SoundPool fallback (if AndroidAudio bridge works)
         try{if(window.AndroidAudio){window.AndroidAudio.playVoiceDelayed('v_round1',3650);window.AndroidAudio.playVoiceDelayed('v_fight',4450);}}catch(e){}
       }).catch(function(){});
     }catch(e){}
