@@ -176,6 +176,15 @@ function snd(type){try{
   else if(type==='fight')      {beep(250,'square',0.03,0.9);beep(400,'square',0.03,0.8,0.06);beep(600,'square',0.03,0.7,0.12);beep(900,'square',0.18,0.7,0.18);playNoise(0.2,0.5,2500);}
   else if(type==='finishhim')  {beep(140,'sawtooth',0.18,0.9);beep(95,'square',0.4,0.8,0.18);beep(70,'sawtooth',0.35,0.7,0.5);playNoise(0.5,0.5,250);}
   else if(type==='combo')      {beep(660,'sine',0.035,0.35);beep(880,'sine',0.035,0.3,0.06);beep(1100,'sine',0.05,0.25,0.12);}
+  // VOICE ANNOUNCE SYNTH FALLBACKS (same beep() path as punch/kick — works when MP3 fails)
+  else if(type==='v_round1')   {beep(523,'sine',0.2,0.6);beep(440,'sine',0.2,0.5,0.55);}
+  else if(type==='v_round2')   {beep(523,'sine',0.2,0.6);beep(440,'sine',0.2,0.5,0.55);beep(523,'sine',0.2,0.4,1.1);}
+  else if(type==='v_round3')   {beep(523,'sine',0.2,0.6);beep(440,'sine',0.2,0.5,0.55);beep(523,'sine',0.2,0.4,1.1);beep(659,'sine',0.2,0.4,1.6);}
+  else if(type==='v_fight')    {beep(800,'square',0.25,0.3);beep(1000,'square',0.3,0.25,0.32);}
+  else if(type==='v_youwin')   {beep(523,'sine',0.15,0.3);beep(659,'sine',0.15,0.3,0.35);beep(784,'sine',0.2,0.6,0.7);}
+  else if(type==='v_finishhim'){beep(175,'sawtooth',0.3,0.9);beep(110,'square',0.5,0.8,0.9);}
+  else if(type==='v_finishher'){beep(175,'sawtooth',0.3,0.9);beep(110,'square',0.5,0.8,0.9);}
+  else if(type==='v_flawless') {beep(659,'sine',0.15,0.3);beep(784,'sine',0.15,0.3,0.35);beep(1047,'sine',0.2,0.6,0.7);}
 }catch(e){}}
 
 // -- BGM CONTROLLER (routes to global MK_AUDIO) --

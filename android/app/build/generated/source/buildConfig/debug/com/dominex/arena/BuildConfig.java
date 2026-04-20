@@ -7,6 +7,6 @@ public final class BuildConfig {
   public static final boolean DEBUG = Boolean.parseBoolean("true");
   public static final String APPLICATION_ID = "com.dominex.arena";
   public static final String BUILD_TYPE = "debug";
-  public static final int VERSION_CODE = 144;
-  public static final String VERSION_NAME = "15.11.7";
+  public static final int VERSION_CODE = 145;
+  public static final String VERSION_NAME = "15.11.8";
 }
