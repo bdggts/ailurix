@@ -7,8 +7,8 @@ android {
     applicationId 'com.dominex.arena'
     minSdkVersion 21
     targetSdkVersion 34
-    versionCode 146
-    versionName '15.12.0'
+    versionCode 147
+    versionName '15.12.1'
   }
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8
@@ -19,5 +19,10 @@ android {
       minifyEnabled false
       signingConfig signingConfigs.debug
     }
+  }
+  aaptOptions {
+    // Prevent compression of audio assets — required for MediaPlayer.setDataSource(AssetFileDescriptor)
+    // Without this, openFd() returns wrong offsets for compressed assets → playback fails silently
+    noCompress 'mp3', 'ogg', 'wav', 'm4a'
   }
 }

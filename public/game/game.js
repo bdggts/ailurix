@@ -1905,6 +1905,8 @@ function initStageIntro(){
         }catch(e){}
       }).catch(function(){});
     }catch(e){}
+    // showToast confirms AndroidAudio bridge is accessible from JS
+    try{if(window.AndroidAudio)window.AndroidAudio.showToast('AA ready v15.12.1');}catch(e){}
     snd('fight');
     bgmStop();G.screen='vs';showScreen('vs');initVS();
   };}
@@ -2290,9 +2292,23 @@ function announce(text,delayMs){
   el.textContent=text;
   el.classList.add('active');
   setTimeout(function(){el.classList.remove('active');},delayMs?Math.max(delayMs,1000):2500);
-  // Audio: snd() handles MP3 pool + beep() synth fallback (same as punch/kick)
+  // Audio: PRIMARY = Java MediaPlayer (no restrictions), FALLBACK = snd() beep+pool
   var type=_announceType(text);
-  if(type) setTimeout(function(){snd(type);},delayMs||0);
+  if(type){
+    var voiceFile='voice/'+type.replace('v_','')+'.mp3';
+    var voiceSrcMap={
+      'v_round1':'voice/v_round1.mp3','v_round2':'voice/v_round2.mp3',
+      'v_round3':'voice/v_round3.mp3','v_fight':'voice/v_fight.mp3',
+      'v_youwin':'voice/v_youwin.mp3','v_finishhim':'voice/v_finishhim.mp3',
+      'v_finishher':'voice/v_finishhim.mp3','v_flawless':'voice/v_flawless.mp3'
+    };
+    var vf=voiceSrcMap[type]||('voice/'+type+'.mp3');
+    setTimeout(function(){
+      var played=false;
+      if(window.AndroidAudio){try{window.AndroidAudio.playVoice(vf);played=true;}catch(e){}}
+      if(!played)snd(type); // beep() fallback
+    },delayMs||0);
+  }
 }
 
 (function initVoicePickerUI(){

@@ -12,6 +12,9 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Toast;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.webkit.JavascriptInterface;
@@ -34,7 +37,7 @@ import java.net.URL;
 public class MainActivity extends Activity {
 
     // Current APK version — bump this with every new build
-    private static final int    CURRENT_VERSION_CODE = 146;
+    private static final int    CURRENT_VERSION_CODE = 147;
     private static final String VERSION_CHECK_URL    = "https://www.ailurix.com/game-version.json";
 
     private WebView webView;
@@ -184,31 +187,48 @@ public class MainActivity extends Activity {
 
     // ── NATIVE MEDIAPLAYER INTERFACE ─────────────────────────────────
     // Called from JS as: window.AndroidAudio.playVoice('voice/v_round1.mp3')
-    // Uses Android AssetManager + MediaPlayer — zero WebView audio restrictions
     private class SoundPlayer {
         @JavascriptInterface
-        public void playVoice(final String assetPath) {
-            new Thread(new Runnable() {
+        public void showToast(final String msg) {
+            runOnUiThread(new Runnable() {
                 @Override public void run() {
-                    MediaPlayer mp = new MediaPlayer();
+                    Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void playVoice(final String assetPath) {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override public void run() {
                     try {
+                        final MediaPlayer mp = new MediaPlayer();
                         AssetFileDescriptor afd = getAssets().openFd(assetPath);
                         mp.setDataSource(afd.getFileDescriptor(),
                                          afd.getStartOffset(),
                                          afd.getLength());
                         afd.close();
-                        mp.prepare();
                         mp.setVolume(1f, 1f);
-                        mp.start();
-                        // Release after playback finishes
-                        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                            @Override public void onCompletion(MediaPlayer p) { p.release(); }
+                        mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                            @Override public void onPrepared(MediaPlayer m) {
+                                m.start();
+                            }
                         });
+                        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            @Override public void onCompletion(MediaPlayer m) { m.release(); }
+                        });
+                        mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                            @Override public boolean onError(MediaPlayer m, int w, int e) {
+                                m.release(); return true;
+                            }
+                        });
+                        mp.prepareAsync();
                     } catch (Exception e) {
-                        mp.release();
+                        Toast.makeText(MainActivity.this,
+                            "Audio err: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 }
-            }).start();
+            });
         }
     }
 
