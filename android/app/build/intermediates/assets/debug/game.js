@@ -1896,7 +1896,7 @@ function initStageIntro(){
     // VS screen = 3000ms, roundAnnounce = ~650ms into fight → total ~3650ms
     try{
       if(window.AndroidAudio){
-        window.AndroidAudio.showToast('SoundPool v15.12.6');
+        window.AndroidAudio.showToast('SoundPool v15.12.7');
         window.AndroidAudio.playVoiceDelayed('v_round1',3650);
         window.AndroidAudio.playVoiceDelayed('v_fight',4400);
       }
