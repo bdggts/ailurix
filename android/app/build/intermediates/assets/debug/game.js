@@ -1365,11 +1365,14 @@ function fightLoop(now){
   // ROUND ANNOUNCE overlay
   if(gs.phase==='roundAnnounce'){
     ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=8;
-    ctx.font='bold '+Math.round(H*0.16)+'px Rajdhani,Impact,sans-serif';
+    ctx.font=Math.round(H*0.10)+'px "Press Start 2P",monospace';
     var rText='ROUND '+(ROUND_WORDS[gs.round]||gs.round);
+    // Pixel shadow layers (8-bit style like YOU WIN)
+    ctx.fillStyle='#4a1c00';ctx.fillText(rText,W/2+5,H*0.4+5);
+    ctx.fillStyle='#7c3a00';ctx.fillText(rText,W/2+3,H*0.4+3);
+    ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=4;
     ctx.strokeText(rText,W/2,H*0.4);
-    ctx.shadowColor='#f59e0b';ctx.shadowBlur=50;
+    ctx.shadowColor='#f59e0b';ctx.shadowBlur=40;
     ctx.fillStyle='#f59e0b';
     ctx.fillText(rText,W/2,H*0.4);
     ctx.shadowBlur=0;
@@ -1378,13 +1381,15 @@ function fightLoop(now){
   // COUNTDOWN overlay
   if(gs.phase==='countdown'){
     var cText=gs.cd>0?String(gs.cd):'FIGHT!';
-    var fontSize=Math.round(H*0.22);
-    ctx.font='bold '+fontSize+'px Rajdhani,Impact,sans-serif';
+    var fontSize=Math.round(H*(gs.cd>0?0.14:0.09));
+    ctx.font=fontSize+'px "Press Start 2P",monospace';
     ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=8;ctx.strokeText(cText,W/2,H*0.4);
-    ctx.shadowColor=gs.cd>0?'#f59e0b':'#22c55e';
-    ctx.shadowBlur=40;
-    ctx.fillStyle=gs.cd>0?'#f59e0b':'#22c55e';
+    var cCol=gs.cd>0?'#f59e0b':'#22c55e';
+    // Pixel shadow
+    ctx.fillStyle='rgba(0,0,0,0.8)';ctx.fillText(cText,W/2+4,H*0.4+4);
+    ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=5;ctx.strokeText(cText,W/2,H*0.4);
+    ctx.shadowColor=cCol;ctx.shadowBlur=40;
+    ctx.fillStyle=cCol;
     ctx.fillText(cText,W/2,H*0.4);
     ctx.shadowBlur=0;
   }
@@ -1394,8 +1399,10 @@ function fightLoop(now){
     var fAlpha=0.15+Math.sin(gs.frame*0.15)*0.1;
     ctx.fillStyle='rgba(200,0,0,'+fAlpha+')';ctx.fillRect(0,0,W,H);
     ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.font='bold '+Math.round(H*0.15)+'px Rajdhani,Impact,sans-serif';
-    ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=6;
+    ctx.font=Math.round(H*0.085)+'px "Press Start 2P",monospace';
+    // Pixel shadow
+    ctx.fillStyle='rgba(0,0,0,0.8)';ctx.fillText('FINISH HIM!',W/2+4,H*0.35+4);
+    ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=4;
     ctx.strokeText('FINISH HIM!',W/2,H*0.35);
     ctx.shadowColor='#ef4444';ctx.shadowBlur=40;
     ctx.fillStyle='#ef4444';ctx.fillText('FINISH HIM!',W/2,H*0.35);
@@ -1412,9 +1419,10 @@ function fightLoop(now){
     ctx.save();
     ctx.globalAlpha=cAlpha;
     ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.font='bold '+Math.round(H*0.08*cScale)+'px Rajdhani,Impact,sans-serif';
+    ctx.font=Math.round(H*0.05*cScale)+'px "Press Start 2P",monospace';
     var cCol=COMBO.count>=5?'#ef4444':COMBO.count>=3?'#f59e0b':'#22c55e';
-    ctx.strokeStyle='rgba(0,0,0,0.8)';ctx.lineWidth=4;
+    ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillText(COMBO.text,W*0.5+2,H*0.18+2);
+    ctx.strokeStyle='rgba(0,0,0,0.8)';ctx.lineWidth=3;
     ctx.strokeText(COMBO.text,W*0.5,H*0.18);
     ctx.shadowColor=cCol;ctx.shadowBlur=20;
     ctx.fillStyle=cCol;ctx.fillText(COMBO.text,W*0.5,H*0.18);
