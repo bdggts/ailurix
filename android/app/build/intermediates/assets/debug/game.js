@@ -293,9 +293,15 @@ function drawFighter(ctx,f,t){
   }
   var frames=SPRITE_ANIMS[sprKey];
   if(frames && frames.length>0 && !spr){
-    // Find loaded frames (async loads)
-    var loadedFrames=[];
-    for(var fi=0;fi<frames.length;fi++){if(frames[fi])loadedFrames.push(frames[fi]);}
+    // Cache loadedFrames on fighter to avoid allocation every frame
+    if(!f._lfc) f._lfc={};
+    if(f._lfc[sprKey]!==undefined){
+      var loadedFrames=f._lfc[sprKey];
+    } else {
+      var loadedFrames=[];
+      for(var fi=0;fi<frames.length;fi++){if(frames[fi])loadedFrames.push(frames[fi]);}
+      f._lfc[sprKey]=loadedFrames;
+    }
     if(loadedFrames.length>0){
       var animSpeed=f.animSpeed || (st==='idle'?8:st==='walk'?4:3);
       var frameIdx=Math.floor(t/animSpeed)%loadedFrames.length;
@@ -676,7 +682,10 @@ function drawBG(ctx,W,H,stage,t){
   if(id==='cyrax'||id==='kitana'||id==='sektor'){
     ctx.fillStyle='rgba(163,230,53,0.3)';
     for(var dp=0;dp<10;dp++){var ddx=((dp*W/10+t*0.5)%W);var ddy=H*0.1+Math.sin(t*0.02+dp)*H*0.4;ctx.fillRect(ddx,ddy,2,2);}
-    ctx.strokeStyle='rgba(163,230,53,0.06)';ctx.lineWidth=1;for(var sl=0;sl<H;sl+=8){ctx.beginPath();ctx.moveTo(0,sl);ctx.lineTo(W,sl);ctx.stroke();}
+    // BATCHED scanlines — single path instead of 75 separate strokes
+    ctx.strokeStyle='rgba(163,230,53,0.06)';ctx.lineWidth=1;ctx.beginPath();
+    for(var sl=0;sl<H;sl+=8){ctx.moveTo(0,sl);ctx.lineTo(W,sl);}
+    ctx.stroke();
   } else if(id==='reptile'){
     for(var bu=0;bu<8;bu++){var bx=((bu*W/8+Math.sin(t*0.01+bu)*15))%W;var byy=H-((t*0.6+bu*55)%(H*0.85));ctx.strokeStyle='rgba(56,189,248,0.25)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(bx,byy,1.5,0,Math.PI*2);ctx.stroke();}
   } else if(id==='liukang'||id==='baraka'||id==='noob'){
@@ -709,7 +718,9 @@ function spawnParts(parts,x,y,col,n){
   for(var i=0;i<n;i++)parts.push({x:x,y:y,vx:(Math.random()-0.5)*10,vy:(Math.random()-0.5)*10-4,color:col,life:22+Math.random()*14,size:2+Math.random()*4.5});
 }
 function tickParts(parts){
-  for(var i=parts.length-1;i>=0;i--){var p=parts[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.35;p.life--;if(p.life<=0)parts.splice(i,1);}
+  var alive=0;
+  for(var i=0;i<parts.length;i++){var p=parts[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.35;p.life--;if(p.life>0){parts[alive++]=p;}}
+  parts.length=alive;
 }
 function drawParts(ctx,parts){
   parts.forEach(function(p){ctx.globalAlpha=Math.min(1,p.life/12);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();});
