@@ -464,7 +464,7 @@ function drawFighter(ctx,f,t){
         }
         // "GET OVER HERE!" text
         if(sF>0.5){
-          ctx.font='bold 10px Arial';ctx.fillStyle='#fbbf24';ctx.textAlign='center';
+          ctx.font='bold 7px "Press Start 2P",monospace';ctx.fillStyle='#fbbf24';ctx.textAlign='center';
           ctx.fillText('GET OVER HERE!',sprW*0.3+chainLen*0.5,chainY-14);
         }
       } else {
@@ -549,7 +549,7 @@ function drawFighter(ctx,f,t){
   ctx.strokeStyle=c;ctx.lineWidth=2;ctx.globalAlpha=0.5;
   ctx.beginPath();ctx.arc(0,-silH*0.88,silW*0.34,0,Math.PI*2);ctx.stroke();
   ctx.globalAlpha=1;
-  ctx.font='bold '+Math.round(silW*0.5)+'px Arial';ctx.textAlign='center';
+  ctx.font=Math.round(silW*0.4)+'px "Press Start 2P",monospace';ctx.textAlign='center';
   ctx.fillStyle='#fff';ctx.fillText(f.ch.name.charAt(0),0,-silH*0.45);
   ctx.restore();
 }
@@ -594,7 +594,7 @@ function drawCharPreview(canvas,ch,size,frame,pose){
     var lCol=st==='punch'?'#ef4444':'#f59e0b';
     if(t<8){ctx.fillStyle='rgba(255,255,255,'+(0.28*(1-t/8))+')';ctx.fillRect(0,0,w,h);}
     ctx.globalAlpha=0.85+Math.sin(t*0.22)*0.15;
-    ctx.font='bold '+Math.round(w*0.13)+'px Impact,sans-serif';
+    ctx.font=Math.round(w*0.09)+'px "Press Start 2P",monospace';
     ctx.textAlign='center';ctx.textBaseline='top';
     ctx.strokeStyle='rgba(0,0,0,0.8)';ctx.lineWidth=2;
     var lbl=st==='punch'?'PUNCH!':'KICK!';
@@ -1503,9 +1503,11 @@ function fightLoop(now){
 
       // X-RAY text
       ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.font='bold '+Math.round(H*0.09)+'px Rajdhani,Impact,sans-serif';
+      ctx.font=Math.round(H*0.06)+'px "Press Start 2P",monospace';
+      ctx.shadowColor='#93c5fd';ctx.shadowBlur=20;
       ctx.fillStyle='#93c5fd';
       ctx.fillText('X-RAY',W/2,H*0.12);
+      ctx.shadowBlur=0;
     }
 
     // Phase 3 (70-90): white flash -> KO
@@ -1518,19 +1520,24 @@ function fightLoop(now){
   if(gs.phase==='roundOver'||gs.phase==='matchOver'){
     ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(0,0,W,H);
     ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.shadowColor='#ef4444';ctx.shadowBlur=50;ctx.fillStyle='#ef4444';
-    ctx.font='bold '+Math.round(H*0.2)+'px Rajdhani,Impact,sans-serif';
+    ctx.font=Math.round(H*0.10)+'px "Press Start 2P",monospace';
+    // Pixel shadow
+    ctx.fillStyle='#4a0000';ctx.fillText('DEFEATED!',W/2+4,H*0.38+4);
+    ctx.shadowColor='#ef4444';ctx.shadowBlur=40;ctx.fillStyle='#ef4444';
+    ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=3;ctx.strokeText('DEFEATED!',W/2,H*0.38);
     ctx.fillText('DEFEATED!',W/2,H*0.38);
     ctx.shadowBlur=0;
     var winText=gs.roundOverText||'ROUND OVER';
     var winCol=gs.roundOverColor||'#fff';
-    ctx.font='bold '+Math.round(H*0.07)+'px Rajdhani,sans-serif';
+    ctx.font=Math.round(H*0.045)+'px "Press Start 2P",monospace';
     ctx.fillStyle=winCol;
-    ctx.strokeStyle='rgba(0,0,0,0.8)';ctx.lineWidth=3;
+    ctx.shadowColor=winCol;ctx.shadowBlur=20;
+    ctx.strokeStyle='rgba(0,0,0,0.8)';ctx.lineWidth=2;
     ctx.strokeText(winText,W/2,H*0.58);
     ctx.fillText(winText,W/2,H*0.58);
-    ctx.fillStyle='#888';
-    ctx.font='bold '+Math.round(H*0.045)+'px Rajdhani,sans-serif';
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#555';
+    ctx.font=Math.round(H*0.03)+'px "Press Start 2P",monospace';
     ctx.fillText(gs.p1r+' - '+gs.p2r,W/2,H*0.68);
   }
 
