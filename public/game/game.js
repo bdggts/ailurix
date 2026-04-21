@@ -1259,6 +1259,20 @@ function fightLoop(now){
       var _rNames=['Round One','Round Two','Round Three'];
       var _rStr=_rNames[gs.round-1]||('Round '+gs.round);
       announce(_rStr,0);
+      // Directly schedule beep on AC — bypass gesture restriction
+      try{var _rac=AC_ctx;if(_rac){
+        var _rb=function(){
+          var t=_rac.currentTime;
+          var g1=_rac.createGain();g1.gain.setValueAtTime(0.22,t);g1.gain.exponentialRampToValueAtTime(0.001,t+0.6);
+          var o1=_rac.createOscillator();o1.type='sine';o1.frequency.value=523;
+          o1.connect(g1);g1.connect(_rac.destination);o1.start(t);o1.stop(t+0.6);
+          var g2=_rac.createGain();g2.gain.setValueAtTime(0.22,t+0.55);g2.gain.exponentialRampToValueAtTime(0.001,t+1.1);
+          var o2=_rac.createOscillator();o2.type='sine';o2.frequency.value=440;
+          o2.connect(g2);g2.connect(_rac.destination);o2.start(t+0.55);o2.stop(t+1.1);
+        };
+        if(_rac.state==='running'){_rb();}
+        else{_rac.resume().then(_rb).catch(_rb);}
+      }}catch(e){}
     }
     if(gs.roundAnnTimer<=0){gs.phase='countdown';gs.cd=3;gs.cdTick=22;}
   }
@@ -1266,7 +1280,24 @@ function fightLoop(now){
   // -- COUNTDOWN --
   if(gs.phase==='countdown'){
     gs.cdTick--;
-    if(gs.cdTick<=0){snd('cd');gs.cd--;gs.cdTick=22;if(gs.cd<=0){gs.phase='fight';snd('fight');announce('Fight!',0);}}
+    if(gs.cdTick<=0){snd('cd');gs.cd--;gs.cdTick=22;if(gs.cd<=0){
+      gs.phase='fight';snd('fight');
+      announce('Fight!',0);
+      // Directly schedule fight beep
+      try{var _fac=AC_ctx;if(_fac){
+        var _fb=function(){
+          var t=_fac.currentTime;
+          var g1=_fac.createGain();g1.gain.setValueAtTime(0.28,t);g1.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+          var o1=_fac.createOscillator();o1.type='square';o1.frequency.value=800;
+          o1.connect(g1);g1.connect(_fac.destination);o1.start(t);o1.stop(t+0.3);
+          var g2=_fac.createGain();g2.gain.setValueAtTime(0.32,t+0.32);g2.gain.exponentialRampToValueAtTime(0.001,t+0.6);
+          var o2=_fac.createOscillator();o2.type='square';o2.frequency.value=1000;
+          o2.connect(g2);g2.connect(_fac.destination);o2.start(t+0.32);o2.stop(t+0.6);
+        };
+        if(_fac.state==='running'){_fb();}
+        else{_fac.resume().then(_fb).catch(_fb);}
+      }}catch(e){}
+    }}
   }
 
   // -- FIGHT TICK --
