@@ -40,6 +40,8 @@ var G={
   cpuTick:0,
   stopped:false,
   bgInt:null,
+  mpMode:false,      // true when in 1v1 online fight
+  mpOpponent:null,   // opponent character in MP mode
 };
 var COMBO = { count: 0, timer: 0, lastHitter: null, text: '', textTimer: 0, flash: 0 };
 var ROUND_WORDS = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN'];
@@ -754,7 +756,7 @@ function initFight(){
   G.gs=null;
   COMBO.count=0;COMBO.timer=0;COMBO.lastHitter=null;COMBO.textTimer=0;COMBO.flash=0;
 
-  var opp=TOWER[Math.min(G.stage-1,TOWER.length-1)];
+  var opp = G.mpMode && G.mpOpponent ? G.mpOpponent : TOWER[Math.min(G.stage-1,TOWER.length-1)];
   var eHpMult=1+(G.stage-1)*0.15;
   $('hud-p1-name').textContent=G.player.name;$('hud-p1-name').style.color=G.player.color;
   $('hud-p2-name').textContent=opp.name;$('hud-p2-name').style.color=opp.color;
@@ -893,6 +895,8 @@ function playerAttack(type){
   p1.cd={punch:14,kick:20,special:26}[type]||14;
   if(type==='special')p1.energy=0;
   snd(type);doAttack(p1,gs.p2,type,gs);
+  // Send input to opponent in multiplayer mode
+  if(G.mpMode && window.MPSendInput) window.MPSendInput(type);
 }
 window._atk=playerAttack;
 
@@ -900,6 +904,8 @@ window._atk=playerAttack;
 // Behaviors: circling, pressure/retreat cycles, feints, momentum shifts,
 // emotional reactions, combo strings, spacing game, mind games
 function cpuThink(gs){
+  // Skip CPU AI in multiplayer mode
+  if(G.mpMode) return;
   var p1=gs.p1,p2=gs.p2;
   var canAct2=['idle','walk'].indexOf(p2.state)>=0;
   var dist=Math.abs(p2.x-p1.x);
@@ -2519,3 +2525,77 @@ document.addEventListener('click', function onFirst(){
   MK_PLAY();
   document.removeEventListener('click', onFirst);
 }, {once: true});
+
+// =========================================================
+// MULTIPLAYER FIGHT INTEGRATION
+// =========================================================
+
+// Called by mp-client.js when both players have selected chars
+window.startMPFightGame = function(d) {
+  // Find characters by id
+  var myCharId   = window.MPClient.getState().playerNum === 1 ? d.p1Char : d.p2Char;
+  var oppCharId  = window.MPClient.getState().playerNum === 1 ? d.p2Char : d.p1Char;
+  var myChar     = CHARS.find(function(c){ return c.id === myCharId; });
+  var oppChar    = CHARS.find(function(c){ return c.id === oppCharId; });
+  if(!myChar)  myChar  = PLAYABLE[0];
+  if(!oppChar) oppChar = PLAYABLE[1];
+
+  G.mpMode     = true;
+  G.mpOpponent = oppChar;
+  G.player     = myChar;
+  G.stage      = 1;
+
+  // Navigate to fight screen
+  showScreen && showScreen('fight');
+  initFight();
+};
+
+// Called by mp-client.js when opponent input arrives
+window.applyOpponentInput = function(d) {
+  var gs = G.gs;
+  if(!gs || !G.mpMode || G.stopped) return;
+  if(gs.phase !== 'fight' && !gs.finishHim) return;
+  var p2 = gs.p2;
+  var type = d.action;
+  if(!type || ['punch','kick','special','block'].indexOf(type) < 0) return;
+  if(p2.cd > 0) return;
+  if(type === 'block') { p2.state='block'; p2.cd=6; snd('block'); return; }
+  if(type === 'special' && p2.energy < 100) return;
+  p2.state = type; p2.af = 0;
+  p2.cd = {punch:14, kick:20, special:26}[type] || 14;
+  if(type === 'special') p2.energy = 0;
+  snd(type);
+  doAttack(p2, gs.p1, type, gs);
+};
+
+// Called by mp-client.js to sync HP from server
+window.applyMPHP = function(d) {
+  var gs = G.gs;
+  if(!gs || !G.mpMode) return;
+  var myNum = window.MPClient.getState().playerNum;
+  if(myNum === 1) {
+    gs.p1.hp = Math.max(0, d.hp1);
+    gs.p2.hp = Math.max(0, d.hp2);
+  } else {
+    // From our perspective: we are p1, opponent is p2
+    gs.p1.hp = Math.max(0, d.hp2);
+    gs.p2.hp = Math.max(0, d.hp1);
+  }
+};
+
+// Called by mp-client.js when fight ends
+window.showMPResultScreen = function(won) {
+  if(!G.gs) return;
+  G.mpMode = false;
+  // Force end round state
+  var gs = G.gs;
+  gs.over = true;
+  gs.phase = 'roundOver';
+  gs.roundOverTimer = 0;
+  gs.roundOverText  = won ? '🏆 YOU WIN!' : '💀 YOU LOSE!';
+  gs.roundOverColor = won ? '#f59e0b' : '#ef4444';
+  if(won) { gs.p1r++; gs.p1.state='victory'; gs.p2.state='fallen'; }
+  else    { gs.p2r++; gs.p2.state='victory'; gs.p1.state='fallen'; }
+  snd('ko');
+  stopBGMusic();
+};
