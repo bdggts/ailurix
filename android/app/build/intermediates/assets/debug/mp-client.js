@@ -6,8 +6,8 @@
 'use strict';
 
 // ── CONFIG ──────────────────────────────────────────────────
-// Local tunnel URL — server running on your PC
-var SERVER_URL = 'https://ailurix-arena.loca.lt';
+// Permanent server on Render.com (free tier, auto-deploy)
+var SERVER_URL = 'https://ailurix-arena-server.onrender.com';
 
 // ── STATE ───────────────────────────────────────────────────
 var MP = {
