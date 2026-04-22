@@ -26,58 +26,72 @@ jobs:
           V=$(grep "versionName" android/app/build.gradle | head -1 | sed "s/.*'\(.*\)'.*/\1/")
           echo "name=$V" >> $GITHUB_OUTPUT
           SAFE=$(echo $V | tr '.' '_')
-          echo "safe=$SAFE" >> $GITHUB_OUTPUT
           echo "apk=ailurix_arena_v${SAFE}.apk" >> $GITHUB_OUTPUT
           echo "Version: $V"
 
       - name: Sync game files to Android assets
         run: |
-          cp public/game/game.js       android/app/src/main/assets/game.js
-          cp public/game/mp-client.js  android/app/src/main/assets/mp-client.js
-          cp public/game/bg_*.png      android/app/src/main/assets/ 2>/dev/null || true
+          cp public/game/game.js      android/app/src/main/assets/game.js
+          cp public/game/mp-client.js android/app/src/main/assets/mp-client.js
+          cp public/game/bg_*.png     android/app/src/main/assets/ 2>/dev/null || true
           echo "Assets synced!"
-          ls -lh android/app/src/main/assets/game.js
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
       - name: Accept Android SDK licenses
-        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        run: |
+          mkdir -p $ANDROID_HOME/licenses
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > $ANDROID_HOME/licenses/android-sdk-license
+          echo "84831b9409646a918e30573bab4c9c91346d8abd" >> $ANDROID_HOME/licenses/android-sdk-license
+          echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > $ANDROID_HOME/licenses/android-sdk-preview-license
+          echo "84831b9409646a918e30573bab4c9c91346d8abd" >> $ANDROID_HOME/licenses/android-sdk-preview-license
 
       - name: Build Debug APK
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
-
-      - name: Rename APK
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk \
-             "${{ steps.ver.outputs.apk }}"
-          echo "APK: ${{ steps.ver.outputs.apk }}"
-          ls -lh "${{ steps.ver.outputs.apk }}"
+          ./gradlew assembleDebug \
+            --no-daemon \
+            --stacktrace \
+            -Dorg.gradle.jvmargs="-Xmx4g -XX:+HeapDumpOnOutOfMemoryError"
+
+      - name: Find and rename APK
+        id: apk
+        run: |
+          APK_SRC=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
+          APK_DEST="${{ steps.ver.outputs.apk }}"
+          cp "$APK_SRC" "$APK_DEST"
+          echo "path=$APK_DEST" >> $GITHUB_OUTPUT
+          echo "size=$(du -h $APK_DEST | cut -f1)" >> $GITHUB_OUTPUT
+          echo "APK: $APK_DEST ($APK_DEST)"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: Ailurix-Arena-v${{ steps.ver.outputs.name }}
-          path: "${{ steps.ver.outputs.apk }}"
+          path: "${{ steps.apk.outputs.path }}"
           retention-days: 30
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.ver.outputs.name }}
-          name: "Ailurix Arena v${{ steps.ver.outputs.name }}"
+          name: "⚔️ Ailurix Arena v${{ steps.ver.outputs.name }}"
           body: |
             ## ⚔️ Ailurix Arena v${{ steps.ver.outputs.name }}
 
-            ### Install
-            👇 Click APK file below to download & install
+            ### 📥 Install
+            Click the APK file below to download & install on Android
 
-            ### Features
+            ### ✨ Features
             - Real-time 1v1 Multiplayer (CUSTOM FIGHT)
-            - 16 Characters | 15 Stages | Press Start 2P font
+            - 16 Characters | 15 Stages
             - Server: https://api.ailurix.com
-          files: "${{ steps.ver.outputs.apk }}"
+            - Socket.io CDN connection
+
+            ---
+            *Auto-built by GitHub Actions*
+          files: "${{ steps.apk.outputs.path }}"
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
