@@ -174,4 +174,19 @@ const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`\n🎮 Ailurix Arena Server running on port ${PORT}`);
   console.log(`   http://localhost:${PORT}\n`);
+
+  // ── KEEP-ALIVE PING (prevents Render.com free tier sleep) ──
+  // Pings self every 14 minutes so server NEVER sleeps
+  const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+  setInterval(() => {
+    const http = SELF_URL.startsWith('https') ? require('https') : require('http');
+    http.get(SELF_URL, (res) => {
+      console.log(`[PING] Keep-alive: ${res.statusCode} — ${new Date().toISOString()}`);
+    }).on('error', (e) => {
+      console.warn('[PING] Keep-alive failed:', e.message);
+    });
+  }, 14 * 60 * 1000); // every 14 minutes
+
+  console.log(`♾️  Keep-alive ping active (every 14 min)`);
 });
+
