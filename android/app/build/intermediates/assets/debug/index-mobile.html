@@ -1280,16 +1280,26 @@ document.addEventListener('DOMContentLoaded', function(){
 
   // CREATE ROOM
   if(createBtn) createBtn.addEventListener('click', function(){
+    if(!window.MPClient){
+      if(statusEl) { statusEl.textContent = '⚠️ Multiplayer not loaded!'; statusEl.style.color='#f00'; }
+      return;
+    }
     createBtn.disabled = true;
     createBtn.textContent = 'CONNECTING...';
+    if(statusEl) { statusEl.textContent = 'Connecting to server...'; statusEl.style.color='#f59e0b'; }
+    // mp-client.js showWaitingScreen() will update display when room:created fires
     window.MPClient.createRoom('Player 1');
-    // After room created, mp-client.js calls showWaitingScreen
-    // which shows roomWrap
+    // Timeout fallback only for showing error if no response in 8s
     setTimeout(function(){
-      if(roomWrap) roomWrap.style.display = 'block';
-      createBtn.textContent = 'ROOM CREATED';
-    }, 2000);
+      var code = document.getElementById('mp-room-display');
+      if(code && code.textContent === '------'){
+        createBtn.disabled = false;
+        createBtn.textContent = 'CREATE ROOM';
+        if(statusEl){ statusEl.textContent = '⚠️ Server timeout. Try again.'; statusEl.style.color='#f00'; }
+      }
+    }, 8000);
   });
+
 
   // COPY CODE
   if(copyBtn) copyBtn.addEventListener('click', function(){

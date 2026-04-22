@@ -167,10 +167,19 @@ function showMPStatus(msg) {
 }
 
 function showWaitingScreen(code) {
+  // Show the room code in the correct element
   var el = document.getElementById('mp-room-display');
   if (el) { el.textContent = code; }
-  var ws = document.getElementById('mp-waiting');
-  if (ws) ws.style.display = 'flex';
+  // Show the room wrap
+  var wrap = document.getElementById('mp-room-display-wrap');
+  if (wrap) wrap.style.display = 'block';
+  // Update status
+  var st = document.getElementById('mp-status');
+  if (st) { st.textContent = '⏳ Waiting for opponent...'; st.style.color = '#22c55e'; }
+  // Update button
+  var btn = document.getElementById('mp-create-btn');
+  if (btn) { btn.textContent = 'ROOM CREATED ✅'; btn.style.background = '#22c55e33'; }
+  console.log('[MP] Room created with code:', code);
 }
 
 function showMPCharSelect() {
