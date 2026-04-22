@@ -23,18 +23,47 @@ var MP = {
 
 window.MP = MP;
 
+// ── UI HELPERS ───────────────────────────────────────────────
+function setConnectStatus(msg, color) {
+  // Always-visible status (outside hidden wrap)
+  var cs = document.getElementById('mp-connect-status');
+  if (cs) { cs.textContent = msg; cs.style.color = color || '#fff'; }
+}
+
+function showMPError(msg) {
+  var el = document.getElementById('mp-status');
+  if (el) { el.textContent = '\u26a0\ufe0f ' + msg; el.style.color = '#f00'; }
+  setConnectStatus('\u26a0\ufe0f ' + msg, '#f55');
+  // Reset create button
+  var btn = document.getElementById('mp-create-btn');
+  if (btn) { btn.disabled = false; btn.textContent = 'CREATE ROOM'; }
+  console.warn('[MP] Error:', msg);
+}
+
+function showMPStatus(msg) {
+  var el = document.getElementById('mp-status');
+  if (el) { el.textContent = msg; el.style.color = '#0f0'; }
+  setConnectStatus(msg, '#22c55e');
+}
+
 // ── CONNECT TO SERVER ────────────────────────────────────────
 function connect(cb) {
   if (MP.connected) { cb && cb(); return; }
+  setConnectStatus('Loading socket library...', '#f59e0b');
   // socket.io is pre-loaded as local script (socket.io.min.js)
   if (typeof io === 'function') {
+    setConnectStatus('Connecting to server...', '#f59e0b');
     _initSocket(cb);
     return;
   }
   // Fallback: load from CDN if somehow not loaded
+  setConnectStatus('Loading from CDN...', '#f59e0b');
   var script = document.createElement('script');
   script.src = 'https://cdn.socket.io/4.7.5/socket.io.min.js';
-  script.onload = function() { _initSocket(cb); };
+  script.onload = function() {
+    setConnectStatus('Connecting to server...', '#f59e0b');
+    _initSocket(cb);
+  };
   script.onerror = function() { showMPError('Cannot load Socket.io library.'); };
   document.head.appendChild(script);
 }
@@ -47,6 +76,7 @@ function _initSocket(cb) {
     });
     MP.socket.on('connect', function() {
       MP.connected = true;
+      setConnectStatus('Connected! Creating room...', '#22c55e');
       console.log('[MP] Connected:', MP.socket.id);
       cb && cb();
     });
@@ -63,7 +93,6 @@ function _initSocket(cb) {
     showMPError('Failed to connect: ' + e.message);
   }
 }
-
 
 
 // ── SERVER EVENT LISTENERS ───────────────────────────────────
@@ -155,18 +184,6 @@ function sendHP(target, hp) {
 window.MPSendInput = sendInput;
 window.MPSendHP = sendHP;
 
-// ── UI HELPERS ───────────────────────────────────────────────
-function showMPError(msg) {
-  var el = document.getElementById('mp-status');
-  if (el) { el.textContent = '⚠️ ' + msg; el.style.color = '#f00'; }
-  console.warn('[MP] Error:', msg);
-}
-
-function showMPStatus(msg) {
-  var el = document.getElementById('mp-status');
-  if (el) { el.textContent = msg; el.style.color = '#0f0'; }
-}
-
 function showWaitingScreen(code) {
   // Show the room code in the correct element
   var el = document.getElementById('mp-room-display');
@@ -176,10 +193,12 @@ function showWaitingScreen(code) {
   if (wrap) wrap.style.display = 'block';
   // Update status
   var st = document.getElementById('mp-status');
-  if (st) { st.textContent = '⏳ Waiting for opponent...'; st.style.color = '#22c55e'; }
+  if (st) { st.textContent = '\u23f3 Waiting for opponent...'; st.style.color = '#22c55e'; }
   // Update button
   var btn = document.getElementById('mp-create-btn');
-  if (btn) { btn.textContent = 'ROOM CREATED ✅'; btn.style.background = '#22c55e33'; }
+  if (btn) { btn.textContent = 'ROOM CREATED \u2705'; btn.style.background = '#22c55e33'; }
+  // Update visible status
+  setConnectStatus('\ud83c\udfd7\ufe0f Room ready! Share code: ' + code, '#22c55e');
   console.log('[MP] Room created with code:', code);
 }
 
@@ -222,13 +241,16 @@ function showMPResult(won) {
 window.MPClient = {
   // Create a room (host)
   createRoom: function(playerName) {
+    setConnectStatus('Connecting...', '#f59e0b');
     connect(function() {
       MP.socket.emit('room:create', { name: playerName || 'Player 1' });
+      setConnectStatus('Waiting for room code...', '#f59e0b');
     });
   },
 
   // Join a room (guest)
   joinRoom: function(code, playerName) {
+    setConnectStatus('Joining room...', '#f59e0b');
     connect(function() {
       MP.socket.emit('room:join', { code: code, name: playerName || 'Player 2' });
     });
