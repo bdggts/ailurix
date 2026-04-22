@@ -6,8 +6,8 @@
 'use strict';
 
 // ── CONFIG ──────────────────────────────────────────────────
-// Production server on custom domain
-var SERVER_URL = 'https://api.ailurix.com';
+// Local tunnel URL — server running on your PC
+var SERVER_URL = 'https://ailurix-arena.loca.lt';
 
 // ── STATE ───────────────────────────────────────────────────
 var MP = {
@@ -41,7 +41,10 @@ function connect(cb) {
 
 function _initSocket(cb) {
   try {
-    MP.socket = io(SERVER_URL, { transports: ['websocket', 'polling'] });
+    MP.socket = io(SERVER_URL, {
+      transports: ['websocket', 'polling'],
+      extraHeaders: { 'bypass-tunnel-reminder': 'true' }
+    });
     MP.socket.on('connect', function() {
       MP.connected = true;
       console.log('[MP] Connected:', MP.socket.id);
