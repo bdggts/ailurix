@@ -22,37 +22,44 @@ var MP = {
 window.MP = MP;
 
 // ── UI HELPERS ───────────────────────────────────────────────
-function setConnectStatus(msg, color) {
-  var cs = document.getElementById('mp-connect-status');
-  if (cs) { cs.textContent = msg; cs.style.color = color || '#fff'; }
-}
-function showMPError(msg) {
+// Show status for HOST (inside room display wrap)
+function showHostStatus(msg, color) {
   var el = document.getElementById('mp-status');
-  if (el) { el.textContent = '\u26a0\ufe0f ' + msg; el.style.color = '#f00'; }
-  setConnectStatus('\u26a0\ufe0f ' + msg, '#f55');
+  if (el) { el.textContent = msg; el.style.color = color || '#22c55e'; }
+}
+// Show status for GUEST (always visible below join button)
+function showGuestStatus(msg, color) {
+  var el = document.getElementById('mp-join-status');
+  if (el) { el.textContent = msg; el.style.color = color || '#22c55e'; }
+}
+// Show in connect-status (visible to both, above room wrap)
+function showConnectStatus(msg, color) {
+  var el = document.getElementById('mp-connect-status');
+  if (el) { el.textContent = msg; el.style.color = color || '#fff'; }
+}
+// Show error (reset buttons)
+function showMPError(msg) {
+  showGuestStatus('\u26a0\ufe0f ' + msg, '#f55');
+  showHostStatus('\u26a0\ufe0f ' + msg, '#f55');
+  showConnectStatus('\u26a0\ufe0f ' + msg, '#f55');
   var btn = document.getElementById('mp-create-btn');
   if (btn) { btn.disabled = false; btn.textContent = 'CREATE ROOM'; }
   var jBtn = document.getElementById('mp-join-btn');
   if (jBtn) { jBtn.disabled = false; jBtn.textContent = 'JOIN ROOM'; }
   console.warn('[MP] Error:', msg);
 }
-function showMPStatus(msg, color) {
-  var el = document.getElementById('mp-status');
-  if (el) { el.textContent = msg; el.style.color = color || '#22c55e'; }
-  setConnectStatus(msg, color || '#22c55e');
-}
 
 // ── CONNECT TO SERVER ────────────────────────────────────────
 function connect(cb) {
   if (MP.connected && MP.socket) { cb && cb(); return; }
-  setConnectStatus('Connecting to server...', '#f59e0b');
+  showConnectStatus('Connecting...', '#f59e0b');
   if (typeof io === 'function') {
     _initSocket(cb);
   } else {
     var s = document.createElement('script');
     s.src = 'https://cdn.socket.io/4.7.5/socket.io.min.js';
     s.onload = function() { _initSocket(cb); };
-    s.onerror = function() { showMPError('Cannot load socket library.'); };
+    s.onerror = function() { showMPError('Cannot load socket library'); };
     document.head.appendChild(s);
   }
 }
@@ -66,7 +73,7 @@ function _initSocket(cb) {
     });
     MP.socket.on('connect', function() {
       MP.connected = true;
-      setConnectStatus('Connected!', '#22c55e');
+      showConnectStatus('Connected!', '#22c55e');
       console.log('[MP] Socket connected:', MP.socket.id);
       cb && cb();
     });
@@ -92,62 +99,56 @@ function setupListeners() {
   s.on('room:created', function(d) {
     MP.roomCode = d.code;
     MP.playerNum = 1;
-    showWaitingScreen(d.code);
+    _showRoomCreated(d.code);
   });
 
-  // Room joined (guest)
+  // Room joined successfully (guest)
   s.on('room:joined', function(d) {
     MP.roomCode = d.code;
     MP.playerNum = 2;
     MP.opponentName = d.opponentName;
-    showMPStatus('Connected! Waiting for host...', '#22c55e');
-    // Update join button
+    showGuestStatus('\u2705 Joined! Waiting for host...', '#22c55e');
     var jBtn = document.getElementById('mp-join-btn');
     if (jBtn) { jBtn.textContent = 'JOINED \u2705'; jBtn.style.background = '#22c55e33'; }
   });
 
-  // Opponent joined (host gets this)
+  // Opponent joined the room (host gets this)
   s.on('room:opponent_joined', function(d) {
     MP.opponentName = d.opponentName;
-    showMPStatus('\u2705 ' + d.opponentName + ' joined!', '#22c55e');
+    showHostStatus('\u2705 ' + d.opponentName + ' joined!', '#22c55e');
   });
 
-  // Both players select characters
+  // Both players go to character select
   s.on('room:select_chars', function() {
     showMPCharSelect();
   });
 
-  // Opponent picked a character
+  // Opponent selected a character
   s.on('room:opponent_char', function(d) {
     MP.opponentChar = d.charId;
-    console.log('[MP] Opponent selected:', d.charId);
-    // Update waiting message in char select
     var waitMsg = document.getElementById('mp-char-wait-msg');
-    if (waitMsg) { waitMsg.textContent = 'Opponent ready! Waiting for you...'; }
+    if (waitMsg) waitMsg.textContent = '\u23f3 Opponent ready! Now choose yours...';
+    console.log('[MP] Opponent chose:', d.charId);
   });
 
   // Fight starts!
   s.on('room:fight_start', function(d) {
-    MP.myChar = MP.playerNum === 1 ? d.p1Char : d.p2Char;
-    MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
-    MP.active = true;
-    // Use game.js's built-in MP fight starter (already handles chars + fight screen)
+    MP.myChar      = MP.playerNum === 1 ? d.p1Char : d.p2Char;
+    MP.opponentChar= MP.playerNum === 1 ? d.p2Char : d.p1Char;
+    MP.active      = true;
+    // game.js has window.startMPFightGame built in
     if (typeof window.startMPFightGame === 'function') {
       window.startMPFightGame(d);
-    } else {
-      startMPFight(MP.myChar, MP.opponentChar);
     }
   });
 
-  // Opponent fight input
+  // Opponent fight input (relay)
   s.on('fight:input', function(d) {
     if (!MP.active) return;
-    if (typeof window.applyOpponentInput === 'function') {
-      window.applyOpponentInput(d);
-    }
+    if (typeof window.applyOpponentInput === 'function') window.applyOpponentInput(d);
   });
 
-  // HP update
+  // HP sync from server
   s.on('fight:hp_update', function(d) {
     if (!MP.active) return;
     if (typeof window.applyMPHP === 'function') window.applyMPHP(d);
@@ -161,11 +162,10 @@ function setupListeners() {
     }
   });
 
-  // Opponent left
+  // Opponent disconnected mid-fight
   s.on('room:opponent_left', function(d) {
     MP.active = false;
     showMPError(d.msg || 'Opponent disconnected!');
-    // Go back to splash after 2s
     setTimeout(function() {
       if (typeof showScreen === 'function') showScreen('splash');
     }, 2000);
@@ -177,110 +177,91 @@ function setupListeners() {
   });
 }
 
+// ── ROOM CREATED — show code to host ─────────────────────────
+function _showRoomCreated(code) {
+  // Show the room display wrap
+  var wrap = document.getElementById('mp-room-display-wrap');
+  if (wrap) wrap.style.display = 'block';
+  // Set code
+  var codeEl = document.getElementById('mp-room-display');
+  if (codeEl) codeEl.textContent = code;
+  // Status
+  showHostStatus('\u23f3 Waiting for opponent...', '#22c55e');
+  showConnectStatus('\ud83c\udfd7 Room ready! Share code: ' + code, '#22c55e');
+  // Update button
+  var btn = document.getElementById('mp-create-btn');
+  if (btn) { btn.textContent = 'ROOM CREATED \u2705'; btn.style.background = '#22c55e33'; }
+}
+
 // ── CHARACTER SELECT (MP MODE) ────────────────────────────────
 function showMPCharSelect() {
-  console.log('[MP] Opening character select for player', MP.playerNum);
+  console.log('[MP] Opening character select, player', MP.playerNum);
 
-  // Switch to character select screen using game's own function
+  // Switch to select screen (same as single player)
   if (typeof showScreen === 'function') {
     showScreen('select');
   } else {
-    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    document.querySelectorAll('.screen').forEach(function(sc){sc.classList.remove('active');});
     var sel = document.getElementById('select');
     if (sel) sel.classList.add('active');
   }
 
-  // Initialize the character select grid
-  if (typeof initSelect === 'function') {
-    initSelect();
-  }
-
-  // Add "MP mode" waiting message below select button
-  var selectBtn = document.getElementById('select-btn');
-  if (selectBtn) {
-    // Remove old wait msg if any
-    var old = document.getElementById('mp-char-wait-msg');
-    if (old) old.parentNode.removeChild(old);
-
-    var waitDiv = document.createElement('div');
-    waitDiv.id = 'mp-char-wait-msg';
-    waitDiv.style.cssText = 'font-size:9px;color:#f59e0b;text-align:center;margin-top:8px;font-family:inherit;';
-    waitDiv.textContent = 'SELECT YOUR FIGHTER \u2193';
-    selectBtn.parentNode.insertBefore(waitDiv, selectBtn.nextSibling);
-
+  // Wait for screen transition then init (same as single player _playNow)
+  setTimeout(function() {
+    if (typeof G !== 'undefined') { G.screen = 'select'; G.stage = 1; }
+    // Start select BGM (same as single player)
+    if (typeof bgmPlay === 'function') bgmPlay('select');
+    // Init character select grid (EXACT same function as single player)
+    if (typeof initSelect === 'function') initSelect();
     // Override select button for MP mode
-    selectBtn.onclick = function() {
-      if (typeof G === 'undefined' || !G.player) {
-        // G.player not set yet - user hasn't selected
-        alert('Please tap a character first!');
-        return;
-      }
-      var charId = G.player.id;
-      console.log('[MP] Sending char select:', charId);
-      // Send to server
-      if (MP.socket) MP.socket.emit('room:char_select', { charId: charId });
-      // Update button
-      selectBtn.disabled = true;
-      selectBtn.textContent = 'WAITING FOR OPPONENT...';
-      selectBtn.style.background = 'rgba(245,158,11,.3)';
-      if (waitDiv) waitDiv.textContent = 'Waiting for opponent to pick...';
-    };
-  }
+    _overrideMPSelectBtn();
+  }, 300);
 }
 
-// ── START MP FIGHT ────────────────────────────────────────────
-function startMPFight(myCharId, oppCharId) {
-  console.log('[MP] Starting fight:', myCharId, 'vs', oppCharId);
+function _overrideMPSelectBtn() {
+  var selectBtn = document.getElementById('select-btn');
+  if (!selectBtn) return;
 
-  // Find character objects from PLAYABLE array
-  var myChar = null, oppChar = null;
-  if (typeof PLAYABLE !== 'undefined') {
-    for (var i = 0; i < PLAYABLE.length; i++) {
-      if (PLAYABLE[i].id === myCharId)  myChar  = PLAYABLE[i];
-      if (PLAYABLE[i].id === oppCharId) oppChar = PLAYABLE[i];
-    }
+  // Remove old mp wait msg
+  var old = document.getElementById('mp-char-wait-msg');
+  if (old) old.parentNode.removeChild(old);
+
+  // Insert waiting hint below button
+  var waitDiv = document.createElement('div');
+  waitDiv.id = 'mp-char-wait-msg';
+  waitDiv.style.cssText = [
+    'font-family:"Press Start 2P","Courier New",monospace',
+    'font-size:8px',
+    'color:#f59e0b',
+    'text-align:center',
+    'margin-top:10px',
+    'letter-spacing:1px',
+    'min-height:14px'
+  ].join(';');
+  waitDiv.textContent = '\u2b07 CHOOSE YOUR FIGHTER';
+  selectBtn.parentNode.insertBefore(waitDiv, selectBtn.nextSibling);
+
+  // Override the select button click — send char to server instead of going VS screen
+  selectBtn.onclick    = null;
+  selectBtn.ontouchend = null;
+
+  function doMPSelect(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (typeof G === 'undefined' || typeof PLAYABLE === 'undefined') return;
+    var ch     = PLAYABLE[G.selIdx != null ? G.selIdx : 0];
+    G.player   = ch;
+    var charId = ch.id;
+    console.log('[MP] P' + MP.playerNum + ' selected:', charId);
+    if (MP.socket) MP.socket.emit('room:char_select', { charId: charId });
+    selectBtn.disabled    = true;
+    selectBtn.textContent = 'WAITING...';
+    if (waitDiv) waitDiv.textContent = '\u23f3 Waiting for opponent to choose...';
+    selectBtn.onclick    = null;
+    selectBtn.ontouchend = null;
   }
 
-  if (!myChar || !oppChar) {
-    console.error('[MP] Character not found!', myCharId, oppCharId);
-    // Try by name fallback
-    if (typeof PLAYABLE !== 'undefined') {
-      myChar  = myChar  || PLAYABLE[0];
-      oppChar = oppChar || PLAYABLE[1];
-    }
-  }
-
-  // Set game state for MP fight
-  if (typeof G !== 'undefined') {
-    G.player     = myChar;
-    G.mpOpponent = oppChar;
-    G.mpMode     = true;
-    console.log('[MP] G.player =', G.player.name, '| G.mpOpponent =', G.mpOpponent.name);
-    // Remove MP char wait msg
-    var old = document.getElementById('mp-char-wait-msg');
-    if (old) old.parentNode.removeChild(old);
-    // Reset select button
-    var selectBtn = document.getElementById('select-btn');
-    if (selectBtn) { selectBtn.disabled = false; selectBtn.textContent = 'SELECT'; selectBtn.style.background = ''; }
-    // Go to VS screen → fight
-    if (typeof showScreen === 'function') showScreen('vs');
-    if (typeof initVS === 'function')     initVS();
-  } else {
-    console.error('[MP] G (game state) not available!');
-  }
-}
-
-// ── SHOW WAITING SCREEN (HOST) ────────────────────────────────
-function showWaitingScreen(code) {
-  var el = document.getElementById('mp-room-display');
-  if (el) { el.textContent = code; }
-  var wrap = document.getElementById('mp-room-display-wrap');
-  if (wrap) wrap.style.display = 'block';
-  var st = document.getElementById('mp-status');
-  if (st) { st.textContent = '\u23f3 Waiting for opponent...'; st.style.color = '#22c55e'; }
-  var btn = document.getElementById('mp-create-btn');
-  if (btn) { btn.textContent = 'ROOM CREATED \u2705'; btn.style.background = '#22c55e33'; }
-  setConnectStatus('\ud83c\udfd7\ufe0f Room ready! Share code: ' + code, '#22c55e');
+  selectBtn.onclick    = doMPSelect;
+  selectBtn.ontouchend = doMPSelect;
 }
 
 // ── PUBLIC API ───────────────────────────────────────────────
@@ -295,28 +276,26 @@ window.MPClient = {
       MP.socket.emit('room:join', { code: code, name: playerName || 'Player 2' });
     });
   },
-  selectChar: function(charId) {
-    MP.myChar = charId;
-    if (MP.socket) MP.socket.emit('room:char_select', { charId: charId });
-  },
   rematch: function() {
     if (MP.socket && MP.roomCode) {
-      G.mpMode = false;
-      G.mpOpponent = null;
+      if (typeof G !== 'undefined') { G.mpMode = false; G.mpOpponent = null; }
       MP.active = false;
       MP.socket.emit('room:rematch');
     }
   },
-  isActive: function() { return MP.active; },
+  isActive:     function() { return MP.active; },
   getPlayerNum: function() { return MP.playerNum; },
-  getState: function() { return MP; }
+  getState:     function() { return MP; }
 };
 
-// ── SEND INPUT TO SERVER ─────────────────────────────────────
+// ── FIGHT INPUT SEND ─────────────────────────────────────────
+// Called from game.js: if(G.mpMode && window.MPSendInput) window.MPSendInput(type)
 window.MPSendInput = function(action, extra) {
   if (!MP.socket || !MP.active) return;
   MP.socket.emit('fight:input', Object.assign({ action: action, ts: Date.now() }, extra || {}));
 };
+
+// Called from game.js to sync HP
 window.MPSendHP = function(target, hp) {
   if (!MP.socket || !MP.active) return;
   MP.socket.emit('fight:hp', { target: target, hp: hp });
