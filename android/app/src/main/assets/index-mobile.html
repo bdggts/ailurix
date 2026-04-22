@@ -1245,7 +1245,8 @@ document.addEventListener('touchend', function(){
 <audio id="va_finishhim" src="voice/v_finishhim.mp3" preload="auto"></audio>
 <audio id="va_flawless" src="voice/v_flawless.mp3" preload="auto"></audio>
 
-<!-- MULTIPLAYER CLIENT -->
+<!-- MULTIPLAYER CLIENT - socket.io loaded locally for offline reliability -->
+<script src="socket.io.min.js"></script>
 <script src="mp-client.js"></script>
 <script>
 // ── MP LOBBY NAVIGATION ─────────────────────────────────────
