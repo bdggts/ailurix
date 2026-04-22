@@ -286,8 +286,11 @@ function drawFighter(ctx,f,t){
 
   var isRotSpr=false;
   var rotF=ROT_SPRITES[id];
-  if(st==='idle' && rotF && f.rotAngle!==undefined){
-    var rotIdx=(Math.round(f.rotAngle/45)+4)%8;
+  if(st==='idle' && rotF){
+    // In fight: rotAngle is undefined → use side profile (-90°=rot_2=right side)
+    // In char select: rotAngle is set by user drag
+    var _ra = f.rotAngle !== undefined ? f.rotAngle : -90;
+    var rotIdx=(((Math.round(_ra/45))%8)+8)%8;
     if(rotF[rotIdx] && rotF[rotIdx].complete && rotF[rotIdx].naturalWidth>0){
       spr=rotF[rotIdx];
       isRotSpr=true;
