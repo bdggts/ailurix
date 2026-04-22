@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   push:
     branches: [ main, master ]
-  workflow_dispatch:  # Manual trigger button on GitHub
+  workflow_dispatch:
 
 jobs:
   build-apk:
@@ -20,11 +20,21 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Sync latest game files to Android assets
+      - name: Get version from build.gradle
+        id: ver
         run: |
-          cp public/game/game.js    android/app/src/main/assets/game.js
-          cp public/game/index.html android/app/src/main/assets/index.html
-          cp public/game/bg_*.png   android/app/src/main/assets/ 2>/dev/null || true
+          V=$(grep "versionName" android/app/build.gradle | head -1 | sed "s/.*'\(.*\)'.*/\1/")
+          echo "name=$V" >> $GITHUB_OUTPUT
+          SAFE=$(echo $V | tr '.' '_')
+          echo "safe=$SAFE" >> $GITHUB_OUTPUT
+          echo "apk=ailurix_arena_v${SAFE}.apk" >> $GITHUB_OUTPUT
+          echo "Version: $V"
+
+      - name: Sync game files to Android assets
+        run: |
+          cp public/game/game.js       android/app/src/main/assets/game.js
+          cp public/game/mp-client.js  android/app/src/main/assets/mp-client.js
+          cp public/game/bg_*.png      android/app/src/main/assets/ 2>/dev/null || true
           echo "Assets synced!"
           ls -lh android/app/src/main/assets/game.js
 
@@ -34,19 +44,40 @@ jobs:
       - name: Accept Android SDK licenses
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      - name: Build Release APK
+      - name: Build Debug APK
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Rename APK
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk \
+             "${{ steps.ver.outputs.apk }}"
+          echo "APK: ${{ steps.ver.outputs.apk }}"
+          ls -lh "${{ steps.ver.outputs.apk }}"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Ailurix-Arena-APK
-          path: android/app/build/outputs/apk/release/*.apk
+          name: Ailurix-Arena-v${{ steps.ver.outputs.name }}
+          path: "${{ steps.ver.outputs.apk }}"
           retention-days: 30
 
-      - name: Show APK info
-        run: |
-          APK=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
-          echo "APK: $APK"
-          ls -lh "$APK"
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.name }}
+          name: "Ailurix Arena v${{ steps.ver.outputs.name }}"
+          body: |
+            ## ⚔️ Ailurix Arena v${{ steps.ver.outputs.name }}
+
+            ### Install
+            👇 Click APK file below to download & install
+
+            ### Features
+            - Real-time 1v1 Multiplayer (CUSTOM FIGHT)
+            - 16 Characters | 15 Stages | Press Start 2P font
+            - Server: https://api.ailurix.com
+          files: "${{ steps.ver.outputs.apk }}"
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
