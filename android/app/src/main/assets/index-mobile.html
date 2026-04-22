@@ -765,44 +765,44 @@ button{font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;borde
 .mp-bg{position:absolute;inset:0;background:linear-gradient(160deg,#0a0a1a,#0f0a2a,#1a0a0f);z-index:0;}
 .mp-content{
   position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;
-  width:100%;max-width:400px;box-sizing:border-box;
-  padding:20px 16px max(16px,env(safe-area-inset-bottom,16px));
-  padding-top:max(20px,env(safe-area-inset-top,20px));
-  gap:12px;height:100%;overflow-y:auto;overflow-x:hidden;}
-.mp-title{font-size:clamp(13px,3.5vmax,18px);font-weight:900;color:#f59e0b;
+  width:100%;box-sizing:border-box;padding:10px 14px 16px;
+  gap:8px;height:100%;
+  overflow-y:scroll;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y !important;}
+.mp-title{font-size:clamp(12px,3vmax,16px);font-weight:900;color:#f59e0b;
   font-family:'Press Start 2P','Courier New',monospace;
-  text-shadow:0 0 20px rgba(245,158,11,.6);letter-spacing:2px;margin-top:16px;
+  text-shadow:0 0 20px rgba(245,158,11,.6);letter-spacing:2px;margin-top:8px;
   text-align:center;width:100%;}
-.mp-sub{font-size:clamp(7px,1.8vmax,9px);color:rgba(255,255,255,.4);letter-spacing:2px;
-  font-family:'Press Start 2P','Courier New',monospace;text-align:center;width:100%;}
+.mp-sub{font-size:clamp(6px,1.5vmax,8px);color:rgba(255,255,255,.4);letter-spacing:2px;
+  font-family:'Press Start 2P','Courier New',monospace;text-align:center;width:100%;margin-bottom:2px;}
 .mp-card{width:100%;background:rgba(255,255,255,.04);
-  border:1px solid rgba(245,158,11,.2);border-radius:14px;padding:16px;box-sizing:border-box;}
-.mp-card-title{font-size:clamp(9px,2.2vmax,12px);font-weight:900;color:#f59e0b;
-  font-family:'Press Start 2P','Courier New',monospace;margin-bottom:6px;}
-.mp-card-desc{font-size:clamp(7px,1.8vmax,9px);color:rgba(255,255,255,.4);margin-bottom:12px;
-  word-break:break-word;}
-.mp-btn{width:100%;padding:12px;border-radius:10px;font-weight:900;
-  font-size:clamp(8px,2.2vmax,11px);letter-spacing:1px;border:none;
+  border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:12px;box-sizing:border-box;}
+.mp-card-title{font-size:clamp(8px,2vmax,11px);font-weight:900;color:#f59e0b;
+  font-family:'Press Start 2P','Courier New',monospace;margin-bottom:4px;}
+.mp-card-desc{font-size:clamp(6px,1.5vmax,8px);color:rgba(255,255,255,.4);margin-bottom:8px;word-break:break-word;}
+.mp-btn{width:100%;padding:10px;border-radius:10px;font-weight:900;
+  font-size:clamp(8px,2vmax,10px);letter-spacing:1px;border:none;
   font-family:'Press Start 2P','Courier New',monospace;
-  touch-action:manipulation;margin-top:8px;transition:transform .1s;box-sizing:border-box;}
+  touch-action:manipulation;margin-top:6px;transition:transform .1s;box-sizing:border-box;}
 .mp-btn:active{transform:scale(.97);}
 .mp-btn.primary{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;}
 .mp-btn.success{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;}
 .mp-btn.ghost{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);}
-.mp-input{width:100%;padding:12px;border-radius:10px;background:rgba(0,0,0,.4);
-  border:1px solid rgba(245,158,11,.3);color:#fff;font-size:16px;text-align:center;
-  font-family:'Press Start 2P','Courier New',monospace;letter-spacing:4px;margin-bottom:4px;
-  outline:none;box-sizing:border-box;}
-.mp-code-label{font-size:7px;color:rgba(255,255,255,.4);letter-spacing:2px;
-  font-family:'Press Start 2P','Courier New',monospace;margin-top:12px;text-align:center;}
-.mp-code{font-size:clamp(20px,6vmax,32px);font-weight:900;color:#f59e0b;
+.mp-input{width:100%;padding:10px;border-radius:10px;background:rgba(0,0,0,.4);
+  border:1px solid rgba(245,158,11,.3);color:#fff;font-size:15px;text-align:center;
+  font-family:'Press Start 2P','Courier New',monospace;letter-spacing:4px;margin-bottom:2px;
+  outline:none;box-sizing:border-box;touch-action:pan-y;}
+.mp-code-label{font-size:6px;color:rgba(255,255,255,.4);letter-spacing:2px;
+  font-family:'Press Start 2P','Courier New',monospace;margin-top:8px;text-align:center;}
+.mp-code{font-size:clamp(18px,5vmax,28px);font-weight:900;color:#f59e0b;
   font-family:'Press Start 2P','Courier New',monospace;letter-spacing:4px;
-  text-shadow:0 0 20px rgba(245,158,11,.8);text-align:center;margin:6px 0;
-  word-break:break-all;}
-.mp-status{font-size:clamp(7px,1.8vmax,9px);color:#22c55e;text-align:center;
-  font-family:'Press Start 2P','Courier New',monospace;margin-top:8px;min-height:18px;
-  word-break:break-word;}
+  text-shadow:0 0 20px rgba(245,158,11,.8);text-align:center;margin:4px 0;word-break:break-all;}
+.mp-status{font-size:clamp(6px,1.5vmax,8px);color:#22c55e;text-align:center;
+  font-family:'Press Start 2P','Courier New',monospace;margin-top:6px;min-height:14px;word-break:break-word;}
+
 </style>
+
 </head>
 <body>
 <div id="app">
