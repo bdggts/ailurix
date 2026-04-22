@@ -26,26 +26,44 @@ window.MP = MP;
 // ── CONNECT TO SERVER ────────────────────────────────────────
 function connect(cb) {
   if (MP.connected) { cb && cb(); return; }
-  // Load socket.io from server
+  // Load Socket.io from CDN (reliable on all networks)
+  if (typeof io === 'function') {
+    _initSocket(cb);
+    return;
+  }
   var script = document.createElement('script');
-  script.src = SERVER_URL + '/socket.io/socket.io.js';
-  script.onload = function() {
-    MP.socket = io(SERVER_URL, { transports: ['websocket'] });
-    MP.socket.on('connect', function() {
-      MP.connected = true;
-      console.log('[MP] Connected:', MP.socket.id);
-      cb && cb();
-    });
-    MP.socket.on('disconnect', function() {
-      MP.connected = false;
-      MP.active = false;
-      if (MP.roomCode) showMPError('Disconnected from server');
-    });
-    setupListeners();
+  script.src = 'https://cdn.socket.io/4.7.5/socket.io.min.js';
+  script.crossOrigin = 'anonymous';
+  script.onload = function() { _initSocket(cb); };
+  script.onerror = function() {
+    // Fallback: try server-hosted socket.io
+    var s2 = document.createElement('script');
+    s2.src = SERVER_URL + '/socket.io/socket.io.js';
+    s2.onload = function() { _initSocket(cb); };
+    s2.onerror = function() { showMPError('Cannot reach game server. Check internet.'); };
+    document.head.appendChild(s2);
   };
-  script.onerror = function() { showMPError('Cannot reach game server. Check internet.'); };
   document.head.appendChild(script);
 }
+
+function _initSocket(cb) {
+  MP.socket = io(SERVER_URL, { transports: ['websocket', 'polling'] });
+  MP.socket.on('connect', function() {
+    MP.connected = true;
+    console.log('[MP] Connected:', MP.socket.id);
+    cb && cb();
+  });
+  MP.socket.on('connect_error', function(err) {
+    showMPError('Server connection failed: ' + (err.message || 'timeout'));
+  });
+  MP.socket.on('disconnect', function() {
+    MP.connected = false;
+    MP.active = false;
+    if (MP.roomCode) showMPError('Disconnected from server');
+  });
+  setupListeners();
+}
+
 
 // ── SERVER EVENT LISTENERS ───────────────────────────────────
 function setupListeners() {
