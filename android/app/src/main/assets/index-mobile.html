@@ -1252,15 +1252,20 @@ document.addEventListener('touchend', function(){
 window._openMP = function(){
   if(window._navBusy) return;
   cancelAnimationFrame(window._splashRaf);
-  window.G && (window.G.screen = 'mp-lobby');
-  window.showScreen && window.showScreen('mp-lobby');
+  // Direct DOM screen switch
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var mpEl = document.getElementById('mp-lobby');
+  if(mpEl) mpEl.classList.add('active');
 };
 
 window._closeMP = function(){
-  window.G && (window.G.screen = 'splash');
-  window.showScreen && window.showScreen('splash');
+  // Go back to splash
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var splashEl = document.getElementById('splash');
+  if(splashEl) splashEl.classList.add('active');
   if(typeof window.initSplash === 'function') window.initSplash();
 };
+
 
 // ── LOBBY BUTTONS ───────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function(){

@@ -6,14 +6,13 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>Ailurix Arena</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" media="print" onload="this.media='all'">
+<style>@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;src:url('ps2p.woff2') format('woff2');}</style>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;
   -webkit-touch-callout:none;user-select:none;-webkit-user-select:none;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;
-  font-family:Impact,'Arial Black',sans-serif;touch-action:none;overscroll-behavior:none;}
-button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;outline:none;}
+  font-family:'Press Start 2P','Courier New',monospace;touch-action:none;overscroll-behavior:none;}
+button{font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;border:none;outline:none;}
 
 /* ══════════ APP ══════════ */
 #app{position:fixed;inset:0;background:#000;overflow:hidden;}
@@ -750,6 +749,51 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
   cursor:pointer;touch-action:manipulation;letter-spacing:1px;
   border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:#94a3b8;}
 .voice-opt.active{border-color:#f59e0b;color:#000;background:linear-gradient(135deg,#f59e0b,#d97706);}
+
+/* ══════════ CUSTOM FIGHT BTN ══════════ */
+.custom-fight-btn{
+  margin-top:10px;padding:12px 28px;
+  background:transparent;border:2px solid rgba(245,158,11,0.6);
+  color:#f59e0b;font-size:clamp(9px,2.5vmax,12px);font-weight:900;
+  letter-spacing:2px;border-radius:10px;
+  font-family:'Press Start 2P','Courier New',monospace;
+  transition:all .2s;touch-action:manipulation;
+}
+.custom-fight-btn:active{background:rgba(245,158,11,0.15);transform:scale(.97);}
+
+/* ══════════ MP LOBBY ══════════ */
+.mp-bg{position:absolute;inset:0;background:linear-gradient(160deg,#0a0a1a,#0f0a2a,#1a0a0f);z-index:0;}
+.mp-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;
+  padding:24px 16px;gap:16px;height:100%;overflow-y:auto;}
+.mp-title{font-size:clamp(14px,4vmax,20px);font-weight:900;color:#f59e0b;
+  font-family:'Press Start 2P','Courier New',monospace;
+  text-shadow:0 0 20px rgba(245,158,11,.6);letter-spacing:2px;margin-top:20px;}
+.mp-sub{font-size:clamp(8px,2vmax,10px);color:rgba(255,255,255,.4);letter-spacing:3px;
+  font-family:'Press Start 2P','Courier New',monospace;}
+.mp-card{width:100%;max-width:360px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(245,158,11,.2);border-radius:14px;padding:18px;}
+.mp-card-title{font-size:clamp(10px,2.5vmax,13px);font-weight:900;color:#f59e0b;
+  font-family:'Press Start 2P','Courier New',monospace;margin-bottom:6px;}
+.mp-card-desc{font-size:clamp(8px,2vmax,10px);color:rgba(255,255,255,.4);margin-bottom:14px;}
+.mp-btn{width:100%;padding:13px;border-radius:10px;font-weight:900;
+  font-size:clamp(9px,2.5vmax,11px);letter-spacing:2px;border:none;
+  font-family:'Press Start 2P','Courier New',monospace;
+  touch-action:manipulation;margin-top:8px;transition:transform .1s;}
+.mp-btn:active{transform:scale(.97);}
+.mp-btn.primary{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;}
+.mp-btn.success{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;}
+.mp-btn.ghost{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);}
+.mp-input{width:100%;padding:13px;border-radius:10px;background:rgba(0,0,0,.4);
+  border:1px solid rgba(245,158,11,.3);color:#fff;font-size:18px;text-align:center;
+  font-family:'Press Start 2P','Courier New',monospace;letter-spacing:6px;margin-bottom:4px;
+  outline:none;}
+.mp-code-label{font-size:8px;color:rgba(255,255,255,.4);letter-spacing:3px;
+  font-family:'Press Start 2P','Courier New',monospace;margin-top:14px;}
+.mp-code{font-size:clamp(24px,7vmax,36px);font-weight:900;color:#f59e0b;
+  font-family:'Press Start 2P','Courier New',monospace;letter-spacing:8px;
+  text-shadow:0 0 20px rgba(245,158,11,.8);text-align:center;margin:8px 0;}
+.mp-status{font-size:clamp(7px,2vmax,9px);color:#22c55e;text-align:center;
+  font-family:'Press Start 2P','Courier New',monospace;margin-top:10px;min-height:20px;}
 </style>
 </head>
 <body>
@@ -769,6 +813,7 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
       <div class="splash-sub">A R E N A</div>
       <div class="splash-season"><span class="splash-live-dot"></span>SEASON 1 · NOW LIVE</div>
       <button id="play-btn" class="play-btn" onclick="if(window._playNow)window._playNow()">⚔️ PLAY NOW</button>
+      <button id="custom-fight-btn" class="custom-fight-btn" onclick="if(window._openMP)window._openMP()">🎮 CUSTOM FIGHT</button>
       <div class="splash-stats">
         <div class="splash-stat"><div class="splash-stat-val">16</div><div class="splash-stat-lbl">FIGHTERS</div></div>
         <div class="splash-divider"></div>
@@ -785,6 +830,39 @@ button{font-family:Impact,'Arial Black',sans-serif;cursor:pointer;border:none;ou
   <div id="voice-picker-wrap">
     <div id="voice-picker-header"><h3>ANNOUNCER VOICE</h3><button id="voice-close-btn">✕</button></div>
     <div id="voice-list"></div>
+  </div>
+
+  <!-- MULTIPLAYER LOBBY -->
+  <div class="screen" id="mp-lobby">
+    <div class="mp-bg"></div>
+    <div class="mp-content">
+      <div class="mp-title">⚔️ CUSTOM FIGHT</div>
+      <div class="mp-sub">Fight a friend online</div>
+
+      <!-- CREATE ROOM -->
+      <div class="mp-card" id="mp-create-card">
+        <div class="mp-card-title">🏠 CREATE ROOM</div>
+        <div class="mp-card-desc">Get a code and share with friend</div>
+        <button class="mp-btn primary" id="mp-create-btn">CREATE ROOM</button>
+        <div id="mp-room-display-wrap" style="display:none">
+          <div class="mp-code-label">ROOM CODE</div>
+          <div id="mp-room-display" class="mp-code">------</div>
+          <button class="mp-btn ghost" id="mp-copy-code-btn">📋 COPY CODE</button>
+          <div id="mp-status" class="mp-status">Waiting for opponent...</div>
+        </div>
+      </div>
+
+      <!-- JOIN ROOM -->
+      <div class="mp-card" id="mp-join-card">
+        <div class="mp-card-title">🔗 JOIN ROOM</div>
+        <div class="mp-card-desc">Enter your friend's room code</div>
+        <input id="mp-code-input" class="mp-input" type="text" maxlength="6" placeholder="Enter code (e.g. ABC123)" autocapitalize="characters"/>
+        <button class="mp-btn success" id="mp-join-btn">JOIN ROOM</button>
+        <div id="mp-join-status" class="mp-status"></div>
+      </div>
+
+      <button class="mp-btn ghost" id="mp-back-btn">← BACK</button>
+    </div>
   </div>
 
   <!-- CHARACTER SELECT v7.0 — LEFT details + RIGHT 3-col grid -->
@@ -1166,5 +1244,87 @@ document.addEventListener('touchend', function(){
 <audio id="va_youwin" src="voice/v_youwin.mp3" preload="auto"></audio>
 <audio id="va_finishhim" src="voice/v_finishhim.mp3" preload="auto"></audio>
 <audio id="va_flawless" src="voice/v_flawless.mp3" preload="auto"></audio>
+
+<!-- MULTIPLAYER CLIENT -->
+<script src="mp-client.js"></script>
+<script>
+// ── MP LOBBY NAVIGATION ─────────────────────────────────────
+window._openMP = function(){
+  if(window._navBusy) return;
+  cancelAnimationFrame(window._splashRaf);
+  // Direct DOM screen switch
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var mpEl = document.getElementById('mp-lobby');
+  if(mpEl) mpEl.classList.add('active');
+};
+
+window._closeMP = function(){
+  // Go back to splash
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var splashEl = document.getElementById('splash');
+  if(splashEl) splashEl.classList.add('active');
+  if(typeof window.initSplash === 'function') window.initSplash();
+};
+
+
+// ── LOBBY BUTTONS ───────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function(){
+  var createBtn  = document.getElementById('mp-create-btn');
+  var joinBtn    = document.getElementById('mp-join-btn');
+  var backBtn    = document.getElementById('mp-back-btn');
+  var copyBtn    = document.getElementById('mp-copy-code-btn');
+  var codeInput  = document.getElementById('mp-code-input');
+  var roomWrap   = document.getElementById('mp-room-display-wrap');
+  var statusEl   = document.getElementById('mp-status');
+  var joinStatus = document.getElementById('mp-join-status');
+
+  // CREATE ROOM
+  if(createBtn) createBtn.addEventListener('click', function(){
+    createBtn.disabled = true;
+    createBtn.textContent = 'CONNECTING...';
+    window.MPClient.createRoom('Player 1');
+    // After room created, mp-client.js calls showWaitingScreen
+    // which shows roomWrap
+    setTimeout(function(){
+      if(roomWrap) roomWrap.style.display = 'block';
+      createBtn.textContent = 'ROOM CREATED';
+    }, 2000);
+  });
+
+  // COPY CODE
+  if(copyBtn) copyBtn.addEventListener('click', function(){
+    var code = document.getElementById('mp-room-display').textContent;
+    if(navigator.clipboard) navigator.clipboard.writeText(code);
+    copyBtn.textContent = '✓ COPIED!';
+    setTimeout(function(){ copyBtn.textContent = '📋 COPY CODE'; }, 2000);
+  });
+
+  // JOIN ROOM
+  if(joinBtn) joinBtn.addEventListener('click', function(){
+    var code = (codeInput.value || '').trim().toUpperCase();
+    if(code.length < 4){
+      joinStatus.textContent = '⚠️ Enter a valid code!';
+      joinStatus.style.color = '#f00';
+      return;
+    }
+    joinBtn.disabled = true;
+    joinBtn.textContent = 'JOINING...';
+    joinStatus.textContent = 'Connecting...';
+    joinStatus.style.color = '#f59e0b';
+    window.MPClient.joinRoom(code, 'Player 2');
+  });
+
+  // BACK
+  if(backBtn) backBtn.addEventListener('click', function(){
+    window._closeMP();
+    // Reset UI
+    if(createBtn){ createBtn.disabled = false; createBtn.textContent = 'CREATE ROOM'; }
+    if(joinBtn){ joinBtn.disabled = false; joinBtn.textContent = 'JOIN ROOM'; }
+    if(roomWrap) roomWrap.style.display = 'none';
+    if(joinStatus) joinStatus.textContent = '';
+    if(codeInput) codeInput.value = '';
+  });
+});
+</script>
 </body>
 </html>
