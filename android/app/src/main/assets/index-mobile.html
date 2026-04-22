@@ -762,10 +762,11 @@ button{font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;borde
 .custom-fight-btn:active{background:rgba(245,158,11,0.15);transform:scale(.97);}
 
 /* ══════════ MP LOBBY ══════════ */
+#mp-lobby{touch-action:pan-y !important;overflow:hidden;}
 .mp-bg{position:absolute;inset:0;background:linear-gradient(160deg,#0a0a1a,#0f0a2a,#1a0a0f);z-index:0;}
 .mp-content{
   position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;
-  width:100%;box-sizing:border-box;padding:10px 14px 16px;
+  width:100%;max-width:100vw;box-sizing:border-box;padding:10px 12px 20px;
   gap:8px;height:100%;
   overflow-y:scroll;overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
@@ -1267,6 +1268,18 @@ window._openMP = function(){
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
   var mpEl = document.getElementById('mp-lobby');
   if(mpEl) mpEl.classList.add('active');
+
+  // Enable scroll on mp-content (override global touch-action:none)
+  var mpContent = document.getElementById('mp-lobby').querySelector('.mp-content');
+  if(mpContent && !mpContent._scrollEnabled) {
+    mpContent._scrollEnabled = true;
+    var startY = 0;
+    mpContent.addEventListener('touchstart', function(e){ startY = e.touches[0].clientY; }, {passive:true});
+    mpContent.addEventListener('touchmove', function(e){
+      e.stopPropagation(); // prevent game from catching this
+      // Allow natural scroll
+    }, {passive:true});
+  }
 };
 
 window._closeMP = function(){
