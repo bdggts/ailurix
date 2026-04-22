@@ -6,8 +6,8 @@
 'use strict';
 
 // ── CONFIG ──────────────────────────────────────────────────
-// Change this to your Railway.app URL after deployment
-var SERVER_URL = 'http://localhost:3001';
+// Production server on custom domain
+var SERVER_URL = 'https://api.ailurix.com';
 
 // ── STATE ───────────────────────────────────────────────────
 var MP = {
