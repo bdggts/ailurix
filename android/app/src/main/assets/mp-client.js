@@ -128,12 +128,15 @@ function setupListeners() {
 
   // Fight starts!
   s.on('room:fight_start', function(d) {
-    var myCharId  = MP.playerNum === 1 ? d.p1Char : d.p2Char;
-    var oppCharId = MP.playerNum === 1 ? d.p2Char : d.p1Char;
-    MP.myChar = myCharId;
-    MP.opponentChar = oppCharId;
+    MP.myChar = MP.playerNum === 1 ? d.p1Char : d.p2Char;
+    MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
     MP.active = true;
-    startMPFight(myCharId, oppCharId);
+    // Use game.js's built-in MP fight starter (already handles chars + fight screen)
+    if (typeof window.startMPFightGame === 'function') {
+      window.startMPFightGame(d);
+    } else {
+      startMPFight(MP.myChar, MP.opponentChar);
+    }
   });
 
   // Opponent fight input
