@@ -146,28 +146,31 @@ function _showRoomCreated(code) {
   if (btn) { btn.textContent = 'ROOM CREATED \u2705'; btn.style.background = '#22c55e33'; }
 }
 
-// ── CHARACTER SELECT (MP) — now uses window.* exports ────────
+// ── CHARACTER SELECT (MP) ────────────────────────────────────
 function showMPCharSelect() {
   console.log('[MP] Opening char select, player', MP.playerNum);
 
-  // Reset nav lock so _playNow runs
-  window._navBusy = false;
-
-  // Use the game's own _playNow → opens select screen + inits grid + plays BGM
-  // (same as single player PLAY NOW button)
-  if (typeof window._playNow === 'function') {
-    window._playNow();
+  // Switch to select screen using exported showScreen
+  if (window.showScreen) {
+    window.showScreen('select');
   } else {
-    // Fallback: direct DOM switch
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
     var sel = document.getElementById('select');
     if (sel) sel.classList.add('active');
-    if (window.G) { window.G.screen = 'select'; window.G.stage = 1; }
-    if (window.initSelect) window.initSelect();
   }
 
-  // Override select button AFTER initSelect runs (600ms to be safe)
-  setTimeout(_overrideMPSelectBtn, 600);
+  // Set game state
+  if (window.G) { window.G.screen = 'select'; window.G.stage = 1; }
+
+  // Play select BGM
+  if (window.bgmPlay) window.bgmPlay('select');
+
+  // Init char grid after brief delay (screen paint)
+  setTimeout(function() {
+    if (window.initSelect) window.initSelect();
+    // Override button immediately after initSelect
+    _overrideMPSelectBtn();
+  }, 350);
 }
 
 function _overrideMPSelectBtn() {
