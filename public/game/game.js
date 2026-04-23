@@ -789,8 +789,8 @@ function initFight(){
     var floorKey=BG_MAP[opp.id]||'bg_fire';
     var FLOOR=H*(FLOOR_MAP[floorKey]||0.78);
     G.gs={
-      p1:{ch:G.player,x:W*0.28,y:FLOOR,vy:0,onGround:true,hp:G.player.hp,maxHp:G.player.hp,energy:0,state:'idle',af:0,cd:0,dir:1,H:Math.round(SC*110),dmgTaken:0},
-      p2:{ch:opp,x:W*0.72,y:FLOOR,vy:0,onGround:true,hp:Math.round(opp.hp*eHpMult),maxHp:Math.round(opp.hp*eHpMult),energy:0,state:'idle',af:0,cd:0,dir:-1,H:Math.round(SC*110),dmgTaken:0},
+      p1:{ch:G.player,x:W*0.28,y:FLOOR,vy:0,onGround:true,hp:G.player.hp,maxHp:G.player.hp,energy:0,state:'idle',af:0,cd:0,dir:1,H:Math.round(SC*130),dmgTaken:0},
+      p2:{ch:opp,x:W*0.72,y:FLOOR,vy:0,onGround:true,hp:Math.round(opp.hp*eHpMult),maxHp:Math.round(opp.hp*eHpMult),energy:0,state:'idle',af:0,cd:0,dir:-1,H:Math.round(SC*130),dmgTaken:0},
       timer:300,lastSec:Date.now(),
       p1r:0,p2r:0,round:1,
       parts:[],shake:0,floatTexts:[],
@@ -1218,7 +1218,7 @@ function fightLoop(now){
   W=gs.W;H=gs.H;
   var ctx=cv.getContext('2d');
     var p1=gs.p1,p2=gs.p2;
-  p1.H=p2.H=Math.round(gs.SC*110);
+  p1.H=p2.H=Math.round(gs.SC*130);
 
   // -- ROUND OVER TIMER (frame-based, no setTimeout needed) --
   if(gs.phase==='roundOver'||gs.phase==='matchOver'){
