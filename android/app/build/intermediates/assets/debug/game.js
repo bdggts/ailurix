@@ -325,8 +325,8 @@ function drawFighter(ctx,f,t){
   }
   if(spr){
     ctx.save();
-    // Smart Scaling: 1.4x boost for rotation assets to fill the preview, plus character multiplier
-    var hBoost = isRotSpr ? 1.45 : 1.15;
+    // Unified scaling: same boost for ALL sprites (was 1.45 rot vs 1.15 normal = size jump!)
+    var hBoost = 1.3;
     var sprH=H*hBoost;
     var sprW=sprH*(spr.width/spr.height);
     ctx.translate(x,y);
