@@ -2539,6 +2539,32 @@ window.showScreen = showScreen;
 window.initSelect = function(){ initSelect(); };
 window.bgmPlay   = bgmPlay;
 
+// Set select button to MP mode (called from mp-client.js after char select opens)
+// onSelect(charId) callback is called when user confirms character
+window.setMPSelectMode = function(onSelect) {
+  var btn = $('select-btn');
+  if (!btn) { console.warn('[MP] select-btn missing'); return; }
+
+  // Change button appearance to MP style
+  btn.disabled    = false;
+  btn.textContent = 'SELECT FIGHTER';
+  btn.style.background = 'linear-gradient(135deg,#f59e0b,#f97316)';
+
+  // Set handler INSIDE IIFE — full closure access to G, PLAYABLE
+  function _mpHandle(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    var ch = PLAYABLE[G.selIdx != null ? G.selIdx : 0];
+    G.player = ch;
+    btn.disabled    = true;
+    btn.textContent = 'WAITING...';
+    btn.onclick     = null;
+    btn.ontouchend  = null;
+    if (typeof onSelect === 'function') onSelect(ch.id);
+  }
+  btn.onclick    = _mpHandle;
+  btn.ontouchend = _mpHandle;
+};
+
 
 // Called by mp-client.js when both players have selected chars
 window.startMPFightGame = function(d) {

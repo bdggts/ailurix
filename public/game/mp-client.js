@@ -150,16 +150,33 @@ function _showRoomCreated(code) {
 function showMPCharSelect() {
   console.log('[MP] Opening char select, player', MP.playerNum);
 
-  // Clear nav lock so _playNow runs
+  // Reset nav lock so _playNow runs (opens screen + inits grid + plays BGM)
   window._navBusy = false;
-
-  // _playNow: opens select screen, inits grid, plays BGM — same as SP PLAY NOW
-  // It calls initSelect() SYNCHRONOUSLY so grid is built before it returns
   if (window._playNow) window._playNow();
 
-  // Override select button IMMEDIATELY after _playNow returns
-  // (initSelect has already run and set SP onclick — we override it now)
-  _overrideMPSelectBtn();
+  // Set MP select mode — button handler runs INSIDE game.js IIFE
+  // so G and PLAYABLE are correctly accessible via closure
+  if (window.setMPSelectMode) {
+    window.setMPSelectMode(function(charId) {
+      console.log('[MP] Player', MP.playerNum, 'selected:', charId);
+      if (MP.socket) MP.socket.emit('room:char_select', { charId: charId });
+      // Show waiting hint
+      var w = document.getElementById('mp-char-wait-msg');
+      if (w) w.textContent = '\u23f3 Waiting for opponent...';
+    });
+  }
+
+  // Add MP hint below the button
+  var selectBtn = document.getElementById('select-btn');
+  if (selectBtn) {
+    var old = document.getElementById('mp-char-wait-msg');
+    if (old) old.parentNode.removeChild(old);
+    var waitDiv = document.createElement('div');
+    waitDiv.id = 'mp-char-wait-msg';
+    waitDiv.style.cssText = 'font-size:8px;color:#f59e0b;text-align:center;margin-top:8px;letter-spacing:1px;font-family:inherit;';
+    waitDiv.textContent = '\u2b07 CHOOSE YOUR FIGHTER';
+    selectBtn.parentNode.insertBefore(waitDiv, selectBtn.nextSibling);
+  }
 }
 
 function _overrideMPSelectBtn() {
