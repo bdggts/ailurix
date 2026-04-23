@@ -2532,6 +2532,13 @@ document.addEventListener('click', function onFirst(){
 // =========================================================
 // MULTIPLAYER FIGHT INTEGRATION
 // =========================================================
+// Export key internals for mp-client.js (runs outside this IIFE)
+window.G         = G;
+window.PLAYABLE  = PLAYABLE;
+window.showScreen = showScreen;
+window.initSelect = function(){ initSelect(); };
+window.bgmPlay   = bgmPlay;
+
 
 // Called by mp-client.js when both players have selected chars
 window.startMPFightGame = function(d) {

@@ -11,8 +11,8 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 180,
-      "versionName": "15.13.24",
+      "versionCode": 181,
+      "versionName": "15.13.25",
       "outputFile": "AndroidManifest.xml"
     }
   ],
