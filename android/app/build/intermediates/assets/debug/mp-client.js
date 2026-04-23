@@ -150,27 +150,16 @@ function _showRoomCreated(code) {
 function showMPCharSelect() {
   console.log('[MP] Opening char select, player', MP.playerNum);
 
-  // Switch to select screen using exported showScreen
-  if (window.showScreen) {
-    window.showScreen('select');
-  } else {
-    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-    var sel = document.getElementById('select');
-    if (sel) sel.classList.add('active');
-  }
+  // Clear nav lock so _playNow runs
+  window._navBusy = false;
 
-  // Set game state
-  if (window.G) { window.G.screen = 'select'; window.G.stage = 1; }
+  // _playNow: opens select screen, inits grid, plays BGM — same as SP PLAY NOW
+  // It calls initSelect() SYNCHRONOUSLY so grid is built before it returns
+  if (window._playNow) window._playNow();
 
-  // Play select BGM
-  if (window.bgmPlay) window.bgmPlay('select');
-
-  // Init char grid after brief delay (screen paint)
-  setTimeout(function() {
-    if (window.initSelect) window.initSelect();
-    // Override button immediately after initSelect
-    _overrideMPSelectBtn();
-  }, 350);
+  // Override select button IMMEDIATELY after _playNow returns
+  // (initSelect has already run and set SP onclick — we override it now)
+  _overrideMPSelectBtn();
 }
 
 function _overrideMPSelectBtn() {
