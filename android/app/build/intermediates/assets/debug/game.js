@@ -861,8 +861,11 @@ function doAttack(attacker,defender,type,gs){
       defender.energy=Math.min(100,defender.energy+(blocked?3:8));
       gs.shake=blocked?2:(type==='special'?14:7);
       var pCount=blocked?4:(COMBO.count>=3?20:type==='special'?16:10);
+      // FINISH HIM: triple particles + massive shake for drama
+      if(gs.finishHim){ pCount=Math.min(40, pCount*3); gs.shake=Math.max(gs.shake,20); }
       spawnParts(gs.parts,defender.x,defender.y-defender.H*0.5,blocked?'#3b82f6':'#fff',pCount);
       spawnParts(gs.parts,defender.x,defender.y-defender.H*0.3,defender.ch.color,pCount>>1);
+      if(gs.finishHim) spawnParts(gs.parts,defender.x,defender.y-defender.H*0.7,'#ef4444',pCount>>1);
       snd(blocked?'block':'hit');
       // KNOCKBACK
       var kb=blocked?3:(type==='special'?18:type==='kick'?12:6);
@@ -1366,10 +1369,10 @@ function fightLoop(now){
   // Hit flash
   if(COMBO.flash>0){ctx.fillStyle='rgba(255,255,255,'+(COMBO.flash*0.04)+')';ctx.fillRect(0,0,W,H);}
 
-  drawParts(ctx,gs.parts);
+
   drawFighter(ctx,p1,gs.frame);
   drawFighter(ctx,p2,gs.frame);
-
+  drawParts(ctx,gs.parts);  // drawn AFTER fighters so sparks/blood appear on top
 
   // ROUND ANNOUNCE overlay
   if(gs.phase==='roundAnnounce'){
