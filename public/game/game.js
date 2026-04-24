@@ -1663,9 +1663,8 @@ function initSelect(){
     });
     if(_rc>=8)clearInterval(_ri);
   },130);
-  // ── SELECT BUTTON ──
-  var _selBtn=$('select-btn');
-  _selBtn.onclick=function(){
+  // ── SELECT BUTTON — global function called from HTML onclick ──
+  window._doSelect=function(){
     G.player=PLAYABLE[G.selIdx!=null?G.selIdx:0];
     // ── MP MODE → go to lobby ──
     if(window.MP && window.MP.roomCode){
