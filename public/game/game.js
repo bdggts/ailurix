@@ -1663,28 +1663,34 @@ function initSelect(){
     });
     if(_rc>=8)clearInterval(_ri);
   },130);
-  $('select-btn').onclick=function(){
-    // ── MP MODE: if in a room, call MP callback ──
+  // ── UNIVERSAL SELECT HANDLER (works on Android WebView) ──
+  var _selBtn=$('select-btn');
+  // Remove ALL old handlers
+  _selBtn.onclick=null; _selBtn.ontouchend=null;
+  var _newBtn=_selBtn.cloneNode(true);
+  _selBtn.parentNode.replaceChild(_newBtn,_selBtn);
+  // Single handler via pointerup — fires reliably on mobile+desktop
+  _newBtn.addEventListener('pointerup',function _selectHandler(e){
+    e.preventDefault(); e.stopPropagation();
+    console.log('[SELECT] tapped. MP.roomCode=',window.MP&&window.MP.roomCode,'_mpSelectCallback=',!!window._mpSelectCallback);
+    // ── MP MODE ──
     if(window.MP && window.MP.roomCode && window._mpSelectCallback){
       var ch=PLAYABLE[G.selIdx!=null?G.selIdx:0];
       G.player=ch;
-      var _b=$('select-btn');
-      if(_b){_b.disabled=true;_b.textContent='WAITING...';}
+      _newBtn.disabled=true; _newBtn.textContent='WAITING...';
       var _cb=window._mpSelectCallback;
       window._mpSelectCallback=null;
+      if(window._mpBtnInterval){clearInterval(window._mpBtnInterval);window._mpBtnInterval=null;}
+      console.log('[MP] char selected:',ch.id);
       if(typeof _cb==='function') _cb(ch.id);
       return;
     }
     // ── SP MODE ──
-    if(window.MP && window.MP.roomCode) return; // block SP if in room but no callback
+    if(window.MP && window.MP.roomCode) return;
     G.player=PLAYABLE[G.selIdx];snd('start');
     if(window._selAnimInt){cancelAnimationFrame(window._selAnimInt);window._selAnimInt=null;}
     G.screen='vs';showScreen('vs');initVS();
-  };
-  $('select-btn').ontouchend=function(e){
-    e.preventDefault();
-    $('select-btn').onclick && $('select-btn').onclick(e);
-  };
+  });
 }
 function updateGrid(){
   document.querySelectorAll('.char-card').forEach(function(c,i){c.classList.toggle('sel',i===G.selIdx);});
@@ -1904,9 +1910,19 @@ function updatePreview(dir){
     stEl.innerHTML=stats.map(function(s){return '<div class="stat-row"><div class="stat-lbl">'+s[0]+'<span class="stat-val" style="color:'+s[2]+'">'+s[1]+'/10</span></div><div class="stat-bg"><div class="stat-fill" style="width:0%;background:'+s[2]+';color:'+s[2]+'"></div></div></div>';}).join('');
     setTimeout(function(){stEl.querySelectorAll('.stat-fill').forEach(function(f,i){f.style.width=stats[i][1]*10+'%';});},60);
   }
-  // FIGHT button
+  // FIGHT button — skip text/style reset in MP mode
   var btn=$('select-btn');
-  if(btn){btn.textContent='NEXT →';btn.style.background='linear-gradient(135deg,'+c.color+','+c.color+'99)';btn.style.boxShadow='0 0 24px '+c.color+'55,0 4px 14px rgba(0,0,0,.7)';}
+  if(btn){
+    if(window.MP && window.MP.roomCode){
+      btn.textContent='SELECT FIGHTER ⚔️';
+      btn.style.background='linear-gradient(135deg,#f59e0b,#f97316)';
+      btn.style.boxShadow='0 0 24px #f59e0b55,0 4px 14px rgba(0,0,0,.7)';
+    } else {
+      btn.textContent='NEXT →';
+      btn.style.background='linear-gradient(135deg,'+c.color+','+c.color+'99)';
+      btn.style.boxShadow='0 0 24px '+c.color+'55,0 4px 14px rgba(0,0,0,.7)';
+    }
+  }
 }
 // VS
 // ─── Stage data ───
