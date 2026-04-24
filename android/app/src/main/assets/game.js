@@ -265,6 +265,7 @@ function showScreen(name){
   if(name==='splash')$('splash').classList.add('active');
   else if(name==='select')$('select').classList.add('active');
   else if(name==='vs')$('vs-screen').classList.add('active');
+  else if(name==='mp-lobby')$('mp-lobby').classList.add('active');
   else if(name==='stage-intro')$('stage-intro').classList.add('active');
   else if(name==='result')$('result-screen').classList.add('active');
   $('fight-ui').style.display=name==='fight'?'flex':'none';
