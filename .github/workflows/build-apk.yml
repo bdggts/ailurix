@@ -5,6 +5,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     name: Build APK
@@ -26,6 +29,7 @@ jobs:
           V=$(grep "versionName" android/app/build.gradle | head -1 | sed "s/.*'\(.*\)'.*/\1/")
           echo "name=$V" >> $GITHUB_OUTPUT
           SAFE=$(echo $V | tr '.' '_')
+          echo "safe=$SAFE" >> $GITHUB_OUTPUT
           echo "apk=ailurix_arena_v${SAFE}.apk" >> $GITHUB_OUTPUT
           echo "Version: $V"
 
@@ -52,25 +56,23 @@ jobs:
         run: |
           ./gradlew assembleDebug \
             --no-daemon \
-            --stacktrace \
-            -Dorg.gradle.jvmargs="-Xmx4g -XX:+HeapDumpOnOutOfMemoryError"
+            -Dorg.gradle.jvmargs="-Xmx4g"
 
-      - name: Find and rename APK
+      - name: Rename APK
         id: apk
         run: |
-          APK_SRC=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
-          APK_DEST="${{ steps.ver.outputs.apk }}"
-          cp "$APK_SRC" "$APK_DEST"
-          echo "path=$APK_DEST" >> $GITHUB_OUTPUT
-          echo "size=$(du -h $APK_DEST | cut -f1)" >> $GITHUB_OUTPUT
-          echo "APK: $APK_DEST ($APK_DEST)"
+          APK_SRC=$(find android/app/build/outputs/apk/debug -name "*.apk" | head -1)
+          APK_NAME="${{ steps.ver.outputs.apk }}"
+          cp "$APK_SRC" "$APK_NAME"
+          echo "path=$APK_NAME" >> $GITHUB_OUTPUT
+          echo "APK ready: $APK_NAME"
 
-      - name: Upload APK artifact
+      - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: Ailurix-Arena-v${{ steps.ver.outputs.name }}
-          path: "${{ steps.apk.outputs.path }}"
-          retention-days: 30
+          path: ${{ steps.apk.outputs.path }}
+          retention-days: 90
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -81,17 +83,14 @@ jobs:
             ## ⚔️ Ailurix Arena v${{ steps.ver.outputs.name }}
 
             ### 📥 Install
-            Click the APK file below to download & install on Android
+            Download the APK file below and install on Android.
 
-            ### ✨ Features
-            - Real-time 1v1 Multiplayer (CUSTOM FIGHT)
-            - 16 Characters | 15 Stages
-            - Server: https://api.ailurix.com
-            - Socket.io CDN connection
+            ### ✨ What's New
+            - Real-time 1v1 Online Multiplayer (CUSTOM FIGHT)
+            - CPU bypassed in MP fights
+            - SP onclick blocked when in MP room
 
             ---
             *Auto-built by GitHub Actions*
-          files: "${{ steps.apk.outputs.path }}"
+          files: ${{ steps.apk.outputs.path }}
           make_latest: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
