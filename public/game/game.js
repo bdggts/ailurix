@@ -760,6 +760,13 @@ function initFight(){
   G.gs=null;
   COMBO.count=0;COMBO.timer=0;COMBO.lastHitter=null;COMBO.textTimer=0;COMBO.flash=0;
 
+  // Force MP mode if socket fight is active (belt-and-suspenders check)
+  if(window.MP && window.MP.active && window.MP.roomCode){
+    G.mpMode = true;
+    if(!G.mpOpponent && window.MP.opponentChar){
+      G.mpOpponent = CHARS.find(function(c){return c.id===window.MP.opponentChar;})||PLAYABLE[1];
+    }
+  }
   var opp = G.mpMode && G.mpOpponent ? G.mpOpponent
           : TOWER[Math.min(G.stage-1,TOWER.length-1)];
   var eHpMult = 1+(G.stage-1)*0.15;
@@ -1657,6 +1664,8 @@ function initSelect(){
     if(_rc>=8)clearInterval(_ri);
   },130);
   $('select-btn').onclick=function(){
+    // BLOCK SP navigation if player is in an MP room
+    if(window.MP && window.MP.roomCode) return;
     G.player=PLAYABLE[G.selIdx];snd('start');
     if(window._selAnimInt){cancelAnimationFrame(window._selAnimInt);window._selAnimInt=null;}
     // Go directly to VS screen (like real mobile fighting games)
