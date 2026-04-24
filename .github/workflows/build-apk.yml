@@ -51,6 +51,12 @@ jobs:
           echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > $ANDROID_HOME/licenses/android-sdk-preview-license
           echo "84831b9409646a918e30573bab4c9c91346d8abd" >> $ANDROID_HOME/licenses/android-sdk-preview-license
 
+      - name: Install required Android SDK components
+        run: |
+          SDKMANAGER=$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
+          echo "y" | $SDKMANAGER "platforms;android-34" "build-tools;33.0.2" 2>&1 | tail -5
+          echo "SDK components installed!"
+
       - name: Build Debug APK
         working-directory: android
         run: |
