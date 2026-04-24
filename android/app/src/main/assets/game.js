@@ -42,10 +42,13 @@ var G={
   bgInt:null,
   mpMode:false,      // true when in 1v1 online fight
   mpOpponent:null,   // opponent character in MP mode
+  localTwoPlayer:false, // true when local 2P same-device mode
+  p2Char:null,       // P2 character in local 2P mode
 };
 var COMBO = { count: 0, timer: 0, lastHitter: null, text: '', textTimer: 0, flash: 0 };
 var ROUND_WORDS = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN'];
-var KEYS = { left: false, right: false, jump: false, punch: false, kick: false, block: false };
+var KEYS  = { left: false, right: false, jump: false };
+var KEYS2 = { left: false, right: false, jump: false }; // P2 local controls
 
 // SPRITE SYSTEM - PixelLab Frame Animation
 var SPRITES={};
@@ -759,10 +762,13 @@ function initFight(){
   G.gs=null;
   COMBO.count=0;COMBO.timer=0;COMBO.lastHitter=null;COMBO.textTimer=0;COMBO.flash=0;
 
-  var opp = G.mpMode && G.mpOpponent ? G.mpOpponent : TOWER[Math.min(G.stage-1,TOWER.length-1)];
-  var eHpMult=1+(G.stage-1)*0.15;
+  var opp = G.mpMode && G.mpOpponent ? G.mpOpponent
+          : G.localTwoPlayer && G.p2Char ? G.p2Char
+          : TOWER[Math.min(G.stage-1,TOWER.length-1)];
+  var eHpMult = G.localTwoPlayer ? 1 : 1+(G.stage-1)*0.15;
   $('hud-p1-name').textContent=G.player.name;$('hud-p1-name').style.color=G.player.color;
   $('hud-p2-name').textContent=opp.name;$('hud-p2-name').style.color=opp.color;
+
   G.cpuTick=0;G.cpuRetreat=0;G.aiData=null; // reset adaptive AI for new fight
 
   function waitAndInit(attempts) {
@@ -906,12 +912,31 @@ function playerAttack(type){
 }
 window._atk=playerAttack;
 
+// P2 attack (local 2P mode only)
+function playerTwoAttack(type){
+  var gs=G.gs;if(!gs||G.stopped||!G.localTwoPlayer)return;
+  if(gs.phase!=='fight'&&!gs.finishHim)return;
+  var p2=gs.p2;
+  if(p2.cd>0)return;
+  if(type==='special'&&p2.energy<100)return;
+  if(type==='block'){p2.state='block';p2.cd=6;snd('block');return;}
+  p2.state=type;p2.af=0;
+  p2.cd={punch:14,kick:20,special:26}[type]||14;
+  if(type==='special')p2.energy=0;
+  snd(type);doAttack(p2,gs.p1,type,gs);
+}
+window._atk2=playerTwoAttack;
+
+// P2 jump key
+window._p2jump=function(){if(KEYS2)KEYS2.jump=true;};
+
+
 // CPU AI - REALISTIC HUMAN-LIKE FIGHTER
 // Behaviors: circling, pressure/retreat cycles, feints, momentum shifts,
 // emotional reactions, combo strings, spacing game, mind games
 function cpuThink(gs){
-  // Skip CPU AI in multiplayer mode
-  if(G.mpMode) return;
+  // Skip CPU AI in multiplayer or local 2P mode
+  if(G.mpMode || G.localTwoPlayer) return;
   var p1=gs.p1,p2=gs.p2;
   var canAct2=['idle','walk'].indexOf(p2.state)>=0;
   var dist=Math.abs(p2.x-p1.x);
@@ -1333,7 +1358,17 @@ function fightLoop(now){
     if(KEYS.jump&&p1.onGround&&canAct){p1.vy=-11*gs.SC;p1.onGround=false;KEYS.jump=false;}
     if(!moving&&p1.state==='walk')p1.state='idle';
 
-    if(!gs.finishHim)cpuThink(gs);
+    // LOCAL 2P: P2 movement via KEYS2
+    if(G.localTwoPlayer){
+      var canAct2=['idle','walk'].indexOf(p2.state)>=0;
+      var moving2=false;
+      if(KEYS2.left&&!KEYS2.right&&canAct2){p2.x=Math.max(45,p2.x-p2.ch.spd*1.4*gs.SC);if(p2.state==='idle'||p2.state==='walk'){p2.state='walk';moving2=true;}}
+      if(KEYS2.right&&!KEYS2.left&&canAct2){p2.x=Math.min(W-45,p2.x+p2.ch.spd*1.4*gs.SC);if(p2.state==='idle'||p2.state==='walk'){p2.state='walk';moving2=true;}}
+      if(KEYS2.jump&&p2.onGround&&canAct2){p2.vy=-11*gs.SC;p2.onGround=false;KEYS2.jump=false;}
+      if(!moving2&&p2.state==='walk')p2.state='idle';
+    } else {
+      if(!gs.finishHim)cpuThink(gs);
+    }
     [p1,p2].forEach(function(p){
       p.y+=p.vy;p.vy+=0.75*gs.SC;
       if(p.y>=gs.FLOOR){p.y=gs.FLOOR;p.vy=0;p.onGround=true;}else{p.onGround=false;}
@@ -1569,6 +1604,7 @@ function initSplash(){
     if(window._navBusy)return;
     window._navBusy=true;
     cancelAnimationFrame(window._splashRaf);
+    G.localTwoPlayer=false; // normal SP mode
     snd('start');
     bgmPlay('select');
     G.screen='select';
@@ -1576,6 +1612,51 @@ function initSplash(){
     initSelect();
     setTimeout(function(){window._navBusy=false;},1000);
   };
+
+  // LOCAL 2P: both players on same device
+  // P1 picks char on select screen, then fight starts with P2 controls enabled
+  window._playLocal2P = function(){
+    if(window._navBusy)return;
+    window._navBusy=true;
+    cancelAnimationFrame(window._splashRaf);
+    G.localTwoPlayer=true;
+    G.mpMode=false;
+    // Pick a random char for P2 from PLAYABLE
+    G.p2Char = PLAYABLE[Math.floor(Math.random()*PLAYABLE.length)];
+    snd('start');
+    bgmPlay('select');
+    G.screen='select';
+    showScreen('select');
+    initSelect();
+    // Override select button for 2P: P1 picks, then fight with G.p2Char
+    setTimeout(function(){
+      window._navBusy=false;
+      var btn=$('select-btn');
+      if(btn){
+        btn.textContent='2P FIGHT!';
+        btn.style.background='linear-gradient(135deg,#7c3aed,#db2777)';
+        var lbl=document.createElement('div');
+        lbl.style.cssText='font-size:8px;color:#c4b5fd;text-align:center;margin-top:6px;letter-spacing:1px;';
+        lbl.textContent='P1 SELECT \u2193 P2 uses random char';
+        btn.parentNode.insertBefore(lbl,btn.nextSibling);
+        btn.onclick=function(){
+          var p1ch=PLAYABLE[G.selIdx||0];
+          G.player=p1ch;
+          // P2 gets a different random char
+          var others=PLAYABLE.filter(function(c){return c.id!==p1ch.id;});
+          G.p2Char=others[Math.floor(Math.random()*others.length)]||PLAYABLE[1];
+          G.stage=1;
+          showScreen('fight');
+          initFight();
+          // Show P2 controls
+          var c2=document.getElementById('ctrl-p2');
+          if(c2)c2.style.display='flex';
+        };
+      }
+    },100);
+  };
+  window.G = G;
+
   var cv=$('splash-canvas');
   cv.width=cv.offsetWidth;cv.height=cv.offsetHeight;
   var ctx=cv.getContext('2d');var t=0;
@@ -2517,6 +2598,10 @@ window.bgmStop = function(){ MK_STOP(); };
 // Called when fight STARTS — stop select music (fight has no BGM)
 window.startBGMusic = function(){ MK_STOP(); };
 startBGMusic = window.startBGMusic;
+
+// Export KEYS2 so HTML P2 buttons can write to it directly
+window.KEYS2 = KEYS2;
+
 
 // Called on KO / fight end — stop music
 window.stopBGMusic = function(){
