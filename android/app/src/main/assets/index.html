@@ -265,6 +265,23 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ra
 @keyframes vsFlash{0%{opacity:0;transform:scale(1.5)}100%{opacity:1;transform:scale(1)}}
 .vs-stage{font-size:11px;color:#f59e0b;font-weight:700;letter-spacing:1px;margin-top:4px;}
 
+/* MP VS LOBBY */
+#mp-lobby{background:radial-gradient(ellipse at 30% 40%,#0d0518,#020208);}
+.mp-lobby-title{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:#f59e0b;letter-spacing:6px;text-align:center;margin-bottom:20px;text-shadow:0 0 20px rgba(245,158,11,0.4);}
+.mp-lobby-fighters{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:0 16px;}
+.mp-lobby-slot{flex:1;max-width:160px;display:flex;flex-direction:column;align-items:center;padding:16px 10px;border-radius:16px;border:2px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);position:relative;min-height:180px;justify-content:center;}
+.mp-lobby-slot.ready{border-color:rgba(34,197,94,0.5);background:rgba(34,197,94,0.05);}
+.mp-lobby-slot.waiting{border-color:rgba(245,158,11,0.3);border-style:dashed;}
+.mp-lobby-slot canvas{display:block;margin:0 auto 8px;}
+.mp-lobby-slot .slot-name{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;letter-spacing:2px;text-align:center;}
+.mp-lobby-slot .slot-label{font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-top:4px;}
+.mp-lobby-slot .slot-waiting{font-size:11px;color:#f59e0b;letter-spacing:2px;animation:lobbyPulse 1.5s ease-in-out infinite;}
+@keyframes lobbyPulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.mp-lobby-vs{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;color:#ef4444;text-shadow:0 0 30px rgba(239,68,68,0.6);min-width:50px;text-align:center;}
+.mp-lobby-status{font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-align:center;margin-top:20px;}
+.mp-lobby-countdown{font-family:'Orbitron',sans-serif;font-size:48px;font-weight:900;color:#f59e0b;text-shadow:0 0 40px rgba(245,158,11,0.8);text-align:center;margin-top:16px;animation:countPop 0.5s ease-out;}
+@keyframes countPop{from{transform:scale(2);opacity:0}to{transform:scale(1);opacity:1}}
+
 /* Tower Ladder */
 .tower-wrap{position:relative;width:100%;padding:6px 12px;margin-top:8px;}
 .tower-title{text-align:center;font-size:9px;font-weight:900;color:#f59e0b;letter-spacing:3px;margin-bottom:4px;}
@@ -443,6 +460,26 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ra
         <div class="tower-title">TOWER LADDER</div>
         <div class="tower-ladder" id="tower-ladder"></div>
       </div>
+    </div>
+
+    <!-- MP VS LOBBY -->
+    <div class="screen" id="mp-lobby">
+      <div class="mp-lobby-title">⚔️ ONLINE FIGHT ⚔️</div>
+      <div class="mp-lobby-fighters">
+        <div class="mp-lobby-slot" id="mp-lobby-p1">
+          <canvas id="mp-lobby-p1-cv" width="80" height="100"></canvas>
+          <div class="slot-name" id="mp-lobby-p1-name">---</div>
+          <div class="slot-label">PLAYER 1</div>
+        </div>
+        <div class="mp-lobby-vs">VS</div>
+        <div class="mp-lobby-slot waiting" id="mp-lobby-p2">
+          <canvas id="mp-lobby-p2-cv" width="80" height="100"></canvas>
+          <div class="slot-name" id="mp-lobby-p2-name">---</div>
+          <div class="slot-label">PLAYER 2</div>
+        </div>
+      </div>
+      <div class="mp-lobby-status" id="mp-lobby-status">Waiting for fighters...</div>
+      <div id="mp-lobby-countdown"></div>
     </div>
 
     <!-- RESULT -->

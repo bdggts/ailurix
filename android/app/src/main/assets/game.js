@@ -1663,34 +1663,21 @@ function initSelect(){
     });
     if(_rc>=8)clearInterval(_ri);
   },130);
-  // ── UNIVERSAL SELECT HANDLER (works on Android WebView) ──
+  // ── SELECT BUTTON ──
   var _selBtn=$('select-btn');
-  // Remove ALL old handlers
-  _selBtn.onclick=null; _selBtn.ontouchend=null;
-  var _newBtn=_selBtn.cloneNode(true);
-  _selBtn.parentNode.replaceChild(_newBtn,_selBtn);
-  // Single handler via pointerup — fires reliably on mobile+desktop
-  _newBtn.addEventListener('pointerup',function _selectHandler(e){
-    e.preventDefault(); e.stopPropagation();
-    console.log('[SELECT] tapped. MP.roomCode=',window.MP&&window.MP.roomCode,'_mpSelectCallback=',!!window._mpSelectCallback);
-    // ── MP MODE ──
-    if(window.MP && window.MP.roomCode && window._mpSelectCallback){
-      var ch=PLAYABLE[G.selIdx!=null?G.selIdx:0];
-      G.player=ch;
-      _newBtn.disabled=true; _newBtn.textContent='WAITING...';
-      var _cb=window._mpSelectCallback;
-      window._mpSelectCallback=null;
-      if(window._mpBtnInterval){clearInterval(window._mpBtnInterval);window._mpBtnInterval=null;}
-      console.log('[MP] char selected:',ch.id);
-      if(typeof _cb==='function') _cb(ch.id);
+  _selBtn.onclick=function(){
+    G.player=PLAYABLE[G.selIdx!=null?G.selIdx:0];
+    // ── MP MODE → go to lobby ──
+    if(window.MP && window.MP.roomCode){
+      console.log('[SELECT] MP mode → lobby. char:',G.player.id);
+      if(window._mpGoLobby) window._mpGoLobby(G.player);
       return;
     }
     // ── SP MODE ──
-    if(window.MP && window.MP.roomCode) return;
-    G.player=PLAYABLE[G.selIdx];snd('start');
+    snd('start');
     if(window._selAnimInt){cancelAnimationFrame(window._selAnimInt);window._selAnimInt=null;}
     G.screen='vs';showScreen('vs');initVS();
-  });
+  };
 }
 function updateGrid(){
   document.querySelectorAll('.char-card').forEach(function(c,i){c.classList.toggle('sel',i===G.selIdx);});
@@ -2586,28 +2573,10 @@ window.showScreen = showScreen;
 window.initSelect = function(){ initSelect(); };
 window.bgmPlay   = bgmPlay;
 
-// Set select button to MP mode (called from mp-client.js after char select opens)
-// onSelect(charId) callback is called when user confirms character
-window.setMPSelectMode = function(onSelect) {
-  // Store callback — onclick in initSelect will call it when user taps
-  window._mpSelectCallback = onSelect;
-  // Update button appearance to MP style
-  var btn = $('select-btn');
-  if (!btn) { console.warn('[MP] select-btn missing'); return; }
-  btn.disabled    = false;
-  btn.textContent = 'SELECT FIGHTER ⚔️';
-  btn.style.background = 'linear-gradient(135deg,#f59e0b,#f97316)';
-  btn.style.boxShadow  = '0 0 24px #f59e0b55,0 4px 14px rgba(0,0,0,.7)';
-  // Keep text correct — updatePreview resets it on char tap
-  if(window._mpBtnInterval) clearInterval(window._mpBtnInterval);
-  window._mpBtnInterval = setInterval(function(){
-    var b=$('select-btn');
-    if(!b||b.disabled){clearInterval(window._mpBtnInterval);window._mpBtnInterval=null;return;}
-    if(!window._mpSelectCallback){clearInterval(window._mpBtnInterval);window._mpBtnInterval=null;return;}
-    b.textContent='SELECT FIGHTER ⚔️';
-    b.style.background='linear-gradient(135deg,#f59e0b,#f97316)';
-  },200);
-};
+// Export drawCharPreview for MP lobby
+window.drawCharPreview = drawCharPreview;
+window.CHARS = CHARS;
+
 
 
 // Called by mp-client.js when both players have selected chars

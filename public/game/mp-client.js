@@ -98,15 +98,45 @@ function setupListeners() {
 
   s.on('room:opponent_char', function(d) {
     MP.opponentChar = d.charId;
-    var w = document.getElementById('mp-char-wait-msg');
-    if (w) w.textContent = '\u23f3 Opponent ready! Choose yours...';
+    console.log('[MP] Opponent selected:', d.charId);
+    // Show opponent in lobby if we're on lobby screen
+    var oppSlot = MP.playerNum === 1 ? 'p2' : 'p1';
+    _showOpponentInLobby(oppSlot);
   });
 
   s.on('room:fight_start', function(d) {
     MP.myChar       = MP.playerNum === 1 ? d.p1Char : d.p2Char;
     MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
-    MP.active = true;
-    if (typeof window.startMPFightGame === 'function') window.startMPFightGame(d);
+    console.log('[MP] Fight start! My:', MP.myChar, 'Opp:', MP.opponentChar);
+
+    // Show opponent if not already shown
+    var oppSlot = MP.playerNum === 1 ? 'p2' : 'p1';
+    _showOpponentInLobby(oppSlot);
+
+    // Make sure we're on lobby screen
+    if (window.showScreen) window.showScreen('mp-lobby');
+
+    // 3-2-1 COUNTDOWN then fight
+    var cdEl = document.getElementById('mp-lobby-countdown');
+    var statusEl = document.getElementById('mp-lobby-status');
+    if (statusEl) statusEl.textContent = 'GET READY!';
+    var count = 3;
+    if (cdEl) cdEl.textContent = count;
+    var cdInterval = setInterval(function() {
+      count--;
+      if (count > 0) {
+        if (cdEl) { cdEl.textContent = count; cdEl.style.animation = 'none'; cdEl.offsetHeight; cdEl.style.animation = 'countPop 0.5s ease-out'; }
+      } else if (count === 0) {
+        if (cdEl) { cdEl.textContent = 'FIGHT!'; cdEl.style.color = '#ef4444'; cdEl.style.animation = 'none'; cdEl.offsetHeight; cdEl.style.animation = 'countPop 0.5s ease-out'; }
+        if (statusEl) statusEl.textContent = '';
+      } else {
+        clearInterval(cdInterval);
+        if (cdEl) cdEl.textContent = '';
+        // START THE FIGHT
+        MP.active = true;
+        if (typeof window.startMPFightGame === 'function') window.startMPFightGame(d);
+      }
+    }, 1000);
   });
 
   s.on('fight:input', function(d) {
@@ -149,108 +179,83 @@ function _showRoomCreated(code) {
 // ── CHARACTER SELECT (MP) ────────────────────────────────────
 function showMPCharSelect() {
   console.log('[MP] Opening char select, player', MP.playerNum);
-
-  // Navigate to char select screen
+  // Just open the normal char select screen — button onclick handles MP
   window._navBusy = false;
   if (window._playNow) {
     window._playNow();
   } else {
-    // Fallback: directly open select screen
     if (window.showScreen) window.showScreen('select');
     if (window.initSelect) window.initSelect();
   }
-
-  // CRITICAL: wait for initSelect() to finish cloning the button
-  // then set MP mode on the NEW button
-  setTimeout(function() {
-    _setupMPButton();
-  }, 600);
 }
 
-function _setupMPButton() {
-  var btn = document.getElementById('select-btn');
-  if (!btn) { console.warn('[MP] select-btn not found, retrying...'); setTimeout(_setupMPButton, 300); return; }
+// Called by game.js select button when MP.roomCode is set
+window._mpGoLobby = function(myChar) {
+  console.log('[MP] Going to lobby with char:', myChar.id);
+  MP.myChar = myChar.id;
 
-  // Set the callback via game.js export
-  if (window.setMPSelectMode) {
-    window.setMPSelectMode(function(charId) {
-      console.log('[MP] Player', MP.playerNum, 'selected:', charId);
-      if (MP.socket) MP.socket.emit('room:char_select', { charId: charId });
-    });
+  // Emit char selection to server
+  if (MP.socket) MP.socket.emit('room:char_select', { charId: myChar.id });
+
+  // Show lobby screen
+  if (window.showScreen) window.showScreen('mp-lobby');
+
+  // Draw MY character on my slot
+  var mySlot = MP.playerNum === 1 ? 'p1' : 'p2';
+  var oppSlot = MP.playerNum === 1 ? 'p2' : 'p1';
+
+  // My side — show character
+  var myCv = document.getElementById('mp-lobby-' + mySlot + '-cv');
+  var myName = document.getElementById('mp-lobby-' + mySlot + '-name');
+  var mySlotEl = document.getElementById('mp-lobby-' + mySlot);
+  if (myCv && window.drawCharPreview) {
+    myCv.width = 80; myCv.height = 100;
+    window.drawCharPreview(myCv, myChar, 80, undefined, 'idle');
+  }
+  if (myName) { myName.textContent = myChar.name; myName.style.color = myChar.color; }
+  if (mySlotEl) { mySlotEl.classList.remove('waiting'); mySlotEl.classList.add('ready'); }
+
+  // Opponent side — waiting or already selected
+  var oppCv = document.getElementById('mp-lobby-' + oppSlot + '-cv');
+  var oppName = document.getElementById('mp-lobby-' + oppSlot + '-name');
+  var oppSlotEl = document.getElementById('mp-lobby-' + oppSlot);
+
+  if (MP.opponentChar) {
+    // Opponent already selected
+    _showOpponentInLobby(oppSlot);
+  } else {
+    // Waiting for opponent
+    if (oppCv) { var ctx = oppCv.getContext('2d'); ctx.clearRect(0, 0, 80, 100); }
+    if (oppName) { oppName.textContent = '???'; oppName.style.color = '#f59e0b'; }
+    if (oppSlotEl) { oppSlotEl.classList.add('waiting'); oppSlotEl.classList.remove('ready'); }
   }
 
-  // ALSO directly attach handler as backup (in case cloneNode removed it)
-  btn.removeEventListener('pointerup', btn._mpHandler);
-  btn._mpHandler = function(e) {
-    e.preventDefault(); e.stopPropagation();
-    if (!window._mpSelectCallback) return;
-    var G = window.G, PLAYABLE = window.PLAYABLE;
-    if (!G || !PLAYABLE) return;
-    var ch = PLAYABLE[G.selIdx != null ? G.selIdx : 0];
-    G.player = ch;
-    btn.disabled = true; btn.textContent = 'WAITING...';
-    var cb = window._mpSelectCallback;
-    window._mpSelectCallback = null;
-    if (window._mpBtnInterval) { clearInterval(window._mpBtnInterval); window._mpBtnInterval = null; }
-    console.log('[MP] char selected:', ch.id);
-    if (typeof cb === 'function') cb(ch.id);
-  };
-  btn.addEventListener('pointerup', btn._mpHandler);
+  // Status
+  var status = document.getElementById('mp-lobby-status');
+  if (status) status.textContent = MP.opponentChar ? 'Both fighters ready!' : 'Waiting for opponent...';
+};
 
-  // Force button appearance
-  btn.disabled = false;
-  btn.textContent = 'SELECT FIGHTER \u2694\ufe0f';
-  btn.style.background = 'linear-gradient(135deg,#f59e0b,#f97316)';
-  btn.style.boxShadow = '0 0 24px #f59e0b55,0 4px 14px rgba(0,0,0,.7)';
+function _showOpponentInLobby(oppSlot) {
+  var CHARS = window.CHARS || window.PLAYABLE || [];
+  var oppChar = CHARS.find(function(c) { return c.id === MP.opponentChar; });
+  if (!oppChar && window.PLAYABLE) oppChar = window.PLAYABLE[0];
+  if (!oppChar) return;
 
-  // Add MP hint
-  var old = document.getElementById('mp-char-wait-msg');
-  if (old) old.parentNode.removeChild(old);
-  var waitDiv = document.createElement('div');
-  waitDiv.id = 'mp-char-wait-msg';
-  waitDiv.style.cssText = 'font-size:8px;color:#f59e0b;text-align:center;margin-top:8px;letter-spacing:1px;font-family:inherit;';
-  waitDiv.textContent = '\u2b07 CHOOSE YOUR FIGHTER';
-  btn.parentNode.insertBefore(waitDiv, btn.nextSibling);
-  console.log('[MP] Button ready for P' + MP.playerNum);
-}
+  var oppCv = document.getElementById('mp-lobby-' + oppSlot + '-cv');
+  var oppName = document.getElementById('mp-lobby-' + oppSlot + '-name');
+  var oppSlotEl = document.getElementById('mp-lobby-' + oppSlot);
 
-function _overrideMPSelectBtn() {
-  var selectBtn = document.getElementById('select-btn');
-  if (!selectBtn) { console.warn('[MP] select-btn not found'); return; }
-
-  // Remove old MP hint
-  var old = document.getElementById('mp-char-wait-msg');
-  if (old) old.parentNode.removeChild(old);
-
-  // Add MP hint below button
-  var waitDiv = document.createElement('div');
-  waitDiv.id = 'mp-char-wait-msg';
-  waitDiv.style.cssText = 'font-size:8px;color:#f59e0b;text-align:center;margin-top:10px;letter-spacing:1px;font-family:inherit;';
-  waitDiv.textContent = '\u2b07 CHOOSE YOUR FIGHTER';
-  selectBtn.parentNode.insertBefore(waitDiv, selectBtn.nextSibling);
-
-  // Override onclick + ontouchend for MP mode
-  selectBtn.onclick = null; selectBtn.ontouchend = null;
-
-  function doMPSelect(e) {
-    if (e) { e.preventDefault(); e.stopPropagation(); }
-    // Use window.G and window.PLAYABLE (exported from game.js IIFE)
-    var G = window.G;
-    var PLAYABLE = window.PLAYABLE;
-    if (!G || !PLAYABLE) { console.error('[MP] G/PLAYABLE not exported!'); return; }
-    var ch = PLAYABLE[G.selIdx != null ? G.selIdx : 0];
-    G.player = ch;
-    console.log('[MP] P' + MP.playerNum + ' chose:', ch.id);
-    if (MP.socket) MP.socket.emit('room:char_select', { charId: ch.id });
-    selectBtn.disabled = true;
-    selectBtn.textContent = 'WAITING...';
-    waitDiv.textContent = '\u23f3 Waiting for opponent...';
-    selectBtn.onclick = null; selectBtn.ontouchend = null;
+  if (oppCv && window.drawCharPreview) {
+    oppCv.width = 80; oppCv.height = 100;
+    window.drawCharPreview(oppCv, oppChar, 80, undefined, 'idle');
   }
+  if (oppName) { oppName.textContent = oppChar.name; oppName.style.color = oppChar.color; }
+  if (oppSlotEl) { oppSlotEl.classList.remove('waiting'); oppSlotEl.classList.add('ready'); }
 
-  selectBtn.onclick    = doMPSelect;
-  selectBtn.ontouchend = doMPSelect;
+  var status = document.getElementById('mp-lobby-status');
+  if (status) status.textContent = 'Both fighters ready!';
 }
+
 
 // ── PUBLIC API ───────────────────────────────────────────────
 window.MPClient = {
