@@ -73,10 +73,6 @@ button{font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;borde
 @keyframes btnP{0%,100%{box-shadow:0 0 40px rgba(245,158,11,.5),0 8px 24px rgba(0,0,0,.5);}
   50%{box-shadow:0 0 70px rgba(245,158,11,.9),0 12px 32px rgba(0,0,0,.5);}}
 .play-btn:active{transform:scale(.93);}
-/* P2 compact control buttons */
-.p2btn{width:36px;height:36px;border-radius:8px;background:rgba(124,58,237,0.85);border:2px solid #a78bfa;color:#fff;font-size:13px;font-weight:900;font-family:"Press Start 2P",monospace;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;}
-.p2btn:active{background:#7c3aed;transform:scale(.9);}
-.p2btn-s{background:rgba(219,39,119,0.85);border-color:#f472b6;}
 
 .splash-stats{display:flex;gap:18px;margin-top:20px;}
 .splash-stat{display:flex;flex-direction:column;align-items:center;gap:2px;}
@@ -828,7 +824,6 @@ button{font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;borde
       <div class="splash-season"><span class="splash-live-dot"></span>SEASON 1 · NOW LIVE</div>
       <button id="play-btn" class="play-btn" onclick="if(window._playNow)window._playNow()">⚔️ PLAY NOW</button>
       <button id="custom-fight-btn" class="custom-fight-btn" onclick="if(window._openMP)window._openMP()">🎮 CUSTOM FIGHT</button>
-      <button id="local2p-btn" class="custom-fight-btn" style="background:linear-gradient(135deg,#7c3aed,#db2777);margin-top:6px;" onclick="if(window._playLocal2P)window._playLocal2P()">👥 LOCAL 2P</button>
       <div class="splash-stats">
         <div class="splash-stat"><div class="splash-stat-val">16</div><div class="splash-stat-lbl">FIGHTERS</div></div>
         <div class="splash-divider"></div>
@@ -1042,36 +1037,6 @@ button{font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;borde
 
   <div id="game-area">
     <canvas id="game-canvas"></canvas>
-
-    <!-- P2 CONTROLS (local 2P mode, hidden by default) -->
-    <div id="ctrl-p2" style="display:none;position:absolute;top:4px;left:0;right:0;display:none;justify-content:space-between;align-items:flex-start;padding:0 8px;z-index:30;pointer-events:none;">
-      <!-- P2 Attack buttons (top-left) -->
-      <div style="pointer-events:all;display:flex;flex-direction:column;gap:4px;">
-        <div style="display:flex;gap:4px;">
-          <button class="p2btn" id="p2-punch"  ontouchstart="window._atk2&&window._atk2('punch')" onclick="window._atk2&&window._atk2('punch')">P</button>
-          <button class="p2btn" id="p2-kick"   ontouchstart="window._atk2&&window._atk2('kick')"  onclick="window._atk2&&window._atk2('kick')">K</button>
-        </div>
-        <div style="display:flex;gap:4px;">
-          <button class="p2btn p2btn-s" id="p2-block"   ontouchstart="window._atk2&&window._atk2('block')"   onclick="window._atk2&&window._atk2('block')">B</button>
-          <button class="p2btn p2btn-s" id="p2-special" ontouchstart="window._atk2&&window._atk2('special')" onclick="window._atk2&&window._atk2('special')">S</button>
-        </div>
-        <div style="font-size:7px;color:#c4b5fd;text-align:center;letter-spacing:1px;margin-top:2px;">P2 ATK</div>
-      </div>
-      <!-- P2 D-pad (top-right) -->
-      <div style="pointer-events:all;display:flex;flex-direction:column;align-items:center;gap:3px;">
-        <button class="p2btn" id="p2-jump"
-          ontouchstart="window._p2jump&&window._p2jump()" onclick="window._p2jump&&window._p2jump()">↑</button>
-        <div style="display:flex;gap:3px;">
-          <button class="p2btn" id="p2-left"
-            ontouchstart="if(window.KEYS2)window.KEYS2.left=true" ontouchend="if(window.KEYS2)window.KEYS2.left=false"
-            onmousedown="if(window.KEYS2)window.KEYS2.left=true" onmouseup="if(window.KEYS2)window.KEYS2.left=false">◀</button>
-          <button class="p2btn" id="p2-right"
-            ontouchstart="if(window.KEYS2)window.KEYS2.right=true" ontouchend="if(window.KEYS2)window.KEYS2.right=false"
-            onmousedown="if(window.KEYS2)window.KEYS2.right=true" onmouseup="if(window.KEYS2)window.KEYS2.right=false">▶</button>
-        </div>
-        <div style="font-size:7px;color:#c4b5fd;text-align:center;letter-spacing:1px;margin-top:2px;">P2 MOVE</div>
-      </div>
-    </div>
 
     <div id="ctrl-left">
       <div class="dpad">
