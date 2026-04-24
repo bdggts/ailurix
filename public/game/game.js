@@ -1664,12 +1664,26 @@ function initSelect(){
     if(_rc>=8)clearInterval(_ri);
   },130);
   $('select-btn').onclick=function(){
-    // BLOCK SP navigation if player is in an MP room
-    if(window.MP && window.MP.roomCode) return;
+    // ── MP MODE: if in a room, call MP callback ──
+    if(window.MP && window.MP.roomCode && window._mpSelectCallback){
+      var ch=PLAYABLE[G.selIdx!=null?G.selIdx:0];
+      G.player=ch;
+      var _b=$('select-btn');
+      if(_b){_b.disabled=true;_b.textContent='WAITING...';}
+      var _cb=window._mpSelectCallback;
+      window._mpSelectCallback=null;
+      if(typeof _cb==='function') _cb(ch.id);
+      return;
+    }
+    // ── SP MODE ──
+    if(window.MP && window.MP.roomCode) return; // block SP if in room but no callback
     G.player=PLAYABLE[G.selIdx];snd('start');
     if(window._selAnimInt){cancelAnimationFrame(window._selAnimInt);window._selAnimInt=null;}
-    // Go directly to VS screen (like real mobile fighting games)
     G.screen='vs';showScreen('vs');initVS();
+  };
+  $('select-btn').ontouchend=function(e){
+    e.preventDefault();
+    $('select-btn').onclick && $('select-btn').onclick(e);
   };
 }
 function updateGrid(){
@@ -2559,27 +2573,24 @@ window.bgmPlay   = bgmPlay;
 // Set select button to MP mode (called from mp-client.js after char select opens)
 // onSelect(charId) callback is called when user confirms character
 window.setMPSelectMode = function(onSelect) {
+  // Store callback — onclick in initSelect will call it when user taps
+  window._mpSelectCallback = onSelect;
+  // Update button appearance to MP style
   var btn = $('select-btn');
   if (!btn) { console.warn('[MP] select-btn missing'); return; }
-
-  // Change button appearance to MP style
   btn.disabled    = false;
-  btn.textContent = 'SELECT FIGHTER';
+  btn.textContent = 'SELECT FIGHTER ⚔️';
   btn.style.background = 'linear-gradient(135deg,#f59e0b,#f97316)';
-
-  // Set handler INSIDE IIFE — full closure access to G, PLAYABLE
-  function _mpHandle(e) {
-    if (e) { e.preventDefault(); e.stopPropagation(); }
-    var ch = PLAYABLE[G.selIdx != null ? G.selIdx : 0];
-    G.player = ch;
-    btn.disabled    = true;
-    btn.textContent = 'WAITING...';
-    btn.onclick     = null;
-    btn.ontouchend  = null;
-    if (typeof onSelect === 'function') onSelect(ch.id);
-  }
-  btn.onclick    = _mpHandle;
-  btn.ontouchend = _mpHandle;
+  btn.style.boxShadow  = '0 0 24px #f59e0b55,0 4px 14px rgba(0,0,0,.7)';
+  // Keep text correct — updatePreview resets it on char tap
+  if(window._mpBtnInterval) clearInterval(window._mpBtnInterval);
+  window._mpBtnInterval = setInterval(function(){
+    var b=$('select-btn');
+    if(!b||b.disabled){clearInterval(window._mpBtnInterval);window._mpBtnInterval=null;return;}
+    if(!window._mpSelectCallback){clearInterval(window._mpBtnInterval);window._mpBtnInterval=null;return;}
+    b.textContent='SELECT FIGHTER ⚔️';
+    b.style.background='linear-gradient(135deg,#f59e0b,#f97316)';
+  },200);
 };
 
 
