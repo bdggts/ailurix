@@ -150,33 +150,68 @@ function _showRoomCreated(code) {
 function showMPCharSelect() {
   console.log('[MP] Opening char select, player', MP.playerNum);
 
-  // Reset nav lock so _playNow runs (opens screen + inits grid + plays BGM)
+  // Navigate to char select screen
   window._navBusy = false;
-  if (window._playNow) window._playNow();
+  if (window._playNow) {
+    window._playNow();
+  } else {
+    // Fallback: directly open select screen
+    if (window.showScreen) window.showScreen('select');
+    if (window.initSelect) window.initSelect();
+  }
 
-  // Set MP select mode — button handler runs INSIDE game.js IIFE
-  // so G and PLAYABLE are correctly accessible via closure
+  // CRITICAL: wait for initSelect() to finish cloning the button
+  // then set MP mode on the NEW button
+  setTimeout(function() {
+    _setupMPButton();
+  }, 600);
+}
+
+function _setupMPButton() {
+  var btn = document.getElementById('select-btn');
+  if (!btn) { console.warn('[MP] select-btn not found, retrying...'); setTimeout(_setupMPButton, 300); return; }
+
+  // Set the callback via game.js export
   if (window.setMPSelectMode) {
     window.setMPSelectMode(function(charId) {
       console.log('[MP] Player', MP.playerNum, 'selected:', charId);
       if (MP.socket) MP.socket.emit('room:char_select', { charId: charId });
-      // Show waiting hint
-      var w = document.getElementById('mp-char-wait-msg');
-      if (w) w.textContent = '\u23f3 Waiting for opponent...';
     });
   }
 
-  // Add MP hint below the button
-  var selectBtn = document.getElementById('select-btn');
-  if (selectBtn) {
-    var old = document.getElementById('mp-char-wait-msg');
-    if (old) old.parentNode.removeChild(old);
-    var waitDiv = document.createElement('div');
-    waitDiv.id = 'mp-char-wait-msg';
-    waitDiv.style.cssText = 'font-size:8px;color:#f59e0b;text-align:center;margin-top:8px;letter-spacing:1px;font-family:inherit;';
-    waitDiv.textContent = '\u2b07 CHOOSE YOUR FIGHTER';
-    selectBtn.parentNode.insertBefore(waitDiv, selectBtn.nextSibling);
-  }
+  // ALSO directly attach handler as backup (in case cloneNode removed it)
+  btn.removeEventListener('pointerup', btn._mpHandler);
+  btn._mpHandler = function(e) {
+    e.preventDefault(); e.stopPropagation();
+    if (!window._mpSelectCallback) return;
+    var G = window.G, PLAYABLE = window.PLAYABLE;
+    if (!G || !PLAYABLE) return;
+    var ch = PLAYABLE[G.selIdx != null ? G.selIdx : 0];
+    G.player = ch;
+    btn.disabled = true; btn.textContent = 'WAITING...';
+    var cb = window._mpSelectCallback;
+    window._mpSelectCallback = null;
+    if (window._mpBtnInterval) { clearInterval(window._mpBtnInterval); window._mpBtnInterval = null; }
+    console.log('[MP] char selected:', ch.id);
+    if (typeof cb === 'function') cb(ch.id);
+  };
+  btn.addEventListener('pointerup', btn._mpHandler);
+
+  // Force button appearance
+  btn.disabled = false;
+  btn.textContent = 'SELECT FIGHTER \u2694\ufe0f';
+  btn.style.background = 'linear-gradient(135deg,#f59e0b,#f97316)';
+  btn.style.boxShadow = '0 0 24px #f59e0b55,0 4px 14px rgba(0,0,0,.7)';
+
+  // Add MP hint
+  var old = document.getElementById('mp-char-wait-msg');
+  if (old) old.parentNode.removeChild(old);
+  var waitDiv = document.createElement('div');
+  waitDiv.id = 'mp-char-wait-msg';
+  waitDiv.style.cssText = 'font-size:8px;color:#f59e0b;text-align:center;margin-top:8px;letter-spacing:1px;font-family:inherit;';
+  waitDiv.textContent = '\u2b07 CHOOSE YOUR FIGHTER';
+  btn.parentNode.insertBefore(waitDiv, btn.nextSibling);
+  console.log('[MP] Button ready for P' + MP.playerNum);
 }
 
 function _overrideMPSelectBtn() {
