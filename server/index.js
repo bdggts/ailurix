@@ -113,6 +113,18 @@ io.on('connection', (socket) => {
     socket.to(code).emit('fight:input', { ...data, player: socket.playerNum });
   });
 
+  // ── PLAYER ACTION (attack relay) ─────────────────────────
+  // Client sends room:player_action → relay to opponent as room:opponent_action
+  socket.on('room:player_action', (data) => {
+    const code = socket.roomCode;
+    if (!code) return;
+    console.log(`[ACTION] ${code} P${socket.playerNum}: ${data.action}`);
+    socket.to(code).emit('room:opponent_action', {
+      action: data.action,
+      player: socket.playerNum
+    });
+  });
+
   // ── HP SYNC (server-authoritative) ───────────────────────
   socket.on('fight:hp', (data) => {
     const code = socket.roomCode;
