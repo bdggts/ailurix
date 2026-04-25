@@ -930,7 +930,7 @@ button{font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;borde
         </div>
         <!-- Fight btn -->
         <div id="sel-fight-row">
-          <button id="select-btn" onclick="if(window._doSelect)window._doSelect()">FIGHT!</button>
+          <button id="select-btn" onclick="(function(){var G=window.G,P=window.PLAYABLE;if(!G||!P){if(window._doSelect)window._doSelect();return;}G.player=P[G.selIdx!=null?G.selIdx:0];if(window.MP&&window.MP.roomCode){if(window._mpGoLobby)window._mpGoLobby(G.player);return;}if(window.snd)window.snd('start');if(window.showScreen)window.showScreen('vs');if(window.initVS)window.initVS();})()">FIGHT!</button>
         </div>
       </div>
 

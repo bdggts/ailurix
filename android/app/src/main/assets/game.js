@@ -2577,6 +2577,8 @@ window.bgmPlay   = bgmPlay;
 // Export drawCharPreview for MP lobby
 window.drawCharPreview = drawCharPreview;
 window.CHARS = CHARS;
+window.snd   = snd;
+window.initVS = function(){ initVS(); };
 
 
 
