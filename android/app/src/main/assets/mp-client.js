@@ -109,30 +109,28 @@ function setupListeners() {
     MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
     console.log('[MP] Fight start! My:', MP.myChar, 'Opp:', MP.opponentChar);
 
-    // Show opponent if not already shown
     var oppSlot = MP.playerNum === 1 ? 'p2' : 'p1';
     _showOpponentInLobby(oppSlot);
 
-    // Make sure we're on lobby screen
-    if (window.showScreen) window.showScreen('mp-lobby');
+    // Make sure we're on VS lobby screen
+    if (window.showScreen) window.showScreen('mp-vs-lobby');
 
     // 3-2-1 COUNTDOWN then fight
-    var cdEl = document.getElementById('mp-lobby-countdown');
-    var statusEl = document.getElementById('mp-lobby-status');
+    var cdEl     = document.getElementById('mp-vs-countdown');
+    var statusEl = document.getElementById('mp-vs-status');
     if (statusEl) statusEl.textContent = 'GET READY!';
     var count = 3;
     if (cdEl) cdEl.textContent = count;
     var cdInterval = setInterval(function() {
       count--;
       if (count > 0) {
-        if (cdEl) { cdEl.textContent = count; cdEl.style.animation = 'none'; cdEl.offsetHeight; cdEl.style.animation = 'countPop 0.5s ease-out'; }
+        if (cdEl) cdEl.textContent = count;
       } else if (count === 0) {
-        if (cdEl) { cdEl.textContent = 'FIGHT!'; cdEl.style.color = '#ef4444'; cdEl.style.animation = 'none'; cdEl.offsetHeight; cdEl.style.animation = 'countPop 0.5s ease-out'; }
+        if (cdEl) { cdEl.textContent = 'FIGHT!'; cdEl.style.color = '#ef4444'; }
         if (statusEl) statusEl.textContent = '';
       } else {
         clearInterval(cdInterval);
         if (cdEl) cdEl.textContent = '';
-        // START THE FIGHT
         MP.active = true;
         if (typeof window.startMPFightGame === 'function') window.startMPFightGame(d);
       }
@@ -191,69 +189,64 @@ function showMPCharSelect() {
 
 // Called by game.js select button when MP.roomCode is set
 window._mpGoLobby = function(myChar) {
-  console.log('[MP] Going to lobby with char:', myChar.id);
+  console.log('[MP] Going to VS lobby with char:', myChar.id);
   MP.myChar = myChar.id;
 
   // Emit char selection to server
   if (MP.socket) MP.socket.emit('room:char_select', { charId: myChar.id });
 
-  // Show lobby screen
-  if (window.showScreen) window.showScreen('mp-lobby');
+  // Show VS lobby screen
+  if (window.showScreen) window.showScreen('mp-vs-lobby');
 
-  // Draw MY character on my slot
-  var mySlot = MP.playerNum === 1 ? 'p1' : 'p2';
+  // My slot
+  var mySlot  = MP.playerNum === 1 ? 'p1' : 'p2';
   var oppSlot = MP.playerNum === 1 ? 'p2' : 'p1';
 
-  // My side — show character
-  var myCv = document.getElementById('mp-lobby-' + mySlot + '-cv');
-  var myName = document.getElementById('mp-lobby-' + mySlot + '-name');
-  var mySlotEl = document.getElementById('mp-lobby-' + mySlot);
+  var myCv    = document.getElementById('mp-vs-' + mySlot + '-cv');
+  var myName  = document.getElementById('mp-vs-' + mySlot + '-name');
+  var mySlotEl= document.getElementById('mp-vs-' + mySlot + '-slot');
+
   if (myCv && window.drawCharPreview) {
     myCv.width = 80; myCv.height = 100;
     window.drawCharPreview(myCv, myChar, 80, undefined, 'idle');
   }
-  if (myName) { myName.textContent = myChar.name; myName.style.color = myChar.color; }
-  if (mySlotEl) { mySlotEl.classList.remove('waiting'); mySlotEl.classList.add('ready'); }
+  if (myName) { myName.textContent = myChar.name; myName.style.color = myChar.color || '#22c55e'; }
+  if (mySlotEl) { mySlotEl.style.borderColor = 'rgba(34,197,94,0.6)'; mySlotEl.style.background = 'rgba(34,197,94,0.07)'; }
 
-  // Opponent side — waiting or already selected
-  var oppCv = document.getElementById('mp-lobby-' + oppSlot + '-cv');
-  var oppName = document.getElementById('mp-lobby-' + oppSlot + '-name');
-  var oppSlotEl = document.getElementById('mp-lobby-' + oppSlot);
-
+  // Opponent slot
   if (MP.opponentChar) {
-    // Opponent already selected
     _showOpponentInLobby(oppSlot);
   } else {
-    // Waiting for opponent
-    if (oppCv) { var ctx = oppCv.getContext('2d'); ctx.clearRect(0, 0, 80, 100); }
+    var oppName = document.getElementById('mp-vs-' + oppSlot + '-name');
     if (oppName) { oppName.textContent = '???'; oppName.style.color = '#f59e0b'; }
-    if (oppSlotEl) { oppSlotEl.classList.add('waiting'); oppSlotEl.classList.remove('ready'); }
   }
 
-  // Status
-  var status = document.getElementById('mp-lobby-status');
-  if (status) status.textContent = MP.opponentChar ? 'Both fighters ready!' : 'Waiting for opponent...';
+  var status = document.getElementById('mp-vs-status');
+  if (status) status.textContent = MP.opponentChar ? '✅ Both ready!' : '⏳ Waiting for opponent...';
 };
 
 function _showOpponentInLobby(oppSlot) {
-  var CHARS = window.CHARS || window.PLAYABLE || [];
-  var oppChar = CHARS.find(function(c) { return c.id === MP.opponentChar; });
+  var ALLCHARS = window.CHARS || window.PLAYABLE || [];
+  var oppChar = null;
+  for (var i = 0; i < ALLCHARS.length; i++) {
+    if (ALLCHARS[i].id === MP.opponentChar) { oppChar = ALLCHARS[i]; break; }
+  }
   if (!oppChar && window.PLAYABLE) oppChar = window.PLAYABLE[0];
   if (!oppChar) return;
 
-  var oppCv = document.getElementById('mp-lobby-' + oppSlot + '-cv');
-  var oppName = document.getElementById('mp-lobby-' + oppSlot + '-name');
-  var oppSlotEl = document.getElementById('mp-lobby-' + oppSlot);
+  var oppCv    = document.getElementById('mp-vs-' + oppSlot + '-cv');
+  var oppName  = document.getElementById('mp-vs-' + oppSlot + '-name');
+  var oppSlotEl= document.getElementById('mp-vs-' + oppSlot + '-slot');
 
   if (oppCv && window.drawCharPreview) {
     oppCv.width = 80; oppCv.height = 100;
     window.drawCharPreview(oppCv, oppChar, 80, undefined, 'idle');
   }
-  if (oppName) { oppName.textContent = oppChar.name; oppName.style.color = oppChar.color; }
-  if (oppSlotEl) { oppSlotEl.classList.remove('waiting'); oppSlotEl.classList.add('ready'); }
+  if (oppName) { oppName.textContent = oppChar.name; oppName.style.color = oppChar.color || '#f59e0b'; }
+  if (oppSlotEl) { oppSlotEl.style.borderStyle = 'solid'; oppSlotEl.style.borderColor = 'rgba(245,158,11,0.6)'; oppSlotEl.style.background = 'rgba(245,158,11,0.07)'; }
 
-  var status = document.getElementById('mp-lobby-status');
-  if (status) status.textContent = 'Both fighters ready!';
+  var status = document.getElementById('mp-vs-status');
+  if (status) status.textContent = '✅ Both fighters ready!';
 }
 
 

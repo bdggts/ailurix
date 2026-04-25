@@ -875,6 +875,29 @@ button{font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;borde
     </div>
   </div>
 
+  <!-- MP VS LOBBY (shown after char select) -->
+  <div class="screen" id="mp-vs-lobby">
+    <div class="mp-bg"></div>
+    <div class="mp-content" style="justify-content:center;gap:16px;">
+      <div class="mp-title">⚔️ ONLINE FIGHT ⚔️</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;">
+        <div id="mp-vs-p1-slot" style="flex:1;max-width:140px;text-align:center;padding:12px 8px;border-radius:14px;border:2px solid rgba(34,197,94,0.5);background:rgba(34,197,94,0.05);">
+          <canvas id="mp-vs-p1-cv" width="80" height="100" style="display:block;margin:0 auto 6px;"></canvas>
+          <div id="mp-vs-p1-name" style="font-size:11px;font-weight:900;letter-spacing:2px;color:#22c55e;">---</div>
+          <div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-top:3px;">PLAYER 1</div>
+        </div>
+        <div style="font-size:24px;font-weight:900;color:#ef4444;text-shadow:0 0 20px rgba(239,68,68,0.6);min-width:40px;text-align:center;font-family:'Press Start 2P',monospace;">VS</div>
+        <div id="mp-vs-p2-slot" style="flex:1;max-width:140px;text-align:center;padding:12px 8px;border-radius:14px;border:2px dashed rgba(245,158,11,0.3);background:rgba(245,158,11,0.03);">
+          <canvas id="mp-vs-p2-cv" width="80" height="100" style="display:block;margin:0 auto 6px;"></canvas>
+          <div id="mp-vs-p2-name" style="font-size:11px;font-weight:900;letter-spacing:2px;color:#f59e0b;">???</div>
+          <div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-top:3px;">PLAYER 2</div>
+        </div>
+      </div>
+      <div id="mp-vs-status" style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-align:center;font-family:'Press Start 2P',monospace;">Waiting for opponent...</div>
+      <div id="mp-vs-countdown" style="font-size:36px;font-weight:900;color:#f59e0b;text-shadow:0 0 30px rgba(245,158,11,0.8);text-align:center;font-family:'Press Start 2P',monospace;min-height:50px;"></div>
+    </div>
+  </div>
+
   <!-- CHARACTER SELECT v7.0 — LEFT details + RIGHT 3-col grid -->
   <div class="screen" id="select">
     <!-- Arena BG overlay -->
@@ -907,7 +930,7 @@ button{font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;borde
         </div>
         <!-- Fight btn -->
         <div id="sel-fight-row">
-          <button id="select-btn">FIGHT!</button>
+          <button id="select-btn" onclick="if(window._doSelect)window._doSelect()">FIGHT!</button>
         </div>
       </div>
 
