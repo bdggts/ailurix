@@ -2256,9 +2256,9 @@ function setupControls(){
 
   document.addEventListener('contextmenu',function(e){e.preventDefault();});
   document.addEventListener('touchmove',function(e){
-    // Allow scroll inside character select grid
+    // Allow scroll inside character select grid and MP screens
     var el=e.target;
-    while(el){if(el.id==='sel-grid-panel'||el.id==='sel-right-panel')return;el=el.parentElement;}
+    while(el){if(el.id==='sel-grid-panel'||el.id==='sel-right-panel'||el.id==='mp-lobby'||el.id==='mp-vs-lobby'||el.classList&&el.classList.contains('mp-content'))return;el=el.parentElement;}
     e.preventDefault();
   },{passive:false});
 }
