@@ -931,7 +931,7 @@ button{font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;borde
         </div>
         <!-- Fight btn -->
         <div id="sel-fight-row">
-          <button id="select-btn" onclick="(function(){function _dbg(msg){var t=document.createElement('div');t.style.cssText='position:fixed;top:10px;left:10px;right:10px;z-index:99999;background:#000;color:#0f0;font-size:12px;padding:10px;border:2px solid #0f0;word-break:break-all;font-family:monospace;';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},6000);}var G=window.G,P=window.PLAYABLE,MP=window.MP;_dbg('G='+(G?'OK':'NULL')+' P='+(P?P.length:'NULL')+' MP='+(MP&&MP.roomCode?MP.roomCode:'NONE')+' fn='+(window._mpGoLobby?'OK':'NULL'));if(!G||!P)return;G.player=P[G.selIdx!=null?G.selIdx:0];if(MP&&MP.roomCode){if(window._mpGoLobby)window._mpGoLobby(G.player);return;}if(window.snd)window.snd('start');document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});var v=document.getElementById('vs-screen');if(v)v.classList.add('active');if(window.initVS)window.initVS();})()">FIGHT!</button>
+          <button id="select-btn" onclick="(function(){function _dbg(msg){var t=document.createElement('div');t.style.cssText='position:fixed;top:10px;left:10px;right:10px;z-index:99999;background:#000;color:#0f0;font-size:12px;padding:10px;border:2px solid #0f0;word-break:break-all;font-family:monospace;';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},6000);}if(window._doSelect){_dbg('Calling _doSelect...');window._doSelect();}else{_dbg('ERROR: _doSelect is NULL!');}})()">FIGHT!</button>
         </div>
       </div>
 
