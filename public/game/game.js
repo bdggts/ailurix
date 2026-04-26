@@ -1667,17 +1667,27 @@ function initSelect(){
   },130);
   // ── SELECT BUTTON — global function called from HTML onclick ──
   window._doSelect=function(){
-    G.player=PLAYABLE[G.selIdx!=null?G.selIdx:0];
-    // ── MP MODE → go to lobby ──
-    if(window.MP && window.MP.roomCode){
-      console.log('[SELECT] MP mode → lobby. char:',G.player.id);
-      if(window._mpGoLobby) window._mpGoLobby(G.player);
-      return;
+    function _dbg(msg){var t=document.createElement('div');t.style.cssText='position:fixed;top:60px;left:10px;right:10px;z-index:99999;background:#000;color:#ff0;font-size:11px;padding:8px;border:2px solid #ff0;word-break:break-all;font-family:monospace;';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},8000);}
+    try{
+      G.player=PLAYABLE[G.selIdx!=null?G.selIdx:0];
+      _dbg('SEL: char='+G.player.id+' MP='+(window.MP&&window.MP.roomCode?window.MP.roomCode:'NONE')+' goLobby='+(window._mpGoLobby?'YES':'NO'));
+      // ── MP MODE → go to lobby ──
+      if(window.MP && window.MP.roomCode){
+        if(window._mpGoLobby){
+          window._mpGoLobby(G.player);
+          _dbg('CALLED _mpGoLobby OK');
+        } else {
+          _dbg('ERROR: _mpGoLobby is undefined!');
+        }
+        return;
+      }
+      // ── SP MODE ──
+      snd('start');
+      if(window._selAnimInt){cancelAnimationFrame(window._selAnimInt);window._selAnimInt=null;}
+      G.screen='vs';showScreen('vs');initVS();
+    }catch(err){
+      _dbg('ERROR in _doSelect: '+err.message);
     }
-    // ── SP MODE ──
-    snd('start');
-    if(window._selAnimInt){cancelAnimationFrame(window._selAnimInt);window._selAnimInt=null;}
-    G.screen='vs';showScreen('vs');initVS();
   };
 }
 function updateGrid(){
