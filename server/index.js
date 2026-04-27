@@ -6,7 +6,9 @@ const cors = require('cors');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: '*', methods: ['GET', 'POST'] }
+  cors: { origin: '*', methods: ['GET', 'POST'] },
+  pingTimeout: 120000,    // 2 min — Android WebView pauses JS
+  pingInterval: 30000     // 30 sec
 });
 
 app.use(cors());
@@ -25,8 +27,36 @@ function genCode() {
 }
 
 // ── HEALTH CHECK ────────────────────────────────────────────
-app.get('/', (req, res) => res.json({ status: 'ok', server: 'Ailurix Arena v1.0' }));
+app.get('/', (req, res) => res.json({ status: 'ok', server: 'Ailurix Arena v1.1' }));
 app.get('/rooms', (req, res) => res.json({ count: Object.keys(rooms).length }));
+
+// Room status (for polling fallback)
+app.get('/room/:code', (req, res) => {
+  const room = rooms[(req.params.code || '').toUpperCase()];
+  if (!room) return res.json({ exists: false });
+  res.json({ exists: true, state: room.state, p1Char: room.p1Char, p2Char: room.p2Char });
+});
+
+// HTTP fallback for char_select (in case WebSocket fails)
+app.post('/room/:code/char', (req, res) => {
+  const code = (req.params.code || '').toUpperCase();
+  const room = rooms[code];
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+  const { charId, playerNum } = req.body;
+  if (playerNum === 1) room.p1Char = charId;
+  else room.p2Char = charId;
+  console.log(`[HTTP] P${playerNum} selected ${charId} in ${code}`);
+  // Broadcast via socket
+  io.to(code).emit('room:opponent_char', { charId, player: playerNum });
+  // Check if both selected
+  if (room.p1Char && room.p2Char && room.state !== 'fighting') {
+    room.state = 'fighting';
+    room.hp1 = 100; room.hp2 = 100;
+    console.log(`[FIGHT] ${code}: ${room.p1Char} vs ${room.p2Char} (via HTTP)`);
+    io.to(code).emit('room:fight_start', { p1Char: room.p1Char, p2Char: room.p2Char });
+  }
+  res.json({ ok: true, p1Char: room.p1Char, p2Char: room.p2Char });
+});
 
 // ── SOCKET.IO ───────────────────────────────────────────────
 io.on('connection', (socket) => {
@@ -193,10 +223,14 @@ io.on('connection', (socket) => {
     const code = socket.roomCode;
     if (!code || !rooms[code]) return;
     console.log(`[-] Disconnected: ${socket.id} from room ${code}`);
-    // Notify opponent
-    socket.to(code).emit('room:opponent_left', { msg: 'Opponent disconnected!' });
-    // Clean up room
-    delete rooms[code];
+    // DON'T delete room immediately — allow reconnection within 60s
+    rooms[code]._disconnectTimer = setTimeout(() => {
+      if (rooms[code]) {
+        console.log(`[CLEANUP] Room ${code} expired after disconnect`);
+        io.to(code).emit('room:opponent_left', { msg: 'Opponent disconnected!' });
+        delete rooms[code];
+      }
+    }, 60000); // 60 second grace period
   });
 });
 

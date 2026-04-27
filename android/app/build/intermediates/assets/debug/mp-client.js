@@ -81,19 +81,83 @@ function connect(cb) {
 function _initSocket(cb) {
   try {
     if (MP.socket) MP.socket.disconnect();
-    MP.socket = io(SERVER_URL, { transports: ['websocket','polling'], timeout: 10000 });
+    MP.socket = io(SERVER_URL, { transports: ['websocket','polling'], timeout: 30000, reconnection: true, reconnectionAttempts: 20, reconnectionDelay: 1000 });
     MP.socket.on('connect', function() {
       MP.connected = true;
       showConnectStatus('Connected!', '#22c55e');
-      cb && cb();
+      // Auto-rejoin room after reconnect
+      if (MP.roomCode && MP.playerNum) {
+        MP.socket.emit('room:rejoin', { code: MP.roomCode, playerNum: MP.playerNum });
+        console.log('[MP] Auto-rejoined room ' + MP.roomCode);
+      }
+      cb && cb(); cb = null; // only call cb once
     });
     MP.socket.on('connect_error', function(e) { showMPError('Failed: ' + (e.message||'check network')); });
-    MP.socket.on('disconnect', function() {
-      MP.connected = false; MP.active = false;
-      if (MP.roomCode) showMPError('Disconnected');
+    MP.socket.on('disconnect', function(reason) {
+      MP.connected = false;
+      console.log('[MP] Disconnected:', reason);
     });
     setupListeners();
   } catch(e) { showMPError('Error: ' + e.message); }
+}
+
+// HTTP fallback: POST char selection via REST API
+function _httpCharSelect(charId) {
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', SERVER_URL + '/room/' + MP.roomCode + '/char', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function() {
+      console.log('[MP] HTTP char_select response:', xhr.responseText);
+      var st = document.getElementById('mp-vs-status');
+      if (st && xhr.status === 200) {
+        var d = JSON.parse(xhr.responseText);
+        st.textContent = 'HTTP OK! p1=' + (d.p1Char||'?') + ' p2=' + (d.p2Char||'?');
+      }
+    };
+    xhr.onerror = function() { console.warn('[MP] HTTP char_select failed'); };
+    xhr.send(JSON.stringify({ charId: charId, playerNum: MP.playerNum }));
+  } catch(e) { console.warn('[MP] HTTP fallback error:', e); }
+}
+
+// Poll room status to detect when both have selected
+function _startRoomPoll() {
+  if (MP._pollTimer) clearInterval(MP._pollTimer);
+  MP._pollTimer = setInterval(function() {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', SERVER_URL + '/room/' + MP.roomCode, true);
+      xhr.onload = function() {
+        if (xhr.status !== 200) return;
+        var d = JSON.parse(xhr.responseText);
+        var st = document.getElementById('mp-vs-status');
+        if (!d.exists) { if (st) st.textContent = 'Room expired!'; clearInterval(MP._pollTimer); return; }
+        if (st) st.textContent = 'Room: ' + d.state + ' | P1=' + (d.p1Char||'?') + ' P2=' + (d.p2Char||'?');
+        // If both selected and we haven't started fight yet
+        if (d.p1Char && d.p2Char && !MP.active && d.state === 'fighting') {
+          clearInterval(MP._pollTimer);
+          // Trigger fight start locally if socket event was missed
+          MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
+          var oppSlot = MP.playerNum === 1 ? 'p2' : 'p1';
+          _showOpponentInLobby(oppSlot);
+          if (st) st.textContent = 'FIGHT! (via poll)';
+          _nuclearShow('mp-vs-lobby');
+          var cdEl = document.getElementById('mp-vs-countdown');
+          if (cdEl) cdEl.textContent = '3';
+          var count = 3;
+          var cdI = setInterval(function() {
+            count--;
+            if (count > 0) { if (cdEl) cdEl.textContent = count; }
+            else if (count === 0) { if (cdEl) { cdEl.textContent = 'FIGHT!'; cdEl.style.color = '#ef4444'; } }
+            else { clearInterval(cdI); if (cdEl) cdEl.textContent = ''; MP.active = true;
+              if (typeof window.startMPFightGame === 'function') window.startMPFightGame({ p1Char: d.p1Char, p2Char: d.p2Char });
+            }
+          }, 1000);
+        }
+      };
+      xhr.send();
+    } catch(e) {}
+  }, 3000); // poll every 3 seconds
 }
 
 // ── SERVER EVENTS ────────────────────────────────────────────
@@ -216,18 +280,15 @@ window._mpGoLobby = function(myChar) {
   console.log('[MP] Going to VS lobby with char:', myChar.id);
   MP.myChar = myChar.id;
 
-  // Rejoin room first (fixes socket reconnection losing room data)
-  var _sent = false;
+  // Send via BOTH socket AND HTTP (belt-and-suspenders)
   if (MP.socket && MP.socket.connected) {
     MP.socket.emit('room:rejoin', { code: MP.roomCode, playerNum: MP.playerNum });
     MP.socket.emit('room:char_select', { charId: myChar.id });
-    _sent = true;
   }
-  // Debug: show on status what we sent
-  setTimeout(function(){
-    var st = document.getElementById('mp-vs-status');
-    if (st) st.textContent = 'SENT: rejoin+char_select(' + myChar.id + ') sock=' + (MP.socket&&MP.socket.connected?'Y':'N') + ' sent=' + _sent + ' room=' + MP.roomCode + ' P' + MP.playerNum;
-  }, 500);
+  // HTTP fallback (always send, guaranteed to reach server)
+  _httpCharSelect(myChar.id);
+  // Start polling room status (catches missed socket events)
+  _startRoomPoll();
 
   // NUCLEAR: force hide ALL screens with display:none, then show mp-vs-lobby
   var allScreens = document.querySelectorAll('.screen');
