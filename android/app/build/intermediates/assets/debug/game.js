@@ -2594,33 +2594,39 @@ window.initVS = function(){ initVS(); };
 
 // Called by mp-client.js when both players have selected chars
 window.startMPFightGame = function(d) {
-  // Find characters by id
-  var myCharId   = window.MPClient.getState().playerNum === 1 ? d.p1Char : d.p2Char;
-  var oppCharId  = window.MPClient.getState().playerNum === 1 ? d.p2Char : d.p1Char;
-  var myChar     = CHARS.find(function(c){ return c.id === myCharId; });
-  var oppChar    = CHARS.find(function(c){ return c.id === oppCharId; });
-  if(!myChar)  myChar  = PLAYABLE[0];
-  if(!oppChar) oppChar = PLAYABLE[1];
+  try {
+    // Find characters by id
+    var myCharId   = window.MP ? (window.MP.playerNum === 1 ? d.p1Char : d.p2Char) : d.p1Char;
+    var oppCharId  = window.MP ? (window.MP.playerNum === 1 ? d.p2Char : d.p1Char) : d.p2Char;
+    var myChar     = CHARS.find(function(c){ return c.id === myCharId; });
+    var oppChar    = CHARS.find(function(c){ return c.id === oppCharId; });
+    if(!myChar)  myChar  = PLAYABLE[0];
+    if(!oppChar) oppChar = PLAYABLE[1];
 
-  G.mpMode     = true;
-  G.mpOpponent = oppChar;
-  G.player     = myChar;
-  G.stage      = 1;
+    G.mpMode     = true;
+    G.mpOpponent = oppChar;
+    G.player     = myChar;
+    G.stage      = 1;
 
-  // Nuclear show fight screen (display:none fix)
-  if (window._nuclearShow) {
-    window._nuclearShow('fight-screen-placeholder');
-    // Hide all screens and show fight UI
+    // Hide ALL .screen elements (VS lobby, select, splash, etc.)
     var all = document.querySelectorAll('.screen');
     for (var i = 0; i < all.length; i++) {
       all[i].classList.remove('active');
       all[i].style.display = 'none';
+      all[i].style.opacity = '0';
+      all[i].style.zIndex = '';
     }
+    // Show fight UI (attack buttons overlay)
+    var fui = document.getElementById('fight-ui');
+    if (fui) { fui.style.display = 'flex'; fui.style.zIndex = '9999'; }
+    G.screen = 'fight';
+    initFight();
+  } catch(e) {
+    // Debug: show error on screen
+    var st = document.getElementById('mp-vs-status');
+    if (st) st.textContent = 'FIGHT ERROR: ' + e.message;
+    console.error('[MP] startMPFightGame error:', e);
   }
-  var fui = document.getElementById('fight-ui');
-  if (fui) fui.style.display = 'flex';
-  G.screen = 'fight';
-  initFight();
 };
 
 // Called by mp-client.js when opponent input arrives

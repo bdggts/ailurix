@@ -192,15 +192,17 @@ function setupListeners() {
   });
 
   s.on('room:fight_start', function(d) {
+    // If fight already started (via poll), skip
+    if (MP.active) return;
     MP.myChar       = MP.playerNum === 1 ? d.p1Char : d.p2Char;
     MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
-    var st = document.getElementById('mp-vs-status');
-    if (st) st.textContent = '🔥 FIGHT START! ' + d.p1Char + ' vs ' + d.p2Char;
+    // Stop polling since socket event arrived
+    if (MP._pollTimer) { clearInterval(MP._pollTimer); MP._pollTimer = null; }
 
     var oppSlot = MP.playerNum === 1 ? 'p2' : 'p1';
     _showOpponentInLobby(oppSlot);
 
-    // Make sure VS lobby is visible (nuclear)
+    // Make sure VS lobby is visible for countdown
     _nuclearShow('mp-vs-lobby');
 
     // 3-2-1 COUNTDOWN then fight
