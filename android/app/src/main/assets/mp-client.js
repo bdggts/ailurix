@@ -195,8 +195,23 @@ window._mpGoLobby = function(myChar) {
   // Emit char selection to server
   if (MP.socket) MP.socket.emit('room:char_select', { charId: myChar.id });
 
-  // Show VS lobby screen
-  if (window.showScreen) window.showScreen('mp-vs-lobby');
+  // NUCLEAR: force hide ALL screens with display:none, then show mp-vs-lobby
+  var allScreens = document.querySelectorAll('.screen');
+  for (var i = 0; i < allScreens.length; i++) {
+    allScreens[i].classList.remove('active');
+    allScreens[i].style.display = 'none';
+  }
+  var vsLobby = document.getElementById('mp-vs-lobby');
+  if (vsLobby) {
+    vsLobby.style.display = 'flex';
+    vsLobby.classList.add('active');
+    vsLobby.style.opacity = '1';
+    vsLobby.style.pointerEvents = 'all';
+    vsLobby.style.zIndex = '9999';
+  }
+
+  // Stop select animation loop
+  if (window._selAnimInt) { cancelAnimationFrame(window._selAnimInt); window._selAnimInt = null; }
 
   // My slot
   var mySlot  = MP.playerNum === 1 ? 'p1' : 'p2';
