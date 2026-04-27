@@ -43,6 +43,29 @@ function showMPError(msg) {
   console.warn('[MP]', msg);
 }
 
+// ── NUCLEAR SCREEN HELPER ─────────────────────────────────
+function _nuclearShow(id) {
+  var all = document.querySelectorAll('.screen');
+  for (var i = 0; i < all.length; i++) {
+    all[i].classList.remove('active');
+    all[i].style.display = 'none';
+    all[i].style.opacity = '0';
+    all[i].style.pointerEvents = 'none';
+  }
+  var el = document.getElementById(id);
+  if (el) {
+    el.style.display = 'flex';
+    el.classList.add('active');
+    el.style.opacity = '1';
+    el.style.pointerEvents = 'all';
+    el.style.zIndex = '9999';
+  }
+  // Also show/hide fight-ui
+  var fui = document.getElementById('fight-ui');
+  if (fui) fui.style.display = (id === 'fight-ui') ? 'flex' : 'none';
+}
+window._nuclearShow = _nuclearShow;
+
 // ── CONNECT ──────────────────────────────────────────────────
 function connect(cb) {
   if (MP.connected && MP.socket) { cb && cb(); return; }
@@ -112,8 +135,8 @@ function setupListeners() {
     var oppSlot = MP.playerNum === 1 ? 'p2' : 'p1';
     _showOpponentInLobby(oppSlot);
 
-    // Make sure we're on VS lobby screen
-    if (window.showScreen) window.showScreen('mp-vs-lobby');
+    // Make sure VS lobby is visible (nuclear)
+    _nuclearShow('mp-vs-lobby');
 
     // 3-2-1 COUNTDOWN then fight
     var cdEl     = document.getElementById('mp-vs-countdown');

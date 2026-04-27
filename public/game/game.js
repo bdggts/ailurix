@@ -2607,8 +2607,19 @@ window.startMPFightGame = function(d) {
   G.player     = myChar;
   G.stage      = 1;
 
-  // Navigate to fight screen
-  showScreen && showScreen('fight');
+  // Nuclear show fight screen (display:none fix)
+  if (window._nuclearShow) {
+    window._nuclearShow('fight-screen-placeholder');
+    // Hide all screens and show fight UI
+    var all = document.querySelectorAll('.screen');
+    for (var i = 0; i < all.length; i++) {
+      all[i].classList.remove('active');
+      all[i].style.display = 'none';
+    }
+  }
+  var fui = document.getElementById('fight-ui');
+  if (fui) fui.style.display = 'flex';
+  G.screen = 'fight';
   initFight();
 };
 
