@@ -121,8 +121,8 @@ function setupListeners() {
 
   s.on('room:opponent_char', function(d) {
     MP.opponentChar = d.charId;
-    console.log('[MP] Opponent selected:', d.charId);
-    // Show opponent in lobby if we're on lobby screen
+    var st = document.getElementById('mp-vs-status');
+    if (st) st.textContent = '✅ Opponent picked: ' + d.charId;
     var oppSlot = MP.playerNum === 1 ? 'p2' : 'p1';
     _showOpponentInLobby(oppSlot);
   });
@@ -130,7 +130,8 @@ function setupListeners() {
   s.on('room:fight_start', function(d) {
     MP.myChar       = MP.playerNum === 1 ? d.p1Char : d.p2Char;
     MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
-    console.log('[MP] Fight start! My:', MP.myChar, 'Opp:', MP.opponentChar);
+    var st = document.getElementById('mp-vs-status');
+    if (st) st.textContent = '🔥 FIGHT START! ' + d.p1Char + ' vs ' + d.p2Char;
 
     var oppSlot = MP.playerNum === 1 ? 'p2' : 'p1';
     _showOpponentInLobby(oppSlot);
@@ -216,7 +217,16 @@ window._mpGoLobby = function(myChar) {
   MP.myChar = myChar.id;
 
   // Emit char selection to server
-  if (MP.socket) MP.socket.emit('room:char_select', { charId: myChar.id });
+  var _sent = false;
+  if (MP.socket && MP.socket.connected) {
+    MP.socket.emit('room:char_select', { charId: myChar.id });
+    _sent = true;
+  }
+  // Debug: show on status what we sent
+  setTimeout(function(){
+    var st = document.getElementById('mp-vs-status');
+    if (st) st.textContent = 'SENT char_select: ' + myChar.id + ' | socket=' + (MP.socket?'Y':'N') + ' conn=' + (MP.socket&&MP.socket.connected?'Y':'N') + ' sent=' + _sent + ' room=' + MP.roomCode + ' P' + MP.playerNum;
+  }, 500);
 
   // NUCLEAR: force hide ALL screens with display:none, then show mp-vs-lobby
   var allScreens = document.querySelectorAll('.screen');
