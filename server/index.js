@@ -79,6 +79,25 @@ io.on('connection', (socket) => {
     io.to(code).emit('room:select_chars');
   });
 
+  // ── REJOIN ROOM (after socket reconnect) ──────────────────
+  socket.on('room:rejoin', (data) => {
+    const code = (data.code || '').toUpperCase().trim();
+    const room = rooms[code];
+    if (!room) {
+      console.log(`[REJOIN] Room ${code} not found`);
+      socket.emit('room:error', { msg: 'Room expired. Create a new one.' });
+      return;
+    }
+    socket.join(code);
+    socket.roomCode = code;
+    socket.playerNum = data.playerNum || 0;
+    // Re-associate socket ID with room
+    if (data.playerNum === 1) room.host = socket.id;
+    else if (data.playerNum === 2) room.guest = socket.id;
+    console.log(`[REJOIN] ${socket.id} rejoined ${code} as P${data.playerNum}`);
+    socket.emit('room:rejoin_ok', { code });
+  });
+
   // ── CHARACTER SELECTED ───────────────────────────────────
   socket.on('room:char_select', (data) => {
     const code = socket.roomCode;

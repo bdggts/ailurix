@@ -216,16 +216,17 @@ window._mpGoLobby = function(myChar) {
   console.log('[MP] Going to VS lobby with char:', myChar.id);
   MP.myChar = myChar.id;
 
-  // Emit char selection to server
+  // Rejoin room first (fixes socket reconnection losing room data)
   var _sent = false;
   if (MP.socket && MP.socket.connected) {
+    MP.socket.emit('room:rejoin', { code: MP.roomCode, playerNum: MP.playerNum });
     MP.socket.emit('room:char_select', { charId: myChar.id });
     _sent = true;
   }
   // Debug: show on status what we sent
   setTimeout(function(){
     var st = document.getElementById('mp-vs-status');
-    if (st) st.textContent = 'SENT char_select: ' + myChar.id + ' | socket=' + (MP.socket?'Y':'N') + ' conn=' + (MP.socket&&MP.socket.connected?'Y':'N') + ' sent=' + _sent + ' room=' + MP.roomCode + ' P' + MP.playerNum;
+    if (st) st.textContent = 'SENT: rejoin+char_select(' + myChar.id + ') sock=' + (MP.socket&&MP.socket.connected?'Y':'N') + ' sent=' + _sent + ' room=' + MP.roomCode + ' P' + MP.playerNum;
   }, 500);
 
   // NUCLEAR: force hide ALL screens with display:none, then show mp-vs-lobby
