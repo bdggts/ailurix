@@ -134,30 +134,36 @@ function _startRoomPoll() {
         if (!d.exists) { if (st) st.textContent = 'Room expired!'; clearInterval(MP._pollTimer); return; }
         if (st) st.textContent = 'Room: ' + d.state + ' | P1=' + (d.p1Char||'?') + ' P2=' + (d.p2Char||'?');
         // If both selected and we haven't started fight yet
-        if (d.p1Char && d.p2Char && !MP.active && d.state === 'fighting') {
-          clearInterval(MP._pollTimer);
-          // Trigger fight start locally if socket event was missed
-          MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
-          var oppSlot = MP.playerNum === 1 ? 'p2' : 'p1';
-          _showOpponentInLobby(oppSlot);
-          if (st) st.textContent = 'FIGHT! (via poll)';
-          _nuclearShow('mp-vs-lobby');
-          var cdEl = document.getElementById('mp-vs-countdown');
-          if (cdEl) cdEl.textContent = '3';
-          var count = 3;
-          var cdI = setInterval(function() {
-            count--;
-            if (count > 0) { if (cdEl) cdEl.textContent = count; }
-            else if (count === 0) { if (cdEl) { cdEl.textContent = 'FIGHT!'; cdEl.style.color = '#ef4444'; } }
-            else { clearInterval(cdI); if (cdEl) cdEl.textContent = ''; MP.active = true;
-              if (typeof window.startMPFightGame === 'function') window.startMPFightGame({ p1Char: d.p1Char, p2Char: d.p2Char });
-            }
-          }, 1000);
+        if (d.p1Char && d.p2Char && !MP.active) {
+          _startFight({ p1Char: d.p1Char, p2Char: d.p2Char }, 'poll');
         }
       };
       xhr.send();
     } catch(e) {}
   }, 3000); // poll every 3 seconds
+}
+
+// ── SINGLE FIGHT START (prevents race condition) ────────────
+function _startFight(d, source) {
+  if (MP.active) return;
+  MP.active = true;
+  if (MP._pollTimer) { clearInterval(MP._pollTimer); MP._pollTimer = null; }
+  MP.myChar       = MP.playerNum === 1 ? d.p1Char : d.p2Char;
+  MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
+  console.log('[MP] _startFight via ' + source + ': ' + d.p1Char + ' vs ' + d.p2Char);
+  // Reset ALL inline styles (undo nuclear display:none)
+  var all = document.querySelectorAll('.screen');
+  for (var i = 0; i < all.length; i++) {
+    all[i].style.display = '';
+    all[i].style.opacity = '';
+    all[i].style.zIndex = '';
+    all[i].style.pointerEvents = '';
+    all[i].classList.remove('active');
+  }
+  // Call game.js to start fight
+  if (typeof window.startMPFightGame === 'function') {
+    window.startMPFightGame(d);
+  }
 }
 
 // ── SERVER EVENTS ────────────────────────────────────────────
@@ -192,39 +198,7 @@ function setupListeners() {
   });
 
   s.on('room:fight_start', function(d) {
-    // If fight already started (via poll), skip
-    if (MP.active) return;
-    MP.myChar       = MP.playerNum === 1 ? d.p1Char : d.p2Char;
-    MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
-    // Stop polling since socket event arrived
-    if (MP._pollTimer) { clearInterval(MP._pollTimer); MP._pollTimer = null; }
-
-    var oppSlot = MP.playerNum === 1 ? 'p2' : 'p1';
-    _showOpponentInLobby(oppSlot);
-
-    // Make sure VS lobby is visible for countdown
-    _nuclearShow('mp-vs-lobby');
-
-    // 3-2-1 COUNTDOWN then fight
-    var cdEl     = document.getElementById('mp-vs-countdown');
-    var statusEl = document.getElementById('mp-vs-status');
-    if (statusEl) statusEl.textContent = 'GET READY!';
-    var count = 3;
-    if (cdEl) cdEl.textContent = count;
-    var cdInterval = setInterval(function() {
-      count--;
-      if (count > 0) {
-        if (cdEl) cdEl.textContent = count;
-      } else if (count === 0) {
-        if (cdEl) { cdEl.textContent = 'FIGHT!'; cdEl.style.color = '#ef4444'; }
-        if (statusEl) statusEl.textContent = '';
-      } else {
-        clearInterval(cdInterval);
-        if (cdEl) cdEl.textContent = '';
-        MP.active = true;
-        if (typeof window.startMPFightGame === 'function') window.startMPFightGame(d);
-      }
-    }, 1000);
+    _startFight(d, 'socket');
   });
 
   s.on('fight:input', function(d) {
