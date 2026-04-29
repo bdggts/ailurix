@@ -151,13 +151,18 @@ function _startFight(d, source) {
   MP.myChar       = MP.playerNum === 1 ? d.p1Char : d.p2Char;
   MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
   console.log('[MP] _startFight via ' + source + ': ' + d.p1Char + ' vs ' + d.p2Char);
-  // Reset ALL inline styles (undo nuclear display:none)
+  // FORCE HIDE mp-lobby and mp-vs-lobby (they have !important CSS)
+  var mpLobby = document.getElementById('mp-lobby');
+  if (mpLobby) mpLobby.style.setProperty('display', 'none', 'important');
+  var mpVsLobby = document.getElementById('mp-vs-lobby');
+  if (mpVsLobby) mpVsLobby.style.setProperty('display', 'none', 'important');
+  // Reset ALL other screen inline styles
   var all = document.querySelectorAll('.screen');
   for (var i = 0; i < all.length; i++) {
-    all[i].style.display = '';
-    all[i].style.opacity = '';
+    all[i].style.setProperty('display', 'none', 'important');
+    all[i].style.opacity = '0';
     all[i].style.zIndex = '';
-    all[i].style.pointerEvents = '';
+    all[i].style.pointerEvents = 'none';
     all[i].classList.remove('active');
   }
   // Call game.js to start fight
