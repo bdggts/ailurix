@@ -1352,15 +1352,27 @@ function fightLoop(now){
       if(gs.frame%3===0 && window.MPSendPosition){
         window.MPSendPosition({x:p1.x/W,y:p1.y/gs.H,state:p1.state,dir:p1.dir,af:p1.af});
       }
+      // Smooth lerp p2 towards network target (no snap = no jitter)
+      if(gs._p2tx!==undefined){
+        p2.x+=(gs._p2tx-p2.x)*0.3;
+        p2.y+=(gs._p2ty-p2.y)*0.3;
+      }
+      // Physics only for p1 (p2 controlled by network)
+      p1.y+=p1.vy;p1.vy+=0.75*gs.SC;
+      if(p1.y>=gs.FLOOR){p1.y=gs.FLOOR;p1.vy=0;p1.onGround=true;}else{p1.onGround=false;}
+      p2.onGround=true; // assume opponent on ground
     } else {
       if(!gs.finishHim)cpuThink(gs);
+      // Physics for both in SP
+      [p1,p2].forEach(function(p){
+        p.y+=p.vy;p.vy+=0.75*gs.SC;
+        if(p.y>=gs.FLOOR){p.y=gs.FLOOR;p.vy=0;p.onGround=true;}else{p.onGround=false;}
+      });
     }
-    [p1,p2].forEach(function(p){
-      p.y+=p.vy;p.vy+=0.75*gs.SC;
-      if(p.y>=gs.FLOOR){p.y=gs.FLOOR;p.vy=0;p.onGround=true;}else{p.onGround=false;}
-    });
-    p1.x=Math.max(45,Math.min(W-45,p1.x));p2.x=Math.max(45,Math.min(W-45,p2.x));
-    if(Math.abs(p1.x-p2.x)<52){var push=(52-Math.abs(p1.x-p2.x))*0.5;if(p1.x<p2.x){p1.x-=push;p2.x+=push;}else{p1.x+=push;p2.x-=push;}}
+    p1.x=Math.max(45,Math.min(W-45,p1.x));
+    if(!G.mpMode) p2.x=Math.max(45,Math.min(W-45,p2.x));
+    // Push collision only in SP (in MP, remote handles it)
+    if(!G.mpMode && Math.abs(p1.x-p2.x)<52){var push=(52-Math.abs(p1.x-p2.x))*0.5;if(p1.x<p2.x){p1.x-=push;p2.x+=push;}else{p1.x+=push;p2.x-=push;}}
     p1.dir=p1.x<p2.x?1:-1;p2.dir=p2.x<p1.x?1:-1;
     [p1,p2].forEach(function(p){
       if(p.cd>0)p.cd--;
@@ -2353,20 +2365,19 @@ window.applyOpponentInput = function(d) {
   doAttack(p2, gs.p1, type, gs);
 };
 
-// Called by mp-client.js to apply opponent's position
+// Called by mp-client.js to apply opponent's position (sets lerp target)
 window.applyOpponentPosition = function(d) {
   var gs = G.gs;
   if(!gs || !G.mpMode) return;
   var p2 = gs.p2;
-  p2.x = d.x * gs.W;
-  // Only apply y if valid
-  if(d.y !== undefined) p2.y = d.y * gs.H;
+  // Set TARGET position — fight loop will lerp towards this smoothly
+  gs._p2tx = d.x * gs.W;
+  if(d.y !== undefined) gs._p2ty = d.y * gs.H;
+  // Apply walk/idle state from position sync (attacks come from fight:input)
   if(d.state && d.state !== 'punch' && d.state !== 'kick' && d.state !== 'special' && d.state !== 'hurt') {
-    // Only apply idle/walk state from position sync; attack states come from fight:input
     p2.state = d.state;
   }
   if(d.dir) p2.dir = d.dir;
-  if(d.af !== undefined) p2.af = d.af;
 };
 
 // Called by mp-client.js to sync HP from server
