@@ -1349,19 +1349,17 @@ function fightLoop(now){
 
     // MP: skip AI, sync position instead
     if(G.mpMode){
-      // Send our position to opponent every 3 frames
-      if(gs.frame%3===0 && window.MPSendPosition){
-        window.MPSendPosition({x:p1.x/W,y:p1.y/gs.H,state:p1.state,dir:p1.dir,af:p1.af});
+      // Send position every 2 frames for smoother sync
+      if(gs.frame%2===0 && window.MPSendPosition){
+        window.MPSendPosition({x:p1.x/W,state:p1.state,dir:p1.dir,af:p1.af});
       }
-      // Smooth lerp p2 towards network target (no snap = no jitter)
+      // Smooth lerp p2 X towards network target
       if(gs._p2tx!==undefined){
-        p2.x+=(gs._p2tx-p2.x)*0.3;
-        p2.y+=(gs._p2ty-p2.y)*0.3;
+        p2.x+=(gs._p2tx-p2.x)*0.4;
       }
-      // Physics only for p1 (p2 controlled by network)
-      p1.y+=p1.vy;p1.vy+=0.75*gs.SC;
-      if(p1.y>=gs.FLOOR){p1.y=gs.FLOOR;p1.vy=0;p1.onGround=true;}else{p1.onGround=false;}
-      p2.onGround=true; // assume opponent on ground
+      // Both characters ALWAYS on floor (no floating)
+      p1.y=gs.FLOOR;p1.vy=0;p1.onGround=true;
+      p2.y=gs.FLOOR;p2.vy=0;p2.onGround=true;
     } else {
       if(!gs.finishHim)cpuThink(gs);
       // Physics for both in SP
