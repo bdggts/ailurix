@@ -1357,8 +1357,10 @@ function fightLoop(now){
       if(gs._p2tx!==undefined){
         p2.x+=(gs._p2tx-p2.x)*0.4;
       }
-      // Both characters ALWAYS on floor (no floating)
-      p1.y=gs.FLOOR;p1.vy=0;p1.onGround=true;
+      // P1 has full gravity (jump works)
+      p1.y+=p1.vy;p1.vy+=0.75*gs.SC;
+      if(p1.y>=gs.FLOOR){p1.y=gs.FLOOR;p1.vy=0;p1.onGround=true;}else{p1.onGround=false;}
+      // P2 always on floor (network controlled)
       p2.y=gs.FLOOR;p2.vy=0;p2.onGround=true;
     } else {
       if(!gs.finishHim)cpuThink(gs);
@@ -1370,15 +1372,18 @@ function fightLoop(now){
     }
     p1.x=Math.max(45,Math.min(W-45,p1.x));
     if(!G.mpMode) p2.x=Math.max(45,Math.min(W-45,p2.x));
-    // Push collision — in MP only push p1 (p2 is network-controlled)
+    // Block crossing — can only cross by jumping over
     if(Math.abs(p1.x-p2.x)<52){
-      var push=(52-Math.abs(p1.x-p2.x))*0.5;
-      if(G.mpMode){
-        // Only push p1 away, don't move p2
-        if(p1.x<p2.x) p1.x-=push*2; else p1.x+=push*2;
-      } else {
-        if(p1.x<p2.x){p1.x-=push;p2.x+=push;}else{p1.x+=push;p2.x-=push;}
+      if(p1.onGround){
+        // On ground: push apart, no crossing allowed
+        var push=(52-Math.abs(p1.x-p2.x))*0.5;
+        if(G.mpMode){
+          if(p1.x<p2.x) p1.x-=push*2; else p1.x+=push*2;
+        } else {
+          if(p1.x<p2.x){p1.x-=push;p2.x+=push;}else{p1.x+=push;p2.x-=push;}
+        }
       }
+      // In air: allow crossing (jump over)
     }
     p1.dir=p1.x<p2.x?1:-1;p2.dir=p2.x<p1.x?1:-1;
     [p1,p2].forEach(function(p){
