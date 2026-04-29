@@ -143,31 +143,54 @@ function _startRoomPoll() {
   }, 3000); // poll every 3 seconds
 }
 
+// ── VISIBLE DEBUG TOAST ──────────────────────────────────────
+function _mpDbg(msg, color) {
+  if (!window._mpDbgN) window._mpDbgN = 0;
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;top:'+(10+window._mpDbgN*35)+'px;left:10px;right:10px;z-index:999999;background:#000;color:'+(color||'#0f0')+';font-size:10px;padding:6px 8px;border:2px solid '+(color||'#0f0')+';word-break:break-all;font-family:monospace;pointer-events:none;';
+  t.textContent = '[v15.14.7] ' + msg;
+  document.body.appendChild(t);
+  window._mpDbgN++;
+}
+
 // ── SINGLE FIGHT START (prevents race condition) ────────────
 function _startFight(d, source) {
-  if (MP.active) return;
+  _mpDbg('_startFight via ' + source + ': p1=' + d.p1Char + ' p2=' + d.p2Char);
+  if (MP.active) { _mpDbg('SKIPPED: MP.active already true', '#f80'); return; }
   MP.active = true;
   if (MP._pollTimer) { clearInterval(MP._pollTimer); MP._pollTimer = null; }
   MP.myChar       = MP.playerNum === 1 ? d.p1Char : d.p2Char;
   MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
-  console.log('[MP] _startFight via ' + source + ': ' + d.p1Char + ' vs ' + d.p2Char);
-  // FORCE HIDE mp-lobby and mp-vs-lobby (they have !important CSS)
-  var mpLobby = document.getElementById('mp-lobby');
-  if (mpLobby) mpLobby.style.setProperty('display', 'none', 'important');
-  var mpVsLobby = document.getElementById('mp-vs-lobby');
-  if (mpVsLobby) mpVsLobby.style.setProperty('display', 'none', 'important');
-  // Reset ALL other screen inline styles
+
+  // FORCE HIDE ALL screens (using !important to override CSS !important)
   var all = document.querySelectorAll('.screen');
   for (var i = 0; i < all.length; i++) {
     all[i].style.setProperty('display', 'none', 'important');
-    all[i].style.opacity = '0';
-    all[i].style.zIndex = '';
-    all[i].style.pointerEvents = 'none';
+    all[i].style.setProperty('opacity', '0', 'important');
+    all[i].style.setProperty('pointer-events', 'none', 'important');
     all[i].classList.remove('active');
   }
+  _mpDbg('Screens hidden: ' + all.length);
+
+  // FORCE SHOW fight-ui with position:fixed to cover EVERYTHING
+  var fui = document.getElementById('fight-ui');
+  if (fui) {
+    fui.style.setProperty('display', 'flex', 'important');
+    fui.style.setProperty('position', 'fixed', 'important');
+    fui.style.setProperty('inset', '0', 'important');
+    fui.style.setProperty('z-index', '99999', 'important');
+    fui.style.setProperty('background', '#000', 'important');
+    _mpDbg('fight-ui: forced FIXED visible');
+  } else {
+    _mpDbg('ERROR: fight-ui NOT FOUND!', '#f00');
+  }
+
   // Call game.js to start fight
   if (typeof window.startMPFightGame === 'function') {
+    _mpDbg('Calling startMPFightGame...');
     window.startMPFightGame(d);
+  } else {
+    _mpDbg('ERROR: startMPFightGame is UNDEFINED!', '#f00');
   }
 }
 
