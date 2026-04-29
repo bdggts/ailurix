@@ -2594,27 +2594,48 @@ window.initVS = function(){ initVS(); };
 
 // Called by mp-client.js when both players have selected chars
 window.startMPFightGame = function(d) {
+  // Debug toast visible even on black screen
+  function _dbg(msg, color) {
+    var t = document.createElement('div');
+    t.style.cssText = 'position:fixed;top:'+(10+(_dbg._n||0)*40)+'px;left:10px;right:10px;z-index:99999;background:#000;color:'+(color||'#0f0')+';font-size:11px;padding:8px;border:2px solid '+(color||'#0f0')+';word-break:break-all;font-family:monospace;';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    _dbg._n = (_dbg._n || 0) + 1;
+  }
   try {
-    // Find characters by id
+    _dbg('1. startMPFightGame called: p1=' + d.p1Char + ' p2=' + d.p2Char);
     var myCharId   = window.MP ? (window.MP.playerNum === 1 ? d.p1Char : d.p2Char) : d.p1Char;
     var oppCharId  = window.MP ? (window.MP.playerNum === 1 ? d.p2Char : d.p1Char) : d.p2Char;
     var myChar     = CHARS.find(function(c){ return c.id === myCharId; });
     var oppChar    = CHARS.find(function(c){ return c.id === oppCharId; });
     if(!myChar)  myChar  = PLAYABLE[0];
     if(!oppChar) oppChar = PLAYABLE[1];
+    _dbg('2. chars: me=' + myChar.name + ' opp=' + oppChar.name);
 
     G.mpMode     = true;
     G.mpOpponent = oppChar;
     G.player     = myChar;
     G.stage      = 1;
 
-    // Use EXACT same flow as single-player fight
+    // Force show fight-ui with !important (overrides any previous !important)
+    var fui = document.getElementById('fight-ui');
+    if (fui) {
+      fui.style.setProperty('display', 'flex', 'important');
+      fui.style.setProperty('z-index', '9999', 'important');
+    }
+    _dbg('3. fight-ui forced visible: ' + (fui ? 'YES' : 'NO'));
+
     G.screen = 'fight';
     showScreen('fight');
+    _dbg('4. showScreen(fight) done');
+
+    // Re-force fight-ui after showScreen (belt-and-suspenders)
+    if (fui) fui.style.setProperty('display', 'flex', 'important');
+
     initFight();
+    _dbg('5. initFight() done - FIGHT SHOULD BE RUNNING!', '#ff0');
   } catch(e) {
-    // Use alert so error is visible even with all screens hidden
-    alert('FIGHT ERROR: ' + e.message);
+    _dbg('ERROR: ' + e.message, '#f00');
     console.error('[MP] startMPFightGame error:', e);
   }
 };
