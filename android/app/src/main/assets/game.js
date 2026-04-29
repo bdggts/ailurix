@@ -2608,23 +2608,13 @@ window.startMPFightGame = function(d) {
     G.player     = myChar;
     G.stage      = 1;
 
-    // Hide ALL .screen elements (VS lobby, select, splash, etc.)
-    var all = document.querySelectorAll('.screen');
-    for (var i = 0; i < all.length; i++) {
-      all[i].classList.remove('active');
-      all[i].style.display = 'none';
-      all[i].style.opacity = '0';
-      all[i].style.zIndex = '';
-    }
-    // Show fight UI (attack buttons overlay)
-    var fui = document.getElementById('fight-ui');
-    if (fui) { fui.style.display = 'flex'; fui.style.zIndex = '9999'; }
+    // Use EXACT same flow as single-player fight
     G.screen = 'fight';
+    showScreen('fight');
     initFight();
   } catch(e) {
-    // Debug: show error on screen
-    var st = document.getElementById('mp-vs-status');
-    if (st) st.textContent = 'FIGHT ERROR: ' + e.message;
+    // Use alert so error is visible even with all screens hidden
+    alert('FIGHT ERROR: ' + e.message);
     console.error('[MP] startMPFightGame error:', e);
   }
 };
