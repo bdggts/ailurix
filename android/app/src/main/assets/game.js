@@ -1346,7 +1346,15 @@ function fightLoop(now){
     if(KEYS.jump&&p1.onGround&&canAct){p1.vy=-11*gs.SC;p1.onGround=false;KEYS.jump=false;}
     if(!moving&&p1.state==='walk')p1.state='idle';
 
-    if(!gs.finishHim)cpuThink(gs);
+    // MP: skip AI, sync position instead
+    if(G.mpMode){
+      // Send our position to opponent every 3 frames
+      if(gs.frame%3===0 && window.MPSendPosition){
+        window.MPSendPosition({x:p1.x/W,y:p1.y/gs.H,state:p1.state,dir:p1.dir,af:p1.af});
+      }
+    } else {
+      if(!gs.finishHim)cpuThink(gs);
+    }
     [p1,p2].forEach(function(p){
       p.y+=p.vy;p.vy+=0.75*gs.SC;
       if(p.y>=gs.FLOOR){p.y=gs.FLOOR;p.vy=0;p.onGround=true;}else{p.onGround=false;}
@@ -2343,6 +2351,22 @@ window.applyOpponentInput = function(d) {
   if(type === 'special') p2.energy = 0;
   snd(type);
   doAttack(p2, gs.p1, type, gs);
+};
+
+// Called by mp-client.js to apply opponent's position
+window.applyOpponentPosition = function(d) {
+  var gs = G.gs;
+  if(!gs || !G.mpMode) return;
+  var p2 = gs.p2;
+  p2.x = d.x * gs.W;
+  // Only apply y if valid
+  if(d.y !== undefined) p2.y = d.y * gs.H;
+  if(d.state && d.state !== 'punch' && d.state !== 'kick' && d.state !== 'special' && d.state !== 'hurt') {
+    // Only apply idle/walk state from position sync; attack states come from fight:input
+    p2.state = d.state;
+  }
+  if(d.dir) p2.dir = d.dir;
+  if(d.af !== undefined) p2.af = d.af;
 };
 
 // Called by mp-client.js to sync HP from server

@@ -143,26 +143,16 @@ function _startRoomPoll() {
   }, 3000); // poll every 3 seconds
 }
 
-// ── VISIBLE DEBUG TOAST ──────────────────────────────────────
-function _mpDbg(msg, color) {
-  if (!window._mpDbgN) window._mpDbgN = 0;
-  var t = document.createElement('div');
-  t.style.cssText = 'position:fixed;top:'+(10+window._mpDbgN*35)+'px;left:10px;right:10px;z-index:999999;background:#000;color:'+(color||'#0f0')+';font-size:10px;padding:6px 8px;border:2px solid '+(color||'#0f0')+';word-break:break-all;font-family:monospace;pointer-events:none;';
-  t.textContent = '[v15.14.7] ' + msg;
-  document.body.appendChild(t);
-  window._mpDbgN++;
-}
-
 // ── SINGLE FIGHT START (prevents race condition) ────────────
 function _startFight(d, source) {
-  _mpDbg('_startFight via ' + source + ': p1=' + d.p1Char + ' p2=' + d.p2Char);
-  if (MP.active) { _mpDbg('SKIPPED: MP.active already true', '#f80'); return; }
+  if (MP.active) return;
   MP.active = true;
   if (MP._pollTimer) { clearInterval(MP._pollTimer); MP._pollTimer = null; }
   MP.myChar       = MP.playerNum === 1 ? d.p1Char : d.p2Char;
   MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
+  console.log('[MP] _startFight via ' + source);
 
-  // FORCE HIDE ALL screens (using !important to override CSS !important)
+  // FORCE HIDE ALL screens
   var all = document.querySelectorAll('.screen');
   for (var i = 0; i < all.length; i++) {
     all[i].style.setProperty('display', 'none', 'important');
@@ -170,27 +160,18 @@ function _startFight(d, source) {
     all[i].style.setProperty('pointer-events', 'none', 'important');
     all[i].classList.remove('active');
   }
-  _mpDbg('Screens hidden: ' + all.length);
 
-  // FORCE SHOW fight-ui with position:fixed to cover EVERYTHING
+  // FORCE SHOW fight-ui
   var fui = document.getElementById('fight-ui');
   if (fui) {
     fui.style.setProperty('display', 'flex', 'important');
     fui.style.setProperty('position', 'fixed', 'important');
     fui.style.setProperty('inset', '0', 'important');
     fui.style.setProperty('z-index', '99999', 'important');
-    fui.style.setProperty('background', '#000', 'important');
-    _mpDbg('fight-ui: forced FIXED visible');
-  } else {
-    _mpDbg('ERROR: fight-ui NOT FOUND!', '#f00');
   }
 
-  // Call game.js to start fight
   if (typeof window.startMPFightGame === 'function') {
-    _mpDbg('Calling startMPFightGame...');
     window.startMPFightGame(d);
-  } else {
-    _mpDbg('ERROR: startMPFightGame is UNDEFINED!', '#f00');
   }
 }
 
@@ -232,6 +213,12 @@ function setupListeners() {
   s.on('fight:input', function(d) {
     if (!MP.active) return;
     if (typeof window.applyOpponentInput === 'function') window.applyOpponentInput(d);
+  });
+
+  // Position sync — receive opponent's position
+  s.on('fight:position', function(d) {
+    if (!MP.active) return;
+    if (typeof window.applyOpponentPosition === 'function') window.applyOpponentPosition(d);
   });
 
   s.on('fight:hp_update', function(d) {
@@ -392,6 +379,11 @@ window.MPSendInput = function(action, extra) {
 window.MPSendHP = function(target, hp) {
   if (!MP.socket || !MP.active) return;
   MP.socket.emit('fight:hp', { target: target, hp: hp });
+};
+// Position sync — send local player state to opponent
+window.MPSendPosition = function(data) {
+  if (!MP.socket || !MP.active) return;
+  MP.socket.emit('fight:position', data);
 };
 
 })();

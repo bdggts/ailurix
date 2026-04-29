@@ -158,8 +158,15 @@ io.on('connection', (socket) => {
   socket.on('fight:input', (data) => {
     const code = socket.roomCode;
     if (!code) return;
-    // data: { action: 'punch'|'kick'|'move'|'jump'|'block', x, y, frame }
     socket.to(code).emit('fight:input', { ...data, player: socket.playerNum });
+  });
+
+  // ── POSITION SYNC ────────────────────────────────────────
+  // Relay player position to opponent (low-latency movement sync)
+  socket.on('fight:position', (data) => {
+    const code = socket.roomCode;
+    if (!code) return;
+    socket.to(code).emit('fight:position', data);
   });
 
   // ── PLAYER ACTION (attack relay) ─────────────────────────
