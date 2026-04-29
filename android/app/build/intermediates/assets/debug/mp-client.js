@@ -48,21 +48,21 @@ function _nuclearShow(id) {
   var all = document.querySelectorAll('.screen');
   for (var i = 0; i < all.length; i++) {
     all[i].classList.remove('active');
-    all[i].style.display = 'none';
-    all[i].style.opacity = '0';
-    all[i].style.pointerEvents = 'none';
+    all[i].style.setProperty('display', 'none', 'important');
+    all[i].style.setProperty('opacity', '0', 'important');
+    all[i].style.setProperty('pointer-events', 'none', 'important');
   }
   var el = document.getElementById(id);
   if (el) {
-    el.style.display = 'flex';
+    el.style.setProperty('display', 'flex', 'important');
     el.classList.add('active');
-    el.style.opacity = '1';
-    el.style.pointerEvents = 'all';
-    el.style.zIndex = '9999';
+    el.style.setProperty('opacity', '1', 'important');
+    el.style.setProperty('pointer-events', 'all', 'important');
+    el.style.setProperty('z-index', '9999', 'important');
   }
   // Also show/hide fight-ui
   var fui = document.getElementById('fight-ui');
-  if (fui) fui.style.display = (id === 'fight-ui') ? 'flex' : 'none';
+  if (fui) fui.style.setProperty('display', (id === 'fight-ui') ? 'flex' : 'none', 'important');
 }
 window._nuclearShow = _nuclearShow;
 
@@ -271,19 +271,19 @@ window._mpGoLobby = function(myChar) {
   // Start polling room status (catches missed socket events)
   _startRoomPoll();
 
-  // NUCLEAR: force hide ALL screens with display:none, then show mp-vs-lobby
+  // NUCLEAR: force hide ALL screens (including mp-lobby which has !important CSS)
   var allScreens = document.querySelectorAll('.screen');
   for (var i = 0; i < allScreens.length; i++) {
     allScreens[i].classList.remove('active');
-    allScreens[i].style.display = 'none';
+    allScreens[i].style.setProperty('display', 'none', 'important');
   }
   var vsLobby = document.getElementById('mp-vs-lobby');
   if (vsLobby) {
-    vsLobby.style.display = 'flex';
+    vsLobby.style.setProperty('display', 'flex', 'important');
     vsLobby.classList.add('active');
-    vsLobby.style.opacity = '1';
-    vsLobby.style.pointerEvents = 'all';
-    vsLobby.style.zIndex = '9999';
+    vsLobby.style.setProperty('opacity', '1', 'important');
+    vsLobby.style.setProperty('pointer-events', 'all', 'important');
+    vsLobby.style.setProperty('z-index', '9999', 'important');
   }
 
   // Stop select animation loop
