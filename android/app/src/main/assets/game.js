@@ -335,14 +335,16 @@ function drawFighter(ctx,f,t){
     ctx.translate(x,y);
     if(dir<0)ctx.scale(-1,1);
 
-    // FIGHTING STANCE ANIMATION (combat-ready sway)
+    // FIGHTING STANCE ANIMATION (combat-ready sway) — disabled in MP for stability
     var bob=0,lean=0,breathe=1;
-    if(st==='idle'){
-      bob=Math.sin(t*0.06)*2;
-      lean=Math.sin(t*0.04)*0.03; // slight body lean
-      breathe=1+Math.sin(t*0.08)*0.015; // breathing scale
+    if(!G.mpMode){
+      if(st==='idle'){
+        bob=Math.sin(t*0.06)*2;
+        lean=Math.sin(t*0.04)*0.03;
+        breathe=1+Math.sin(t*0.08)*0.015;
+      }
+      if(st==='walk'){bob=Math.sin(t*0.3)*3;}
     }
-    if(st==='walk'){bob=Math.sin(t*0.3)*3;}
 
     // Shadow
     ctx.fillStyle='rgba(0,0,0,0.4)';ctx.beginPath();ctx.ellipse(0,5,sprW*0.38,7,0,0,Math.PI*2);ctx.fill();
@@ -1371,8 +1373,16 @@ function fightLoop(now){
     }
     p1.x=Math.max(45,Math.min(W-45,p1.x));
     if(!G.mpMode) p2.x=Math.max(45,Math.min(W-45,p2.x));
-    // Push collision only in SP (in MP, remote handles it)
-    if(!G.mpMode && Math.abs(p1.x-p2.x)<52){var push=(52-Math.abs(p1.x-p2.x))*0.5;if(p1.x<p2.x){p1.x-=push;p2.x+=push;}else{p1.x+=push;p2.x-=push;}}
+    // Push collision — in MP only push p1 (p2 is network-controlled)
+    if(Math.abs(p1.x-p2.x)<52){
+      var push=(52-Math.abs(p1.x-p2.x))*0.5;
+      if(G.mpMode){
+        // Only push p1 away, don't move p2
+        if(p1.x<p2.x) p1.x-=push*2; else p1.x+=push*2;
+      } else {
+        if(p1.x<p2.x){p1.x-=push;p2.x+=push;}else{p1.x+=push;p2.x-=push;}
+      }
+    }
     p1.dir=p1.x<p2.x?1:-1;p2.dir=p2.x<p1.x?1:-1;
     [p1,p2].forEach(function(p){
       if(p.cd>0)p.cd--;
@@ -1687,17 +1697,12 @@ function initSelect(){
   },130);
   // ── SELECT BUTTON — global function called from HTML onclick ──
   window._doSelect=function(){
-    function _dbg(msg){var t=document.createElement('div');t.style.cssText='position:fixed;top:60px;left:10px;right:10px;z-index:99999;background:#000;color:#ff0;font-size:11px;padding:8px;border:2px solid #ff0;word-break:break-all;font-family:monospace;';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},8000);}
     try{
       G.player=PLAYABLE[G.selIdx!=null?G.selIdx:0];
-      _dbg('SEL: char='+G.player.id+' MP='+(window.MP&&window.MP.roomCode?window.MP.roomCode:'NONE')+' goLobby='+(window._mpGoLobby?'YES':'NO'));
       // ── MP MODE → go to lobby ──
       if(window.MP && window.MP.roomCode){
         if(window._mpGoLobby){
           window._mpGoLobby(G.player);
-          _dbg('CALLED _mpGoLobby OK');
-        } else {
-          _dbg('ERROR: _mpGoLobby is undefined!');
         }
         return;
       }
@@ -1706,7 +1711,7 @@ function initSelect(){
       if(window._selAnimInt){cancelAnimationFrame(window._selAnimInt);window._selAnimInt=null;}
       G.screen='vs';showScreen('vs');initVS();
     }catch(err){
-      _dbg('ERROR in _doSelect: '+err.message);
+      console.error('_doSelect error:', err);
     }
   };
 }
