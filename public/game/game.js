@@ -2276,6 +2276,105 @@ function setupControls(){
 // =========================================================
 // INIT
 // =========================================================
+
+// =========================================================
+// MULTIPLAYER FIGHT INTEGRATION (inside IIFE for scope access)
+// =========================================================
+// Export key internals for mp-client.js
+window.G         = G;
+window.PLAYABLE  = PLAYABLE;
+window.showScreen = showScreen;
+window.initSelect = function(){ initSelect(); };
+window.bgmPlay   = bgmPlay;
+window.drawCharPreview = drawCharPreview;
+window.CHARS = CHARS;
+window.snd   = snd;
+window.initVS = function(){ initVS(); };
+
+// Called by mp-client.js when both players have selected chars
+window.startMPFightGame = function(d) {
+  try {
+    var myCharId   = window.MP ? (window.MP.playerNum === 1 ? d.p1Char : d.p2Char) : d.p1Char;
+    var oppCharId  = window.MP ? (window.MP.playerNum === 1 ? d.p2Char : d.p1Char) : d.p2Char;
+    var myChar     = CHARS.find(function(c){ return c.id === myCharId; });
+    var oppChar    = CHARS.find(function(c){ return c.id === oppCharId; });
+    if(!myChar)  myChar  = PLAYABLE[0];
+    if(!oppChar) oppChar = PLAYABLE[1];
+
+    G.mpMode     = true;
+    G.mpOpponent = oppChar;
+    G.player     = myChar;
+    G.stage      = 1;
+
+    // Force show fight-ui
+    var fui = document.getElementById('fight-ui');
+    if (fui) {
+      fui.style.setProperty('display', 'flex', 'important');
+      fui.style.setProperty('position', 'fixed', 'important');
+      fui.style.setProperty('inset', '0', 'important');
+      fui.style.setProperty('z-index', '99999', 'important');
+    }
+
+    G.screen = 'fight';
+    showScreen('fight');
+    if (fui) fui.style.setProperty('display', 'flex', 'important');
+    initFight();
+  } catch(e) {
+    var t = document.createElement('div');
+    t.style.cssText = 'position:fixed;top:200px;left:10px;right:10px;z-index:999999;background:#000;color:#f00;font-size:12px;padding:10px;border:2px solid #f00;font-family:monospace;word-break:break-all;';
+    t.textContent = 'FIGHT ERROR: ' + e.message;
+    document.body.appendChild(t);
+  }
+};
+
+// Called by mp-client.js when opponent input arrives
+window.applyOpponentInput = function(d) {
+  var gs = G.gs;
+  if(!gs || !G.mpMode || G.stopped) return;
+  if(gs.phase !== 'fight' && !gs.finishHim) return;
+  var p2 = gs.p2;
+  var type = d.action;
+  if(!type || ['punch','kick','special','block'].indexOf(type) < 0) return;
+  if(p2.cd > 0) return;
+  if(type === 'block') { p2.state='block'; p2.cd=6; snd('block'); return; }
+  if(type === 'special' && p2.energy < 100) return;
+  p2.state = type; p2.af = 0;
+  p2.cd = {punch:14, kick:20, special:26}[type] || 14;
+  if(type === 'special') p2.energy = 0;
+  snd(type);
+  doAttack(p2, gs.p1, type, gs);
+};
+
+// Called by mp-client.js to sync HP from server
+window.applyMPHP = function(d) {
+  var gs = G.gs;
+  if(!gs || !G.mpMode) return;
+  var myNum = window.MP ? window.MP.playerNum : 1;
+  if(myNum === 1) {
+    gs.p1.hp = Math.max(0, d.hp1);
+    gs.p2.hp = Math.max(0, d.hp2);
+  } else {
+    gs.p1.hp = Math.max(0, d.hp2);
+    gs.p2.hp = Math.max(0, d.hp1);
+  }
+};
+
+// Called by mp-client.js when fight ends
+window.showMPResultScreen = function(won) {
+  if(!G.gs) return;
+  G.mpMode = false;
+  var gs = G.gs;
+  gs.over = true;
+  gs.phase = 'roundOver';
+  gs.roundOverTimer = 0;
+  gs.roundOverText  = won ? '\uD83C\uDFC6 YOU WIN!' : '\uD83D\uDC80 YOU LOSE!';
+  gs.roundOverColor = won ? '#f59e0b' : '#ef4444';
+  if(won) { gs.p1r++; gs.p1.state='victory'; gs.p2.state='fallen'; }
+  else    { gs.p2r++; gs.p2.state='victory'; gs.p1.state='fallen'; }
+  snd('ko');
+  stopBGMusic();
+};
+
 document.addEventListener('DOMContentLoaded',function(){
   load();
   setupControls();
@@ -2574,118 +2673,3 @@ document.addEventListener('click', function onFirst(){
   document.removeEventListener('click', onFirst);
 }, {once: true});
 
-// =========================================================
-// MULTIPLAYER FIGHT INTEGRATION
-// =========================================================
-// Export key internals for mp-client.js (runs outside this IIFE)
-window.G         = G;
-window.PLAYABLE  = PLAYABLE;
-window.showScreen = showScreen;
-window.initSelect = function(){ initSelect(); };
-window.bgmPlay   = bgmPlay;
-
-// Export drawCharPreview for MP lobby
-window.drawCharPreview = drawCharPreview;
-window.CHARS = CHARS;
-window.snd   = snd;
-window.initVS = function(){ initVS(); };
-
-
-
-// Called by mp-client.js when both players have selected chars
-window.startMPFightGame = function(d) {
-  // Debug toast visible even on black screen
-  function _dbg(msg, color) {
-    var t = document.createElement('div');
-    t.style.cssText = 'position:fixed;top:'+(10+(_dbg._n||0)*40)+'px;left:10px;right:10px;z-index:99999;background:#000;color:'+(color||'#0f0')+';font-size:11px;padding:8px;border:2px solid '+(color||'#0f0')+';word-break:break-all;font-family:monospace;';
-    t.textContent = msg;
-    document.body.appendChild(t);
-    _dbg._n = (_dbg._n || 0) + 1;
-  }
-  try {
-    _dbg('1. startMPFightGame called: p1=' + d.p1Char + ' p2=' + d.p2Char);
-    var myCharId   = window.MP ? (window.MP.playerNum === 1 ? d.p1Char : d.p2Char) : d.p1Char;
-    var oppCharId  = window.MP ? (window.MP.playerNum === 1 ? d.p2Char : d.p1Char) : d.p2Char;
-    var myChar     = CHARS.find(function(c){ return c.id === myCharId; });
-    var oppChar    = CHARS.find(function(c){ return c.id === oppCharId; });
-    if(!myChar)  myChar  = PLAYABLE[0];
-    if(!oppChar) oppChar = PLAYABLE[1];
-    _dbg('2. chars: me=' + myChar.name + ' opp=' + oppChar.name);
-
-    G.mpMode     = true;
-    G.mpOpponent = oppChar;
-    G.player     = myChar;
-    G.stage      = 1;
-
-    // Force show fight-ui with !important (overrides any previous !important)
-    var fui = document.getElementById('fight-ui');
-    if (fui) {
-      fui.style.setProperty('display', 'flex', 'important');
-      fui.style.setProperty('z-index', '9999', 'important');
-    }
-    _dbg('3. fight-ui forced visible: ' + (fui ? 'YES' : 'NO'));
-
-    G.screen = 'fight';
-    showScreen('fight');
-    _dbg('4. showScreen(fight) done');
-
-    // Re-force fight-ui after showScreen (belt-and-suspenders)
-    if (fui) fui.style.setProperty('display', 'flex', 'important');
-
-    initFight();
-    _dbg('5. initFight() done - FIGHT SHOULD BE RUNNING!', '#ff0');
-  } catch(e) {
-    _dbg('ERROR: ' + e.message, '#f00');
-    console.error('[MP] startMPFightGame error:', e);
-  }
-};
-
-// Called by mp-client.js when opponent input arrives
-window.applyOpponentInput = function(d) {
-  var gs = G.gs;
-  if(!gs || !G.mpMode || G.stopped) return;
-  if(gs.phase !== 'fight' && !gs.finishHim) return;
-  var p2 = gs.p2;
-  var type = d.action;
-  if(!type || ['punch','kick','special','block'].indexOf(type) < 0) return;
-  if(p2.cd > 0) return;
-  if(type === 'block') { p2.state='block'; p2.cd=6; snd('block'); return; }
-  if(type === 'special' && p2.energy < 100) return;
-  p2.state = type; p2.af = 0;
-  p2.cd = {punch:14, kick:20, special:26}[type] || 14;
-  if(type === 'special') p2.energy = 0;
-  snd(type);
-  doAttack(p2, gs.p1, type, gs);
-};
-
-// Called by mp-client.js to sync HP from server
-window.applyMPHP = function(d) {
-  var gs = G.gs;
-  if(!gs || !G.mpMode) return;
-  var myNum = window.MPClient.getState().playerNum;
-  if(myNum === 1) {
-    gs.p1.hp = Math.max(0, d.hp1);
-    gs.p2.hp = Math.max(0, d.hp2);
-  } else {
-    // From our perspective: we are p1, opponent is p2
-    gs.p1.hp = Math.max(0, d.hp2);
-    gs.p2.hp = Math.max(0, d.hp1);
-  }
-};
-
-// Called by mp-client.js when fight ends
-window.showMPResultScreen = function(won) {
-  if(!G.gs) return;
-  G.mpMode = false;
-  // Force end round state
-  var gs = G.gs;
-  gs.over = true;
-  gs.phase = 'roundOver';
-  gs.roundOverTimer = 0;
-  gs.roundOverText  = won ? '🏆 YOU WIN!' : '💀 YOU LOSE!';
-  gs.roundOverColor = won ? '#f59e0b' : '#ef4444';
-  if(won) { gs.p1r++; gs.p1.state='victory'; gs.p2.state='fallen'; }
-  else    { gs.p2r++; gs.p2.state='victory'; gs.p1.state='fallen'; }
-  snd('ko');
-  stopBGMusic();
-};
