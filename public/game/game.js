@@ -765,9 +765,6 @@ function initFight(){
 
   // Reset MP mode — only enable if socket fight is active
   G.mpMode = false;
-  // Hide mic button for SP
-  var _micBtn = document.getElementById('mic-toggle-btn');
-  if(_micBtn) _micBtn.style.display = 'none';
 
   // Force MP mode if socket fight is active (belt-and-suspenders check)
   if(window.MP && window.MP.active && window.MP.roomCode){
@@ -776,6 +773,9 @@ function initFight(){
       G.mpOpponent = CHARS.find(function(c){return c.id===window.MP.opponentChar;})||PLAYABLE[1];
     }
   }
+  // Show/hide mic button based on mode
+  var _micBtn = document.getElementById('mic-toggle-btn');
+  if(_micBtn) _micBtn.style.display = G.mpMode ? 'block' : 'none';
   var opp = G.mpMode && G.mpOpponent ? G.mpOpponent
           : TOWER[Math.min(G.stage-1,TOWER.length-1)];
   var eHpMult = 1+(G.stage-1)*0.15;
