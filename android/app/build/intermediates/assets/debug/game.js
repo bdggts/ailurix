@@ -2514,7 +2514,7 @@ window.showMPResultScreen = function(won) {
     G.stopped = false;
   }
 
-  // FIGHT AGAIN button — same room, go to character select
+  // FIGHT AGAIN button — same room, go to character select IMMEDIATELY
   var again = document.createElement('button');
   again.style.cssText = 'padding:16px 36px;font-size:20px;font-weight:900;border:2px solid #f59e0b;background:rgba(245,158,11,.15);color:#f59e0b;border-radius:12px;cursor:pointer;font-family:Impact,sans-serif;letter-spacing:2px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;';
   again.textContent = '⚔ FIGHT AGAIN';
@@ -2528,13 +2528,17 @@ window.showMPResultScreen = function(won) {
     G.stopped = false;
     G.mpMode = false;
     G.gs = null;
-    // Re-enable MP connection
-    if(window.MP) { window.MP.active = false; }
-    // Send rematch to server → server sends room:select_chars → showMPCharSelect()
+    if(window.MP) { MP.active = false; MP.opponentChar = null; MP.myChar = null; }
+    // Clear ALL screen !important styles (fight leaves them messed up)
+    var allScr = document.querySelectorAll('.screen');
+    for(var si=0;si<allScr.length;si++){ allScr[si].style.removeProperty('display'); allScr[si].style.removeProperty('opacity'); allScr[si].style.removeProperty('pointer-events'); allScr[si].style.removeProperty('z-index'); }
+    // Show select screen IMMEDIATELY (no waiting for server)
+    G.screen = 'select';
+    showScreen('select');
+    initSelect();
+    // Send rematch to server in background
     if(window.MP && window.MP.socket && window.MP.roomCode) {
       window.MP.socket.emit('room:rematch');
-    } else {
-      window.location.reload();
     }
   };
   btns.appendChild(again);
