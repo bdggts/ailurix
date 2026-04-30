@@ -2514,12 +2514,13 @@ window.showMPResultScreen = function(won) {
     G.stopped = false;
   }
 
-  // FIGHT AGAIN button — reload to main menu (reliable)
+  // FIGHT AGAIN button — reload and go straight to MP lobby
   var again = document.createElement('button');
   again.style.cssText = 'padding:16px 36px;font-size:20px;font-weight:900;border:2px solid #f59e0b;background:rgba(245,158,11,.15);color:#f59e0b;border-radius:12px;cursor:pointer;font-family:Impact,sans-serif;letter-spacing:2px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;';
   again.textContent = '⚔ FIGHT AGAIN';
   again.ontouchend = again.onclick = function(e){
     e.preventDefault();e.stopPropagation();
+    try { localStorage.setItem('mp_rematch','1'); } catch(ex){}
     window.location.reload();
   };
   btns.appendChild(again);
@@ -2547,6 +2548,21 @@ document.addEventListener('DOMContentLoaded',function(){
   setupControls();
   showScreen('splash');
   initSplash();
+
+  // Auto-navigate to MP lobby if rematch flag is set
+  try {
+    if(localStorage.getItem('mp_rematch') === '1') {
+      localStorage.removeItem('mp_rematch');
+      setTimeout(function(){
+        var customBtn = document.getElementById('custom-match-btn');
+        if(customBtn) { customBtn.click(); }
+        else {
+          G.screen = 'mp-lobby';
+          showScreen('mp-lobby');
+        }
+      }, 300);
+    }
+  } catch(ex){}
 });
 
 })();

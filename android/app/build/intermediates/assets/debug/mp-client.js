@@ -314,12 +314,16 @@ window._mpGoLobby = function(myChar) {
   if (myName) { myName.textContent = myChar.name; myName.style.color = myChar.color || '#22c55e'; }
   if (mySlotEl) { mySlotEl.style.borderColor = 'rgba(34,197,94,0.6)'; mySlotEl.style.background = 'rgba(34,197,94,0.07)'; }
 
-  // Opponent slot
+  // Opponent slot — clear canvas if not selected
   if (MP.opponentChar) {
     _showOpponentInLobby(oppSlot);
   } else {
+    var oppCv = document.getElementById('mp-vs-' + oppSlot + '-cv');
+    if (oppCv) { oppCv.width = 80; oppCv.height = 100; var _ctx = oppCv.getContext('2d'); _ctx.clearRect(0,0,80,100); _ctx.fillStyle='#f59e0b'; _ctx.font='bold 40px Impact'; _ctx.textAlign='center'; _ctx.fillText('?',40,60); }
     var oppName = document.getElementById('mp-vs-' + oppSlot + '-name');
     if (oppName) { oppName.textContent = '???'; oppName.style.color = '#f59e0b'; }
+    var oppSlotEl = document.getElementById('mp-vs-' + oppSlot + '-slot');
+    if (oppSlotEl) { oppSlotEl.style.borderStyle = 'dashed'; oppSlotEl.style.borderColor = 'rgba(245,158,11,0.4)'; }
   }
 
   var status = document.getElementById('mp-vs-status');
