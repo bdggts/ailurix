@@ -1394,13 +1394,13 @@ function fightLoop(now){
     if(gs.frame%90===0){p1.energy=Math.min(100,p1.energy+2);p2.energy=Math.min(100,p2.energy+2);}
     if(!gs.finishHim&&Date.now()-gs.lastSec>=1000){gs.timer--;gs.lastSec=Date.now();}
 
-    // FINISH HIM trigger
-    if(!gs.finishHim&&!gs.over&&gs.phase==='fight'){
-      if(p2.hp>0&&p2.hp<p2.maxHp*0.15&&p1.hp>0){triggerFinishHim(gs);}
+    // FINISH HIM trigger (SP only)
+    if(!G.mpMode && !gs.finishHim && !gs.over && gs.phase==='fight'){
+      if(p2.hp>0 && p2.hp<p2.maxHp*0.15 && p1.hp>0){triggerFinishHim(gs);}
     }
-    if(gs.finishHim){gs.finishTimer--;if(gs.finishTimer<=0){gs.finishHim=false;endRound(gs);}}
-    if(!gs.over&&!gs.finishHim&&(p1.hp<=0||p2.hp<=0||gs.timer<=0))endRound(gs);
-    if(gs.finishHim&&p2.hp<=0){gs.finishHim=false;endRound(gs);}
+    if(!G.mpMode && gs.finishHim){gs.finishTimer--;if(gs.finishTimer<=0){gs.finishHim=false;endRound(gs);}}
+    if(!G.mpMode && !gs.over && !gs.finishHim && (p1.hp<=0 || p2.hp<=0 || gs.timer<=0))endRound(gs);
+    if(!G.mpMode && gs.finishHim && p2.hp<=0){gs.finishHim=false;endRound(gs);}
   }
 
   if(gs.shake>0)gs.shake=Math.max(0,gs.shake-2);
