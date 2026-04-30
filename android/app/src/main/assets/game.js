@@ -2380,14 +2380,14 @@ window.applyOpponentPosition = function(d) {
   var gs = G.gs;
   if(!gs || !G.mpMode) return;
   var p2 = gs.p2;
-  // Set TARGET position — fight loop will lerp towards this smoothly
-  gs._p2tx = d.x * gs.W;
-  if(d.y !== undefined) gs._p2ty = d.y * gs.H;
+  // MIRROR position — opponent's left is our right
+  gs._p2tx = (1 - d.x) * gs.W;
   // Apply walk/idle state from position sync (attacks come from fight:input)
   if(d.state && d.state !== 'punch' && d.state !== 'kick' && d.state !== 'special' && d.state !== 'hurt') {
     p2.state = d.state;
   }
-  if(d.dir) p2.dir = d.dir;
+  // Mirror direction too
+  if(d.dir) p2.dir = d.dir * -1;
 };
 
 // Called by mp-client.js to sync HP from server

@@ -466,7 +466,12 @@ function startVoiceChat() {
   if (VC.started || !MP.socket || !MP.active) return;
   VC.started = true;
 
-  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+  var MIC_CONSTRAINTS = {
+    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    video: false
+  };
+
+  navigator.mediaDevices.getUserMedia(MIC_CONSTRAINTS)
     .then(function(stream) {
       VC.localStream = stream;
       VC.micOn = true;
@@ -497,7 +502,10 @@ function setupVoiceListeners() {
   s.on('voice:offer', function(d) {
     if (!VC.started) {
       // Auto-start mic when receiving offer
-      navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+      navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+          video: false
+        })
         .then(function(stream) {
           VC.localStream = stream;
           VC.micOn = true;
