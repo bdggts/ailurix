@@ -2427,78 +2427,92 @@ window.applyMPHP = function(d) {
 
 // Called by mp-client.js when fight ends
 window.showMPResultScreen = function(won) {
-  if(!G.gs) return;
+  if(!G.gs || G.gs._mpResultShown) return;
   var gs = G.gs;
+  gs._mpResultShown = true;
   gs.over = true;
   gs.phase = 'matchOver';
   if(won) { gs.p1.state='victory'; gs.p2.state='fallen'; }
   else    { gs.p2.state='victory'; gs.p1.state='fallen'; }
   snd('ko');
   stopBGMusic();
+
+  // Stop game loop immediately
+  G.stopped = true;
+  if(G.raf){cancelAnimationFrame(G.raf);G.raf=null;}
+  G.gs = null;
+  G.mpMode = false;
+
+  // Hide fight-ui completely
+  var fui = document.getElementById('fight-ui');
+  if(fui) fui.style.display = 'none';
   // Hide mic button
   var micBtn = document.getElementById('mic-toggle-btn');
   if(micBtn) micBtn.style.display = 'none';
 
-  // Show MP result overlay after 2s KO animation
-  setTimeout(function(){
-    G.stopped = true;
-    if(G.raf){cancelAnimationFrame(G.raf);G.raf=null;}
-    G.gs = null;
-    G.mpMode = false;
+  // Remove any old overlay
+  var old = document.getElementById('mp-result-overlay');
+  if(old) old.remove();
 
-    // Create MP result overlay
-    var old = document.getElementById('mp-result-overlay');
-    if(old) old.remove();
-    var ov = document.createElement('div');
-    ov.id = 'mp-result-overlay';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;' +
-      'background:' + (won ? 'radial-gradient(circle,rgba(245,158,11,.3),rgba(0,0,0,.95))' : 'radial-gradient(circle,rgba(220,38,38,.3),rgba(0,0,0,.95))') + ';';
+  // Create MP result overlay (full screen, opaque)
+  var ov = document.createElement('div');
+  ov.id = 'mp-result-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9999999;display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+    'background:' + (won ? 'radial-gradient(circle at center,rgba(245,158,11,.2) 0%,#000 70%)' : 'radial-gradient(circle at center,rgba(220,38,38,.2) 0%,#000 70%)') + ';';
 
-    // Title
-    var title = document.createElement('div');
-    title.style.cssText = 'font-size:48px;font-weight:900;color:' + (won ? '#f59e0b' : '#ef4444') + ';text-shadow:0 0 30px ' + (won ? '#f59e0b' : '#ef4444') + ';font-family:Impact,sans-serif;letter-spacing:4px;margin-bottom:8px;';
-    title.textContent = won ? '🏆 VICTORY!' : '💀 DEFEATED!';
-    ov.appendChild(title);
+  // Title
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:52px;font-weight:900;color:' + (won ? '#f59e0b' : '#ef4444') + ';text-shadow:0 0 40px ' + (won ? '#f59e0b' : '#ef4444') + ',0 4px 8px rgba(0,0,0,.8);font-family:Impact,sans-serif;letter-spacing:4px;margin-bottom:12px;text-align:center;';
+  title.textContent = won ? '🏆 VICTORY!' : '💀 DEFEATED!';
+  ov.appendChild(title);
 
-    // Sub text
-    var sub = document.createElement('div');
-    sub.style.cssText = 'font-size:16px;color:#94a3b8;margin-bottom:30px;font-family:monospace;';
-    sub.textContent = 'MULTIPLAYER MATCH';
-    ov.appendChild(sub);
+  // Sub text
+  var sub = document.createElement('div');
+  sub.style.cssText = 'font-size:14px;color:#94a3b8;margin-bottom:36px;font-family:monospace;text-align:center;';
+  sub.textContent = 'MULTIPLAYER MATCH';
+  ov.appendChild(sub);
 
-    // Buttons container
-    var btns = document.createElement('div');
-    btns.style.cssText = 'display:flex;gap:16px;flex-wrap:wrap;justify-content:center;';
+  // Buttons container
+  var btns = document.createElement('div');
+  btns.style.cssText = 'display:flex;gap:20px;flex-wrap:wrap;justify-content:center;';
 
-    // FIGHT AGAIN button
-    var again = document.createElement('button');
-    again.style.cssText = 'padding:14px 32px;font-size:18px;font-weight:900;border:2px solid #f59e0b;background:rgba(245,158,11,.2);color:#f59e0b;border-radius:8px;cursor:pointer;font-family:Impact,sans-serif;letter-spacing:2px;';
-    again.textContent = '⚔ FIGHT AGAIN';
-    again.onclick = function(){
-      ov.remove();
-      bgmPlay('select');
-      G.screen = 'select';
-      showScreen('select');
-      initSelect();
-    };
-    btns.appendChild(again);
+  function _cleanup() {
+    ov.remove();
+    // Make sure fight-ui is hidden
+    var f = document.getElementById('fight-ui');
+    if(f) f.style.display = 'none';
+  }
 
-    // MENU button
-    var menu = document.createElement('button');
-    menu.style.cssText = 'padding:14px 32px;font-size:18px;font-weight:900;border:2px solid #64748b;background:rgba(100,116,139,.2);color:#94a3b8;border-radius:8px;cursor:pointer;font-family:Impact,sans-serif;letter-spacing:2px;';
-    menu.textContent = '🏠 MENU';
-    menu.onclick = function(){
-      ov.remove();
-      bgmPlay('menu');
-      G.screen = 'splash';
-      showScreen('splash');
-      initSplash();
-    };
-    btns.appendChild(menu);
+  // FIGHT AGAIN button
+  var again = document.createElement('button');
+  again.style.cssText = 'padding:16px 36px;font-size:20px;font-weight:900;border:2px solid #f59e0b;background:rgba(245,158,11,.15);color:#f59e0b;border-radius:12px;cursor:pointer;font-family:Impact,sans-serif;letter-spacing:2px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;';
+  again.textContent = '⚔ FIGHT AGAIN';
+  again.ontouchend = again.onclick = function(e){
+    e.preventDefault();e.stopPropagation();
+    _cleanup();
+    bgmPlay('select');
+    G.screen = 'select';
+    showScreen('select');
+    initSelect();
+  };
+  btns.appendChild(again);
 
-    ov.appendChild(btns);
-    document.body.appendChild(ov);
-  }, 2000);
+  // MENU button
+  var menu = document.createElement('button');
+  menu.style.cssText = 'padding:16px 36px;font-size:20px;font-weight:900;border:2px solid #64748b;background:rgba(100,116,139,.15);color:#94a3b8;border-radius:12px;cursor:pointer;font-family:Impact,sans-serif;letter-spacing:2px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;';
+  menu.textContent = '🏠 MENU';
+  menu.ontouchend = menu.onclick = function(e){
+    e.preventDefault();e.stopPropagation();
+    _cleanup();
+    bgmPlay('menu');
+    G.screen = 'splash';
+    showScreen('splash');
+    initSplash();
+  };
+  btns.appendChild(menu);
+
+  ov.appendChild(btns);
+  document.body.appendChild(ov);
 };
 
 document.addEventListener('DOMContentLoaded',function(){
