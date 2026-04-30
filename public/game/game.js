@@ -891,6 +891,21 @@ function doAttack(attacker,defender,type,gs){
       defender.x+=attacker.dir*kb;
       defender.x=Math.max(30,Math.min(gs.W-30,defender.x));
 
+      // MP: Send HP to server after damage
+      if(G.mpMode && window.MPSendHP){
+        var target = (defender===gs.p1) ? 1 : 2;
+        window.MPSendHP(target, defender.hp);
+      }
+
+      // MP: Local fight end check (backup if server is slow)
+      if(G.mpMode && !gs.over && defender.hp<=0){
+        var won = (defender===gs.p2);
+        if(typeof window.showMPResultScreen==='function'){
+          window.showMPResultScreen(won);
+        }
+        return;
+      }
+
       if(gs.finishHim&&defender.hp<=0){
         gs.finishHim=false;
         announce(attacker.ch.name+' wins',100);
