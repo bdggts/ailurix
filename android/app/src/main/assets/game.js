@@ -2354,86 +2354,40 @@ window.startMPFightGame = function(d) {
     G.player     = myChar;
     G.stage      = 1;
 
-    // ── SHOW VS COUNTDOWN OVERLAY ──
-    var oldVs = document.getElementById('mp-vs-overlay');
-    if(oldVs) oldVs.remove();
-    var vs = document.createElement('div');
-    vs.id = 'mp-vs-overlay';
-    vs.style.cssText = 'position:fixed;inset:0;z-index:9999999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,'+myChar.color+'22,#000 50%,'+oppChar.color+'22);';
+    // Show existing VS screen with both characters
+    try {
+      var vsE1=$('vs-p1-emoji');if(vsE1){vsE1.innerHTML='';var vc1=document.createElement('canvas');vc1.style.cssText='display:block;margin:0 auto;';drawCharPreview(vc1,myChar,55);vsE1.appendChild(vc1);}
+      if($('vs-p1-name')){$('vs-p1-name').textContent=myChar.name;$('vs-p1-name').style.color=myChar.color;}
+      var vsE2=$('vs-p2-emoji');if(vsE2){vsE2.innerHTML='';var vc2=document.createElement('canvas');vc2.style.cssText='display:block;margin:0 auto;';drawCharPreview(vc2,oppChar,55);vsE2.appendChild(vc2);}
+      if($('vs-p2-name')){$('vs-p2-name').textContent=oppChar.name;$('vs-p2-name').style.color=oppChar.color;}
+      if($('vs-p2-role'))$('vs-p2-role').textContent='MULTIPLAYER';
+      if($('vs-stage-label'))$('vs-stage-label').textContent='CUSTOM MATCH';
+      if($('vs-bg-l'))$('vs-bg-l').style.setProperty('--c1',myChar.color+'33');
+      if($('vs-bg-r'))$('vs-bg-r').style.setProperty('--c2',oppChar.color+'33');
+      ['vs-p1','vs-p2'].forEach(function(id){var el=$(id);if(el){el.classList.remove('anim-l','anim-r');void el.offsetWidth;}});
+      if($('vs-p1'))$('vs-p1').classList.add('anim-l');
+      if($('vs-p2'))$('vs-p2').classList.add('anim-r');
+    } catch(e){}
 
-    // VS Characters row
-    var row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:30px;margin-bottom:20px;';
-    // P1
-    var p1d = document.createElement('div');
-    p1d.style.cssText = 'text-align:center;';
-    var p1n = document.createElement('div');
-    p1n.style.cssText = 'font-size:22px;font-weight:900;color:'+myChar.color+';font-family:Impact,sans-serif;text-shadow:0 0 15px '+myChar.color+';';
-    p1n.textContent = myChar.name;
-    var p1c = document.createElement('canvas');
-    p1c.style.cssText = 'display:block;margin:8px auto;image-rendering:pixelated;';
-    drawCharPreview(p1c, myChar, 70);
-    var p1l = document.createElement('div');
-    p1l.style.cssText = 'font-size:12px;color:#94a3b8;font-family:monospace;';
-    p1l.textContent = 'YOU';
-    p1d.appendChild(p1n); p1d.appendChild(p1c); p1d.appendChild(p1l);
-    // VS text
-    var vst = document.createElement('div');
-    vst.style.cssText = 'font-size:42px;font-weight:900;color:#f59e0b;text-shadow:0 0 30px #f59e0b;font-family:Impact,sans-serif;';
-    vst.textContent = 'VS';
-    // P2
-    var p2d = document.createElement('div');
-    p2d.style.cssText = 'text-align:center;';
-    var p2n = document.createElement('div');
-    p2n.style.cssText = 'font-size:22px;font-weight:900;color:'+oppChar.color+';font-family:Impact,sans-serif;text-shadow:0 0 15px '+oppChar.color+';';
-    p2n.textContent = oppChar.name;
-    var p2c = document.createElement('canvas');
-    p2c.style.cssText = 'display:block;margin:8px auto;image-rendering:pixelated;';
-    drawCharPreview(p2c, oppChar, 70);
-    var p2l = document.createElement('div');
-    p2l.style.cssText = 'font-size:12px;color:#94a3b8;font-family:monospace;';
-    p2l.textContent = 'OPPONENT';
-    p2d.appendChild(p2n); p2d.appendChild(p2c); p2d.appendChild(p2l);
-    row.appendChild(p1d); row.appendChild(vst); row.appendChild(p2d);
-    vs.appendChild(row);
+    G.screen = 'vs';
+    showScreen('vs');
 
-    // Countdown number
-    var cd = document.createElement('div');
-    cd.style.cssText = 'font-size:80px;font-weight:900;color:#fff;font-family:Impact,sans-serif;text-shadow:0 0 40px #f59e0b;margin-top:20px;';
-    cd.textContent = '3';
-    vs.appendChild(cd);
-    document.body.appendChild(vs);
-
-    // Countdown: 3 → 2 → 1 → FIGHT!
-    var count = 3;
-    var cdInterval = setInterval(function(){
-      count--;
-      if(count > 0) {
-        cd.textContent = count+'';
-        snd('hit');
-      } else if(count === 0) {
-        cd.textContent = 'FIGHT!';
-        cd.style.color = '#f59e0b';
-        snd('ko');
-      } else {
-        clearInterval(cdInterval);
-        vs.remove();
-        // NOW start the actual fight
-        var fui = document.getElementById('fight-ui');
-        if (fui) {
-          fui.style.setProperty('display', 'flex', 'important');
-          fui.style.setProperty('position', 'fixed', 'important');
-          fui.style.setProperty('inset', '0', 'important');
-          fui.style.setProperty('z-index', '99999', 'important');
-        }
-        var micBtn = document.getElementById('mic-toggle-btn');
-        if (micBtn) micBtn.style.display = 'block';
-        G.screen = 'fight';
-        showScreen('fight');
-        if (fui) fui.style.setProperty('display', 'flex', 'important');
-        initFight();
+    // After 3 seconds, start fight
+    setTimeout(function(){
+      var fui = document.getElementById('fight-ui');
+      if (fui) {
+        fui.style.setProperty('display', 'flex', 'important');
+        fui.style.setProperty('position', 'fixed', 'important');
+        fui.style.setProperty('inset', '0', 'important');
+        fui.style.setProperty('z-index', '99999', 'important');
       }
-    }, 1000);
+      var micBtn = document.getElementById('mic-toggle-btn');
+      if (micBtn) micBtn.style.display = 'block';
+      G.screen = 'fight';
+      showScreen('fight');
+      if (fui) fui.style.setProperty('display', 'flex', 'important');
+      initFight();
+    }, 3000);
 
   } catch(e) {
     var t = document.createElement('div');
@@ -2560,23 +2514,13 @@ window.showMPResultScreen = function(won) {
     G.stopped = false;
   }
 
-  // FIGHT AGAIN button — stay connected, go to char select
+  // FIGHT AGAIN button — reload to main menu (reliable)
   var again = document.createElement('button');
   again.style.cssText = 'padding:16px 36px;font-size:20px;font-weight:900;border:2px solid #f59e0b;background:rgba(245,158,11,.15);color:#f59e0b;border-radius:12px;cursor:pointer;font-family:Impact,sans-serif;letter-spacing:2px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;';
   again.textContent = '⚔ FIGHT AGAIN';
   again.ontouchend = again.onclick = function(e){
     e.preventDefault();e.stopPropagation();
-    ov.remove();
-    // Clear fight-ui
-    var f = document.getElementById('fight-ui');
-    if(f){ f.style.removeProperty('display'); f.style.removeProperty('position'); f.style.removeProperty('inset'); f.style.removeProperty('z-index'); f.style.display='none'; }
-    G.stopped = false;
-    // Request rematch — server will emit room:select_chars to both players
-    if(window.MPClient && window.MPClient.rematch) {
-      window.MPClient.rematch();
-    } else {
-      window.location.reload();
-    }
+    window.location.reload();
   };
   btns.appendChild(again);
 
