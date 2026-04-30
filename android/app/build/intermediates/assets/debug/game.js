@@ -2410,36 +2410,74 @@ window.showMPResultScreen = function(won) {
   var gs = G.gs;
   gs.over = true;
   gs.phase = 'matchOver';
-  gs.roundOverTimer = 0;
-  gs.roundOverText  = won ? '\uD83C\uDFC6 YOU WIN!' : '\uD83D\uDC80 YOU LOSE!';
-  gs.roundOverColor = won ? '#f59e0b' : '#ef4444';
-  // Set round wins to 2 so match is considered over
-  if(won) { gs.p1r=2; gs.p1.state='victory'; gs.p2.state='fallen'; }
-  else    { gs.p2r=2; gs.p2.state='victory'; gs.p1.state='fallen'; }
+  if(won) { gs.p1.state='victory'; gs.p2.state='fallen'; }
+  else    { gs.p2.state='victory'; gs.p1.state='fallen'; }
   snd('ko');
   stopBGMusic();
   // Hide mic button
   var micBtn = document.getElementById('mic-toggle-btn');
   if(micBtn) micBtn.style.display = 'none';
-  // Show result screen after delay
-  var _win = won;
-  var _gs = gs;
-  G.mpMode = false;
+
+  // Show MP result overlay after 2s KO animation
   setTimeout(function(){
     G.stopped = true;
     if(G.raf){cancelAnimationFrame(G.raf);G.raf=null;}
     G.gs = null;
-    try { showResult(_win, _gs); } catch(e) {
-      // Fallback: show result screen directly
-      document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-      var rs = document.getElementById('result-screen');
-      if(rs) {
-        rs.classList.add('active');
-        var rt = document.getElementById('result-title');
-        if(rt) { rt.textContent = _win ? 'VICTORY!' : 'DEFEATED'; rt.style.color = _win ? '#f59e0b' : '#ef4444'; }
-      }
-    }
-  }, 2500);
+    G.mpMode = false;
+
+    // Create MP result overlay
+    var old = document.getElementById('mp-result-overlay');
+    if(old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'mp-result-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+      'background:' + (won ? 'radial-gradient(circle,rgba(245,158,11,.3),rgba(0,0,0,.95))' : 'radial-gradient(circle,rgba(220,38,38,.3),rgba(0,0,0,.95))') + ';';
+
+    // Title
+    var title = document.createElement('div');
+    title.style.cssText = 'font-size:48px;font-weight:900;color:' + (won ? '#f59e0b' : '#ef4444') + ';text-shadow:0 0 30px ' + (won ? '#f59e0b' : '#ef4444') + ';font-family:Impact,sans-serif;letter-spacing:4px;margin-bottom:8px;';
+    title.textContent = won ? '🏆 VICTORY!' : '💀 DEFEATED!';
+    ov.appendChild(title);
+
+    // Sub text
+    var sub = document.createElement('div');
+    sub.style.cssText = 'font-size:16px;color:#94a3b8;margin-bottom:30px;font-family:monospace;';
+    sub.textContent = 'MULTIPLAYER MATCH';
+    ov.appendChild(sub);
+
+    // Buttons container
+    var btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:16px;flex-wrap:wrap;justify-content:center;';
+
+    // FIGHT AGAIN button
+    var again = document.createElement('button');
+    again.style.cssText = 'padding:14px 32px;font-size:18px;font-weight:900;border:2px solid #f59e0b;background:rgba(245,158,11,.2);color:#f59e0b;border-radius:8px;cursor:pointer;font-family:Impact,sans-serif;letter-spacing:2px;';
+    again.textContent = '⚔ FIGHT AGAIN';
+    again.onclick = function(){
+      ov.remove();
+      bgmPlay('select');
+      G.screen = 'select';
+      showScreen('select');
+      initSelect();
+    };
+    btns.appendChild(again);
+
+    // MENU button
+    var menu = document.createElement('button');
+    menu.style.cssText = 'padding:14px 32px;font-size:18px;font-weight:900;border:2px solid #64748b;background:rgba(100,116,139,.2);color:#94a3b8;border-radius:8px;cursor:pointer;font-family:Impact,sans-serif;letter-spacing:2px;';
+    menu.textContent = '🏠 MENU';
+    menu.onclick = function(){
+      ov.remove();
+      bgmPlay('menu');
+      G.screen = 'splash';
+      showScreen('splash');
+      initSplash();
+    };
+    btns.appendChild(menu);
+
+    ov.appendChild(btns);
+    document.body.appendChild(ov);
+  }, 2000);
 };
 
 document.addEventListener('DOMContentLoaded',function(){
