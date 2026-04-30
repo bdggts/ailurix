@@ -2407,17 +2407,39 @@ window.applyMPHP = function(d) {
 // Called by mp-client.js when fight ends
 window.showMPResultScreen = function(won) {
   if(!G.gs) return;
-  G.mpMode = false;
   var gs = G.gs;
   gs.over = true;
-  gs.phase = 'roundOver';
+  gs.phase = 'matchOver';
   gs.roundOverTimer = 0;
   gs.roundOverText  = won ? '\uD83C\uDFC6 YOU WIN!' : '\uD83D\uDC80 YOU LOSE!';
   gs.roundOverColor = won ? '#f59e0b' : '#ef4444';
-  if(won) { gs.p1r++; gs.p1.state='victory'; gs.p2.state='fallen'; }
-  else    { gs.p2r++; gs.p2.state='victory'; gs.p1.state='fallen'; }
+  // Set round wins to 2 so match is considered over
+  if(won) { gs.p1r=2; gs.p1.state='victory'; gs.p2.state='fallen'; }
+  else    { gs.p2r=2; gs.p2.state='victory'; gs.p1.state='fallen'; }
   snd('ko');
   stopBGMusic();
+  // Hide mic button
+  var micBtn = document.getElementById('mic-toggle-btn');
+  if(micBtn) micBtn.style.display = 'none';
+  // Show result screen after delay
+  var _win = won;
+  var _gs = gs;
+  G.mpMode = false;
+  setTimeout(function(){
+    G.stopped = true;
+    if(G.raf){cancelAnimationFrame(G.raf);G.raf=null;}
+    G.gs = null;
+    try { showResult(_win, _gs); } catch(e) {
+      // Fallback: show result screen directly
+      document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+      var rs = document.getElementById('result-screen');
+      if(rs) {
+        rs.classList.add('active');
+        var rt = document.getElementById('result-title');
+        if(rt) { rt.textContent = _win ? 'VICTORY!' : 'DEFEATED'; rt.style.color = _win ? '#f59e0b' : '#ef4444'; }
+      }
+    }
+  }, 2500);
 };
 
 document.addEventListener('DOMContentLoaded',function(){
