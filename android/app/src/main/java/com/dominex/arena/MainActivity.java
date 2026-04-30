@@ -374,6 +374,11 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Resume WebView rendering (fixes black screen after background)
+        if (webView != null) {
+            webView.onResume();
+            webView.resumeTimers();
+        }
         getWindow().getDecorView().setSystemUiVisibility(
             View.SYSTEM_UI_FLAG_FULLSCREEN |
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
@@ -386,7 +391,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (webView != null) webView.onPause();
+        if (webView != null) {
+            webView.onPause();
+            webView.pauseTimers();
+        }
     }
 
     @Override
