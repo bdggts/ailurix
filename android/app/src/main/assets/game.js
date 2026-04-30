@@ -763,6 +763,12 @@ function initFight(){
   G.gs=null;
   COMBO.count=0;COMBO.timer=0;COMBO.lastHitter=null;COMBO.textTimer=0;COMBO.flash=0;
 
+  // Reset MP mode — only enable if socket fight is active
+  G.mpMode = false;
+  // Hide mic button for SP
+  var _micBtn = document.getElementById('mic-toggle-btn');
+  if(_micBtn) _micBtn.style.display = 'none';
+
   // Force MP mode if socket fight is active (belt-and-suspenders check)
   if(window.MP && window.MP.active && window.MP.roomCode){
     G.mpMode = true;
