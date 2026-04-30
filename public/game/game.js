@@ -2501,11 +2501,7 @@ window.showMPResultScreen = function(won) {
   again.textContent = '⚔ FIGHT AGAIN';
   again.ontouchend = again.onclick = function(e){
     e.preventDefault();e.stopPropagation();
-    _cleanup();
-    bgmPlay('select');
-    G.screen = 'select';
-    showScreen('select');
-    initSelect();
+    window.location.reload();
   };
   btns.appendChild(again);
 
@@ -2515,11 +2511,7 @@ window.showMPResultScreen = function(won) {
   menu.textContent = '🏠 MENU';
   menu.ontouchend = menu.onclick = function(e){
     e.preventDefault();e.stopPropagation();
-    _cleanup();
-    bgmPlay('menu');
-    G.screen = 'splash';
-    showScreen('splash');
-    initSplash();
+    window.location.reload();
   };
   btns.appendChild(menu);
 
