@@ -2514,14 +2514,28 @@ window.showMPResultScreen = function(won) {
     G.stopped = false;
   }
 
-  // FIGHT AGAIN button — reload and go straight to MP lobby
+  // FIGHT AGAIN button — same room, go to character select
   var again = document.createElement('button');
   again.style.cssText = 'padding:16px 36px;font-size:20px;font-weight:900;border:2px solid #f59e0b;background:rgba(245,158,11,.15);color:#f59e0b;border-radius:12px;cursor:pointer;font-family:Impact,sans-serif;letter-spacing:2px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;';
   again.textContent = '⚔ FIGHT AGAIN';
   again.ontouchend = again.onclick = function(e){
     e.preventDefault();e.stopPropagation();
-    try { localStorage.setItem('mp_rematch','1'); } catch(ex){}
-    window.location.reload();
+    ov.remove();
+    // Clear fight-ui !important styles
+    var f = document.getElementById('fight-ui');
+    if(f){ f.style.removeProperty('display'); f.style.removeProperty('position'); f.style.removeProperty('inset'); f.style.removeProperty('z-index'); f.style.display='none'; }
+    // Reset game state
+    G.stopped = false;
+    G.mpMode = false;
+    G.gs = null;
+    // Re-enable MP connection
+    if(window.MP) { window.MP.active = false; }
+    // Send rematch to server → server sends room:select_chars → showMPCharSelect()
+    if(window.MP && window.MP.socket && window.MP.roomCode) {
+      window.MP.socket.emit('room:rematch');
+    } else {
+      window.location.reload();
+    }
   };
   btns.appendChild(again);
 

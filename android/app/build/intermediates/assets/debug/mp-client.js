@@ -368,6 +368,8 @@ window.MPClient = {
     var G = window.G;
     if (G) { G.mpMode = false; G.mpOpponent = null; }
     MP.active = false;
+    MP.opponentChar = null;
+    MP.myChar = null;
     MP.socket.emit('room:rematch');
   },
   isActive:     function() { return MP.active; },
