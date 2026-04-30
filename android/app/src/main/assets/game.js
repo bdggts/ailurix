@@ -897,14 +897,8 @@ function doAttack(attacker,defender,type,gs){
         window.MPSendHP(target, defender.hp);
       }
 
-      // MP: Local fight end check (backup if server is slow)
-      if(G.mpMode && !gs.over && defender.hp<=0){
-        var won = (defender===gs.p2);
-        if(typeof window.showMPResultScreen==='function'){
-          window.showMPResultScreen(won);
-        }
-        return;
-      }
+      // MP: Server decides winner via fight:result event (no local trigger)
+      // Local HP <=0 is just visual — server has authoritative HP tracking
 
       if(gs.finishHim&&defender.hp<=0){
         gs.finishHim=false;
