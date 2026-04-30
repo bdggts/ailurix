@@ -2369,11 +2369,16 @@ window.startMPFightGame = function(d) {
       if($('vs-p2'))$('vs-p2').classList.add('anim-r');
     } catch(e){}
 
+    // Clear ALL !important styles from previous fight on all screens
+    var allScr = document.querySelectorAll('.screen');
+    for(var si=0;si<allScr.length;si++){ allScr[si].style.removeProperty('display'); allScr[si].style.removeProperty('opacity'); allScr[si].style.removeProperty('pointer-events'); allScr[si].style.removeProperty('z-index'); }
+
     G.screen = 'vs';
     showScreen('vs');
 
-    // After 3 seconds, start fight
+    // After 1.5 seconds, transition to fight (show fight-ui FIRST, then hide VS)
     setTimeout(function(){
+      // Show fight-ui FIRST (before hiding VS — no black gap)
       var fui = document.getElementById('fight-ui');
       if (fui) {
         fui.style.setProperty('display', 'flex', 'important');
@@ -2383,11 +2388,12 @@ window.startMPFightGame = function(d) {
       }
       var micBtn = document.getElementById('mic-toggle-btn');
       if (micBtn) micBtn.style.display = 'block';
+      // NOW switch screen
       G.screen = 'fight';
       showScreen('fight');
       if (fui) fui.style.setProperty('display', 'flex', 'important');
       initFight();
-    }, 3000);
+    }, 1500);
 
   } catch(e) {
     var t = document.createElement('div');

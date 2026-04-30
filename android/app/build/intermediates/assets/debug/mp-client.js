@@ -152,24 +152,7 @@ function _startFight(d, source) {
   MP.opponentChar = MP.playerNum === 1 ? d.p2Char : d.p1Char;
   console.log('[MP] _startFight via ' + source);
 
-  // FORCE HIDE ALL screens
-  var all = document.querySelectorAll('.screen');
-  for (var i = 0; i < all.length; i++) {
-    all[i].style.setProperty('display', 'none', 'important');
-    all[i].style.setProperty('opacity', '0', 'important');
-    all[i].style.setProperty('pointer-events', 'none', 'important');
-    all[i].classList.remove('active');
-  }
-
-  // FORCE SHOW fight-ui
-  var fui = document.getElementById('fight-ui');
-  if (fui) {
-    fui.style.setProperty('display', 'flex', 'important');
-    fui.style.setProperty('position', 'fixed', 'important');
-    fui.style.setProperty('inset', '0', 'important');
-    fui.style.setProperty('z-index', '99999', 'important');
-  }
-
+  // DON'T hide all screens here — let startMPFightGame handle VS screen flow
   if (typeof window.startMPFightGame === 'function') {
     window.startMPFightGame(d);
   }
