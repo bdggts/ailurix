@@ -2443,9 +2443,15 @@ window.showMPResultScreen = function(won) {
   G.gs = null;
   G.mpMode = false;
 
-  // Hide fight-ui completely
+  // Hide fight-ui completely (clear !important styles from startMPFightGame)
   var fui = document.getElementById('fight-ui');
-  if(fui) fui.style.display = 'none';
+  if(fui) {
+    fui.style.removeProperty('display');
+    fui.style.removeProperty('position');
+    fui.style.removeProperty('inset');
+    fui.style.removeProperty('z-index');
+    fui.style.display = 'none';
+  }
   // Hide mic button
   var micBtn = document.getElementById('mic-toggle-btn');
   if(micBtn) micBtn.style.display = 'none';
@@ -2478,9 +2484,15 @@ window.showMPResultScreen = function(won) {
 
   function _cleanup() {
     ov.remove();
-    // Make sure fight-ui is hidden
     var f = document.getElementById('fight-ui');
-    if(f) f.style.display = 'none';
+    if(f) {
+      f.style.removeProperty('display');
+      f.style.removeProperty('position');
+      f.style.removeProperty('inset');
+      f.style.removeProperty('z-index');
+      f.style.display = 'none';
+    }
+    G.stopped = false;
   }
 
   // FIGHT AGAIN button
