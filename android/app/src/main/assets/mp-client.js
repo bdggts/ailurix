@@ -386,4 +386,189 @@ window.MPSendPosition = function(data) {
   MP.socket.emit('fight:position', data);
 };
 
+// ══════════════════════════════════════════════════════════════
+// VOICE CHAT (WebRTC peer-to-peer audio)
+// ══════════════════════════════════════════════════════════════
+var VC = {
+  pc: null,        // RTCPeerConnection
+  localStream: null,
+  micOn: false,
+  started: false
+};
+
+var ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' }
+];
+
+function _vcCleanup() {
+  if (VC.localStream) {
+    VC.localStream.getTracks().forEach(function(t) { t.stop(); });
+    VC.localStream = null;
+  }
+  if (VC.pc) {
+    VC.pc.close();
+    VC.pc = null;
+  }
+  VC.micOn = false;
+  VC.started = false;
+  _updateMicBtn();
+}
+
+function _updateMicBtn() {
+  var btn = document.getElementById('mic-toggle-btn');
+  if (!btn) return;
+  if (VC.micOn) {
+    btn.textContent = '🎙️';
+    btn.style.background = 'rgba(34,197,94,0.8)';
+    btn.style.borderColor = '#22c55e';
+  } else {
+    btn.textContent = '🔇';
+    btn.style.background = 'rgba(100,100,100,0.5)';
+    btn.style.borderColor = '#666';
+  }
+}
+
+function _createPeerConnection() {
+  if (VC.pc) return;
+  VC.pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+
+  VC.pc.onicecandidate = function(e) {
+    if (e.candidate && MP.socket) {
+      MP.socket.emit('voice:ice', { candidate: e.candidate });
+    }
+  };
+
+  VC.pc.ontrack = function(e) {
+    // Play remote audio
+    var audio = document.getElementById('vc-remote-audio');
+    if (!audio) {
+      audio = document.createElement('audio');
+      audio.id = 'vc-remote-audio';
+      audio.autoplay = true;
+      audio.playsInline = true;
+      document.body.appendChild(audio);
+    }
+    audio.srcObject = e.streams[0];
+    audio.play().catch(function(){});
+    console.log('[VC] Remote audio connected');
+  };
+
+  // Add local tracks
+  if (VC.localStream) {
+    VC.localStream.getTracks().forEach(function(track) {
+      VC.pc.addTrack(track, VC.localStream);
+    });
+  }
+}
+
+function startVoiceChat() {
+  if (VC.started || !MP.socket || !MP.active) return;
+  VC.started = true;
+
+  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+    .then(function(stream) {
+      VC.localStream = stream;
+      VC.micOn = true;
+      _updateMicBtn();
+      _createPeerConnection();
+
+      // Player 1 creates offer
+      if (MP.playerNum === 1) {
+        VC.pc.createOffer().then(function(offer) {
+          return VC.pc.setLocalDescription(offer);
+        }).then(function() {
+          MP.socket.emit('voice:offer', { sdp: VC.pc.localDescription });
+          console.log('[VC] Offer sent');
+        }).catch(function(e) { console.warn('[VC] Offer error:', e); });
+      }
+    })
+    .catch(function(err) {
+      console.warn('[VC] Mic access denied:', err);
+      VC.started = false;
+    });
+}
+
+// Setup voice signaling listeners
+function setupVoiceListeners() {
+  var s = MP.socket;
+  if (!s) return;
+
+  s.on('voice:offer', function(d) {
+    if (!VC.started) {
+      // Auto-start mic when receiving offer
+      navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        .then(function(stream) {
+          VC.localStream = stream;
+          VC.micOn = true;
+          VC.started = true;
+          _updateMicBtn();
+          _createPeerConnection();
+          _handleOffer(d);
+        }).catch(function(e) { console.warn('[VC] Mic denied on answer:', e); });
+    } else {
+      _handleOffer(d);
+    }
+  });
+
+  s.on('voice:answer', function(d) {
+    if (VC.pc && d.sdp) {
+      VC.pc.setRemoteDescription(new RTCSessionDescription(d.sdp))
+        .then(function() { console.log('[VC] Answer received'); })
+        .catch(function(e) { console.warn('[VC] Answer error:', e); });
+    }
+  });
+
+  s.on('voice:ice', function(d) {
+    if (VC.pc && d.candidate) {
+      VC.pc.addIceCandidate(new RTCIceCandidate(d.candidate))
+        .catch(function(e) {});
+    }
+  });
+}
+
+function _handleOffer(d) {
+  if (!VC.pc || !d.sdp) return;
+  VC.pc.setRemoteDescription(new RTCSessionDescription(d.sdp))
+    .then(function() { return VC.pc.createAnswer(); })
+    .then(function(answer) { return VC.pc.setLocalDescription(answer); })
+    .then(function() {
+      MP.socket.emit('voice:answer', { sdp: VC.pc.localDescription });
+      console.log('[VC] Answer sent');
+    })
+    .catch(function(e) { console.warn('[VC] Handle offer error:', e); });
+}
+
+// Toggle mic on/off
+window.MPToggleMic = function() {
+  if (!VC.started) {
+    startVoiceChat();
+    return;
+  }
+  if (VC.localStream) {
+    VC.micOn = !VC.micOn;
+    VC.localStream.getAudioTracks().forEach(function(t) {
+      t.enabled = VC.micOn;
+    });
+    _updateMicBtn();
+  }
+};
+
+// Hook into setupListeners to also setup voice
+var _origSetup = setupListeners;
+setupListeners = function() {
+  _origSetup();
+  setupVoiceListeners();
+};
+
+// Cleanup voice on fight end
+var _origCleanup = window.MPClient ? window.MPClient.rematch : null;
+if (window.MPClient) {
+  var _origRematch = window.MPClient.rematch;
+  window.MPClient.rematch = function() {
+    _vcCleanup();
+    if (_origRematch) _origRematch();
+  };
+}
+
 })();

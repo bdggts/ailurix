@@ -2341,6 +2341,9 @@ window.startMPFightGame = function(d) {
       fui.style.setProperty('inset', '0', 'important');
       fui.style.setProperty('z-index', '99999', 'important');
     }
+    // Show mic button for voice chat
+    var micBtn = document.getElementById('mic-toggle-btn');
+    if (micBtn) micBtn.style.display = 'block';
 
     G.screen = 'fight';
     showScreen('fight');

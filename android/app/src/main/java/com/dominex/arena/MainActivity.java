@@ -26,6 +26,9 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebChromeClient;
+import android.webkit.PermissionRequest;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.webkit.WebViewClient;
 import android.view.View;
 import android.view.Window;
@@ -141,7 +144,16 @@ public class MainActivity extends Activity {
         webView.setVerticalScrollBarEnabled(false);
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
-        webView.setWebChromeClient(new WebChromeClient());
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        request.grant(request.getResources());
+                    }
+                });
+            }
+        });
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -158,6 +170,13 @@ public class MainActivity extends Activity {
         webView.loadUrl("file:///android_asset/index-mobile.html");
 
         setContentView(webView);
+
+        // Request mic permission at runtime (Android 6+)
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 1001);
+            }
+        }
 
         // Check for update in background (only if internet available)
         if (isOnline()) {

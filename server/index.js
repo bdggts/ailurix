@@ -181,6 +181,23 @@ io.on('connection', (socket) => {
     });
   });
 
+  // ── VOICE CHAT (WebRTC Signaling) ──────────────────────────
+  socket.on('voice:offer', (data) => {
+    const code = socket.roomCode;
+    if (!code) return;
+    socket.to(code).emit('voice:offer', data);
+  });
+  socket.on('voice:answer', (data) => {
+    const code = socket.roomCode;
+    if (!code) return;
+    socket.to(code).emit('voice:answer', data);
+  });
+  socket.on('voice:ice', (data) => {
+    const code = socket.roomCode;
+    if (!code) return;
+    socket.to(code).emit('voice:ice', data);
+  });
+
   // ── HP SYNC (server-authoritative) ───────────────────────
   socket.on('fight:hp', (data) => {
     const code = socket.roomCode;
