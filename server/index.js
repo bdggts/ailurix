@@ -2,6 +2,22 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const mongoose = require('mongoose');
+const { OAuth2Client } = require('google-auth-library');
+const jwt = require('jsonwebtoken');
+const User = require('./models/User');
+
+// ── CONFIG ──────────────────────────────────────────────────
+const GOOGLE_CLIENT_ID = '616154647185-amlj2rhsirctp7pbfe5aufrnkge05l62.apps.googleusercontent.com';
+const JWT_SECRET = 'ailurix_arena_jwt_secret_2026_x7k9';
+const MONGO_URI = 'mongodb+srv://ailurix_admin:Laks%401234@cluster0.mfcpkaw.mongodb.net/ailurix?retryWrites=true&w=majority&appName=Cluster0';
+
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+// ── MONGODB CONNECTION ──────────────────────────────────────
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB error:', err.message));
 
 const app = express();
 const server = http.createServer(app);
@@ -26,8 +42,176 @@ function genCode() {
   return rooms[code] ? genCode() : code; // ensure unique
 }
 
+// Generate unique referral code
+function genReferralCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
 // ── HEALTH CHECK ────────────────────────────────────────────
-app.get('/', (req, res) => res.json({ status: 'ok', server: 'Ailurix Arena v1.1' }));
+app.get('/', (req, res) => res.json({ status: 'ok', server: 'Ailurix Arena v1.2' }));
+
+// ── AUTH: GOOGLE LOGIN ──────────────────────────────────────
+app.post('/auth/google', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) return res.status(400).json({ error: 'No credential' });
+
+    // Verify Google token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: GOOGLE_CLIENT_ID
+    });
+    const payload = ticket.getPayload();
+    const { email, name, picture, sub: googleId } = payload;
+
+    // Find or create user
+    let user = await User.findOne({ email });
+    const isNew = !user;
+    
+    if (!user) {
+      user = new User({
+        email,
+        name: name || 'Fighter',
+        picture: picture || '',
+        googleId,
+        loginMethod: 'google',
+        referralCode: genReferralCode()
+      });
+      await user.save();
+      console.log('🆕 New user:', email);
+    } else {
+      user.lastLogin = new Date();
+      user.picture = picture || user.picture;
+      await user.save();
+    }
+
+    // Generate JWT
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.json({
+      success: true,
+      isNew,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        picture: user.picture,
+        walletAddress: user.walletAddress,
+        arxBalance: user.arxBalance,
+        referralCode: user.referralCode,
+        totalFights: user.totalFights,
+        totalWins: user.totalWins,
+        loginMethod: user.loginMethod
+      }
+    });
+  } catch (err) {
+    console.error('Auth error:', err.message);
+    res.status(401).json({ error: 'Authentication failed' });
+  }
+});
+
+// ── AUTH: WALLET LOGIN (import/phantom) ─────────────────────
+app.post('/auth/wallet', async (req, res) => {
+  try {
+    const { walletAddress, loginMethod } = req.body;
+    if (!walletAddress) return res.status(400).json({ error: 'No wallet address' });
+
+    let user = await User.findOne({ walletAddress });
+    const isNew = !user;
+
+    if (!user) {
+      user = new User({
+        email: walletAddress + '@wallet',
+        walletAddress,
+        loginMethod: loginMethod || 'wallet',
+        referralCode: genReferralCode()
+      });
+      await user.save();
+    } else {
+      user.lastLogin = new Date();
+      await user.save();
+    }
+
+    const token = jwt.sign(
+      { userId: user._id, walletAddress },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.json({
+      success: true,
+      isNew,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        walletAddress: user.walletAddress,
+        arxBalance: user.arxBalance,
+        referralCode: user.referralCode,
+        totalFights: user.totalFights,
+        totalWins: user.totalWins,
+        loginMethod: user.loginMethod
+      }
+    });
+  } catch (err) {
+    console.error('Wallet auth error:', err.message);
+    res.status(500).json({ error: 'Wallet login failed' });
+  }
+});
+
+// ── API: UPDATE WALLET ADDRESS ──────────────────────────────
+app.post('/api/user/wallet', async (req, res) => {
+  try {
+    const { token, walletAddress } = req.body;
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    user.walletAddress = walletAddress;
+    await user.save();
+    res.json({ success: true, walletAddress });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// ── API: GET USER PROFILE ───────────────────────────────────
+app.get('/api/user', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'No token' });
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      picture: user.picture,
+      walletAddress: user.walletAddress,
+      arxBalance: user.arxBalance,
+      referralCode: user.referralCode,
+      totalReferrals: user.totalReferrals,
+      totalFights: user.totalFights,
+      totalWins: user.totalWins,
+      totalLosses: user.totalLosses,
+      earningSessions: user.earningSessions,
+      loginMethod: user.loginMethod
+    });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
 app.get('/rooms', (req, res) => res.json({ count: Object.keys(rooms).length }));
 
 // Room status (for polling fallback)

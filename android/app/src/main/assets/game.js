@@ -2613,8 +2613,22 @@ window.showMPResultScreen = function(won) {
 document.addEventListener('DOMContentLoaded',function(){
   load();
   setupControls();
-  showScreen('splash');
-  initSplash();
+  
+  // Check auth state — if logged in, skip login screen
+  var isLoggedIn = window.initAuth ? window.initAuth() : false;
+  if (isLoggedIn) {
+    // Already logged in — hide login, show splash
+    var ls = document.getElementById('login-screen');
+    if(ls){ ls.classList.remove('active'); ls.style.display='none'; }
+    showScreen('splash');
+    initSplash();
+  } else {
+    // Show login screen
+    showScreen('login-screen');
+  }
+  
+  // Init Google Sign-In (async, GSI script may not be ready yet)
+  setTimeout(function(){ if(window.initGoogleSignIn) window.initGoogleSignIn(); }, 1000);
 
   // Auto-navigate to MP lobby if rematch flag is set
   try {
