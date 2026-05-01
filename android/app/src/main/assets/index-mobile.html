@@ -121,6 +121,26 @@ button{font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;borde
 }
 .announce-overlay.active{opacity:1;transform:translate(-50%,-50%) scale(1);}
 
+/* ── LOGIN SCREEN ─────────────────────────────────────── */
+#login-screen{background:#000;z-index:999;}
+#login-screen .splash-content{gap:6px;}
+.auth-subtitle{font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:3px;margin-bottom:24px;}
+#auth-buttons{display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px;margin-top:10px;}
+.auth-btn{
+  padding:14px 20px;border-radius:14px;border:none;
+  font-size:12px;font-weight:900;letter-spacing:2px;
+  font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;
+  touch-action:manipulation;display:flex;align-items:center;
+  justify-content:center;gap:10px;transition:all .2s;
+}
+.auth-btn:active{transform:scale(0.95);}
+.auth-btn.google{background:linear-gradient(135deg,#4285f4,#1a73e8);color:#fff;box-shadow:0 4px 20px rgba(66,133,244,0.4);}
+.auth-btn.wallet{background:rgba(139,92,246,0.15);border:2px solid rgba(139,92,246,0.4);color:#a78bfa;}
+.auth-or{color:rgba(255,255,255,0.15);font-size:8px;letter-spacing:4px;margin:4px 0;text-align:center;}
+#auth-loading{display:none;font-size:10px;color:#f59e0b;letter-spacing:2px;margin-top:10px;font-family:'Press Start 2P',monospace;animation:sdot 1.5s ease-in-out infinite;}
+#auth-error{display:none;font-size:9px;color:#ef4444;letter-spacing:1px;margin-top:8px;padding:8px 16px;border-radius:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);}
+#g-signin-btn{display:none;margin-top:8px;}
+
 /* TOP BAR */
 #sel-topbar{
   position:relative;z-index:10;flex-shrink:0;
@@ -809,8 +829,29 @@ button{font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;borde
 <div id="app">
 <div id="screens">
 
+  <!-- LOGIN SCREEN -->
+  <div class="screen active" id="login-screen">
+    <canvas id="login-canvas"></canvas>
+    <div class="splash-content">
+      <div class="splash-studio">AILURIX STUDIOS</div>
+      <div class="splash-logo">AILURIX</div>
+      <div class="splash-sub">A R E N A</div>
+      <div class="splash-season"><span class="splash-live-dot"></span>SEASON 1 · NOW LIVE</div>
+      <div class="auth-subtitle">SIGN IN TO EARN ARX</div>
+      <div id="auth-buttons">
+        <button class="auth-btn google" onclick="if(window.googleSignIn)window.googleSignIn()">🔵 SIGN IN WITH GOOGLE</button>
+        <div id="g-signin-btn"></div>
+        <div class="auth-or">────── OR ──────</div>
+        <button class="auth-btn wallet" onclick="if(window._showImportWallet)window._showImportWallet()">🔑 IMPORT WALLET</button>
+      </div>
+      <div id="auth-loading">CONNECTING...</div>
+      <div id="auth-error"></div>
+      <div class="splash-footer">© 2026 AILURIX STUDIOS · v3.5</div>
+    </div>
+  </div>
+
   <!-- SPLASH -->
-  <div class="screen active" id="splash">
+  <div class="screen" id="splash">
     <!-- Background Slideshow -->
     <div id="splash-bg-a" class="splash-bg-slide active"></div>
     <div id="splash-bg-b" class="splash-bg-slide"></div>
@@ -830,8 +871,9 @@ button{font-family:'Press Start 2P','Courier New',monospace;cursor:pointer;borde
         <div class="splash-divider"></div>
         <div class="splash-stat"><div class="splash-stat-val">13</div><div class="splash-stat-lbl">ARENAS</div></div>
       </div>
-      <div class="splash-footer">© 2026 AILURIX STUDIOS · v3.4</div>
+      <div class="splash-footer">© 2026 AILURIX STUDIOS · v3.5</div>
       <button id="voice-settings-btn">🎙 VOICE</button>
+      <button onclick="if(window._showWalletScreen)window._showWalletScreen()" style="position:absolute;bottom:max(14px,env(safe-area-inset-bottom,14px));right:60px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:#f59e0b;font-size:8px;padding:7px 12px;border-radius:9px;cursor:pointer;z-index:10;touch-action:manipulation;font-family:'Press Start 2P',monospace;font-weight:700;letter-spacing:1px;">🪙 WALLET</button>
     </div>
   </div>
 
@@ -1268,6 +1310,9 @@ document.addEventListener('touchend', function(){
   [200,600,1200,2500,5000].forEach(function(ms){setTimeout(poke,ms);});
 })();
 </script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+<script src="wallet.js"></script>
 <script>document.write('<scr'+'ipt src="game.js"></scr'+'ipt>');</script>
 
 
