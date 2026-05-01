@@ -231,8 +231,19 @@
   }
 
   function _showWalletSetup() {
-    // For now, just enter game — wallet setup will be Phase 1.3+
+    // Auto-generate wallet for new Google users
     _enterGame();
+    if (window.generateWallet) {
+      setTimeout(function(){
+        window.generateWallet(function(result, err) {
+          if (result) {
+            console.log('🔗 Auto-wallet created:', result.address);
+            // Show backup key screen
+            if (window._showBackupKey) window._showBackupKey();
+          }
+        });
+      }, 1500);
+    }
   }
 
   function _updateUserUI() {
