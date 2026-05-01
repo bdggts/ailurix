@@ -16,12 +16,20 @@
     <activity
       android:name="com.dominex.arena.MainActivity"
       android:exported="true"
+      android:launchMode="singleTask"
       android:screenOrientation="landscape"
       android:configChanges="orientation|screenSize|keyboardHidden"
       android:windowSoftInputMode="adjustPan">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>
         <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+      <!-- Deep link for OAuth callback from system browser -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="ailurix" android:host="auth"/>
       </intent-filter>
     </activity>
   </application>

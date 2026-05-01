@@ -183,8 +183,10 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(new SoundPlayer(), "AndroidAudio");
         // TTS interface
         webView.addJavascriptInterface(new AndroidTTS(), "AndroidTTS");
+        // Auth interface — opens system browser for Google OAuth
+        webView.addJavascriptInterface(new AndroidAuth(), "AndroidAuth");
 
-        // Load mobile-optimized UI (Chrome keeps index.html, app uses index-mobile.html)
+        // Load mobile-optimized UI
         webView.loadUrl("file:///android_asset/index-mobile.html");
 
         setContentView(webView);
@@ -200,6 +202,9 @@ public class MainActivity extends Activity {
         if (isOnline()) {
             new UpdateChecker().execute();
         }
+
+        // Check if launched from deep link (OAuth callback)
+        handleIntent(getIntent());
     }
 
     // ── UPDATE CHECKER ──────────────────────────────────────────────
@@ -305,6 +310,32 @@ public class MainActivity extends Activity {
     }
 
     @Override public void onBackPressed() { /* Block back button */ }
+
+    // ── DEEP LINK: onNewIntent (when app is already running) ─────────
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent == null || intent.getData() == null) return;
+        Uri data = intent.getData();
+        if (data.getScheme() != null && data.getScheme().equals("ailurix")) {
+            handleAuthCallback(data.toString());
+        }
+    }
+
+    // ── ANDROID AUTH INTERFACE (opens system browser) ────────────────
+    private class AndroidAuth {
+        @JavascriptInterface
+        public void openGoogleLogin() {
+            String url = "https://ailurix-arena-server.onrender.com/auth/google/start";
+            Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(i);
+        }
+    }
 
     // ── SOUNDPOOL INIT ────────────────────────────────────────────────
     private void initSoundPool() {

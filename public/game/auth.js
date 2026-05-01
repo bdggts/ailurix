@@ -60,15 +60,20 @@
     .catch(function(){ /* offline — use cached */ });
   }
 
-  // ── GOOGLE SIGN-IN (Redirect-based for WebView) ────────────
+  // ── GOOGLE SIGN-IN (System Browser via Android native) ─────
   window.initGoogleSignIn = function() {
-    // No GSI init needed — using server redirect flow
-    console.log('✅ Google Sign-In ready (redirect mode)');
+    console.log('✅ Google Sign-In ready (system browser mode)');
   };
 
   window.googleSignIn = function() {
-    // Navigate to server which redirects to Google OAuth
-    window.location.href = SERVER + '/auth/google/start';
+    // Use native Android to open system browser (Chrome)
+    // Google blocks OAuth in WebView but allows Chrome
+    if (window.AndroidAuth) {
+      window.AndroidAuth.openGoogleLogin();
+    } else {
+      // Fallback: try direct navigation (for testing in regular browser)
+      window.location.href = SERVER + '/auth/google/start';
+    }
   };
 
   function _handleGoogleResponse(response) {
