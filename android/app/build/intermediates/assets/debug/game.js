@@ -808,9 +808,9 @@ function initFight(){
     var floorKey=BG_MAP[opp.id]||'bg_fire';
     var FLOOR=H*(FLOOR_MAP[floorKey]||0.78);
     G.gs={
-      p1:{ch:G.player,x:W*0.28,y:FLOOR,vy:0,onGround:true,hp:G.player.hp,maxHp:G.player.hp,energy:0,state:'idle',af:0,cd:0,dir:1,H:Math.round(SC*130),dmgTaken:0},
-      p2:{ch:opp,x:W*0.72,y:FLOOR,vy:0,onGround:true,hp:Math.round(opp.hp*eHpMult),maxHp:Math.round(opp.hp*eHpMult),energy:0,state:'idle',af:0,cd:0,dir:-1,H:Math.round(SC*130),dmgTaken:0},
-      timer:300,lastSec:Date.now(),
+      p1:{ch:G.player,x:W*0.28,y:FLOOR,vy:0,onGround:true,hp:G.mpMode?G.player.hp*2:G.player.hp,maxHp:G.mpMode?G.player.hp*2:G.player.hp,energy:0,state:'idle',af:0,cd:0,dir:1,H:Math.round(SC*130),dmgTaken:0},
+      p2:{ch:opp,x:W*0.72,y:FLOOR,vy:0,onGround:true,hp:G.mpMode?Math.round(opp.hp*2):Math.round(opp.hp*eHpMult),maxHp:G.mpMode?Math.round(opp.hp*2):Math.round(opp.hp*eHpMult),energy:0,state:'idle',af:0,cd:0,dir:-1,H:Math.round(SC*130),dmgTaken:0},
+      timer:G.mpMode?90:300,lastSec:Date.now(),
       p1r:0,p2r:0,round:1,
       parts:[],shake:0,floatTexts:[],
       phase:'roundAnnounce',roundAnnTimer:40,
@@ -1304,7 +1304,7 @@ function fightLoop(now){
         gs.p1.x=gs.W*0.28;gs.p2.x=gs.W*0.72;
         gs.p1.y=gs.p2.y=gs.FLOOR;gs.p1.vy=gs.p2.vy=0;
         gs.p1.state=gs.p2.state='idle';gs.p1.energy=gs.p2.energy=0;
-        gs.p1.cd=gs.p2.cd=0;gs.timer=300;gs.lastSec=Date.now();gs.round++;
+        gs.p1.cd=gs.p2.cd=0;gs.timer=G.mpMode?90:300;gs.lastSec=Date.now();gs.round++;
         COMBO.count=0;COMBO.timer=0;COMBO.lastHitter=null;
         gs.finishHim=false;gs.roundOverTimer=0;gs._resultScheduled=false;
         gs.phase='roundAnnounce';gs.roundAnnTimer=40;
