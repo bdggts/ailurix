@@ -42,6 +42,7 @@ var G={
   bgInt:null,
   mpMode:false,      // true when in 1v1 online fight
   mpOpponent:null,   // opponent character in MP mode
+  muted: localStorage.getItem('ailurix_muted')==='1',  // sound mute state
 };
 var COMBO = { count: 0, timer: 0, lastHitter: null, text: '', textTimer: 0, flash: 0 };
 var ROUND_WORDS = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN'];
@@ -131,6 +132,7 @@ function playNoise(dur,vol,freq){var ac=AC();if(!ac)return;var buf=getNoise();if
 
 // -- SFX ENGINE --
 function snd(type){try{
+  if(G.muted) return;
   var src='';
   if(type==='punch') src='voice/punch.mp3';
   else if(type==='kick') src='voice/kick.mp3';
@@ -255,10 +257,21 @@ function tickCombo(){if(COMBO.timer>0)COMBO.timer--;else{COMBO.count=0;COMBO.las
 function $(id){return document.getElementById(id);}
 function bgmStop(){if(window.MK_AUDIO){window.MK_CAN_PLAY=false;window.MK_AUDIO.pause();window.MK_AUDIO.currentTime=0;}}
 function bgmPlay(id){
+  if(G.muted) return;
   // MUST set MK_CAN_PLAY=true for select/menu before calling MK_PLAY
   if(id==='menu'||id==='select'){window.MK_CAN_PLAY=true;}
   if(window.MK_PLAY){window._bgmKey=id;window.MK_PLAY();}
 }
+// Global sound toggle
+window.toggleMute = function(){
+  G.muted = !G.muted;
+  localStorage.setItem('ailurix_muted', G.muted ? '1' : '0');
+  if(G.muted){ bgmStop(); }
+  else { bgmPlay('select'); }
+  // Update all mute buttons
+  var btns = document.querySelectorAll('.mute-toggle-btn');
+  for(var i=0;i<btns.length;i++){ btns[i].textContent = G.muted ? '🔇' : '🔊'; }
+};
 
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
@@ -1633,6 +1646,9 @@ function fightLoop(now){
 
 // SPLASH
 function initSplash(){
+  // Sync mute buttons on load
+  var _muteBtns = document.querySelectorAll('.mute-toggle-btn');
+  for(var mi=0;mi<_muteBtns.length;mi++){ _muteBtns[mi].textContent = G.muted ? '🔇' : '🔊'; }
   // Export navigation function globally for HTML onclick fallback
   // Simple navigation - direct goto select
   window._playNow = function(){
