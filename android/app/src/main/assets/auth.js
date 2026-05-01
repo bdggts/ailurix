@@ -60,41 +60,15 @@
     .catch(function(){ /* offline — use cached */ });
   }
 
-  // ── GOOGLE SIGN-IN ────────────────────────────────────────
+  // ── GOOGLE SIGN-IN (Redirect-based for WebView) ────────────
   window.initGoogleSignIn = function() {
-    if (!window.google || !google.accounts) {
-      console.log('⚠️ Google GSI not loaded yet');
-      return;
-    }
-    google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: _handleGoogleResponse,
-      auto_select: false,
-      cancel_on_tap_outside: true
-    });
+    // No GSI init needed — using server redirect flow
+    console.log('✅ Google Sign-In ready (redirect mode)');
   };
 
   window.googleSignIn = function() {
-    if (!window.google || !google.accounts) {
-      _showAuthError('Google not loaded. Check internet.');
-      return;
-    }
-    // Show One-Tap or popup
-    google.accounts.id.prompt(function(notification){
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        // Fallback: render button
-        var btnDiv = document.getElementById('g-signin-btn');
-        if (btnDiv) {
-          google.accounts.id.renderButton(btnDiv, {
-            theme: 'filled_black',
-            size: 'large',
-            width: 280,
-            text: 'continue_with'
-          });
-          btnDiv.style.display = 'block';
-        }
-      }
-    });
+    // Navigate to server which redirects to Google OAuth
+    window.location.href = SERVER + '/auth/google/start';
   };
 
   function _handleGoogleResponse(response) {

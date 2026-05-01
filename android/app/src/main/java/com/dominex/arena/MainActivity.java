@@ -157,6 +157,24 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                // Handle ailurix:// custom scheme for OAuth callback
+                if (url != null && url.startsWith("ailurix://auth")) {
+                    handleAuthCallback(url);
+                    return true;
+                }
+                // Allow Google OAuth pages to load in WebView
+                if (url != null && (url.contains("accounts.google.com") || 
+                    url.contains("ailurix-arena-server.onrender.com"))) {
+                    return false; // Let WebView load it
+                }
+                // External links open in browser
+                if (url != null && url.startsWith("http")) {
+                    try {
+                        Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        startActivity(i);
+                    } catch (Exception e) {}
+                    return true;
+                }
                 return false;
             }
         });
@@ -243,6 +261,47 @@ public class MainActivity extends Activity {
             NetworkInfo ni = cm.getActiveNetworkInfo();
             return ni != null && ni.isConnectedOrConnecting();
         } catch (Exception e) { return false; }
+    }
+
+    // Handle ailurix://auth?token=xxx&user=xxx callback from Google OAuth
+    private void handleAuthCallback(String url) {
+        try {
+            Uri uri = Uri.parse(url);
+            String token = uri.getQueryParameter("token");
+            String userB64 = uri.getQueryParameter("user");
+            String error = uri.getQueryParameter("error");
+            String isNew = uri.getQueryParameter("isNew");
+            
+            if (error != null || token == null) {
+                // Auth failed — go back to login
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        webView.loadUrl("file:///android_asset/index-mobile.html");
+                        Toast.makeText(MainActivity.this, "Login failed. Try again.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+                return;
+            }
+            
+            // Inject token into WebView localStorage and reload
+            final String jsCode = 
+                "localStorage.setItem('arx_token','" + token.replace("'", "\\'") + "');" +
+                "try{var u=decodeURIComponent('" + userB64.replace("'", "\\'") + "');" +
+                "localStorage.setItem('arx_user',decodeURIComponent(escape(atob(u))));}catch(e){}" +
+                "window.location.href='file:///android_asset/index-mobile.html';";
+            
+            runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    webView.evaluateJavascript(jsCode, null);
+                }
+            });
+        } catch (Exception e) {
+            runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    webView.loadUrl("file:///android_asset/index-mobile.html");
+                }
+            });
+        }
     }
 
     @Override public void onBackPressed() { /* Block back button */ }

@@ -53,7 +53,78 @@ function genReferralCode() {
 // ── HEALTH CHECK ────────────────────────────────────────────
 app.get('/', (req, res) => res.json({ status: 'ok', server: 'Ailurix Arena v1.2' }));
 
-// ── AUTH: GOOGLE LOGIN ──────────────────────────────────────
+// ── AUTH: GOOGLE OAUTH REDIRECT (for Android WebView) ───────
+app.get('/auth/google/start', (req, res) => {
+  const nonce = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  const redirectUri = 'https://ailurix-arena-server.onrender.com/auth/callback';
+  const url = 'https://accounts.google.com/o/oauth2/v2/auth?' +
+    'client_id=' + encodeURIComponent(GOOGLE_CLIENT_ID) +
+    '&redirect_uri=' + encodeURIComponent(redirectUri) +
+    '&response_type=id_token' +
+    '&scope=openid%20email%20profile' +
+    '&nonce=' + nonce +
+    '&prompt=select_account';
+  res.redirect(url);
+});
+
+// Callback page — reads id_token from URL fragment and calls our API
+app.get('/auth/callback', (req, res) => {
+  res.send(`<!DOCTYPE html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;}
+.msg{font-size:18px;color:#f59e0b;}.sub{font-size:12px;color:#666;margin-top:10px;}
+.err{color:#ef4444;font-size:14px;margin-top:10px;display:none;}
+</style></head><body>
+<div>
+<div class="msg" id="msg">⏳ Logging in...</div>
+<div class="sub" id="sub">Please wait</div>
+<div class="err" id="err"></div>
+</div>
+<script>
+(function(){
+  var hash = window.location.hash.substring(1);
+  var params = {};
+  hash.split('&').forEach(function(p){ var kv=p.split('='); params[kv[0]]=decodeURIComponent(kv[1]||''); });
+  var idToken = params['id_token'];
+  if(!idToken){
+    document.getElementById('msg').textContent='❌ Login Failed';
+    document.getElementById('sub').textContent='No token received';
+    document.getElementById('err').style.display='block';
+    document.getElementById('err').textContent='Please try again';
+    setTimeout(function(){ window.location.href='ailurix://auth?error=no_token'; },2000);
+    return;
+  }
+  fetch('/auth/google',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({credential:idToken})
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(data.success){
+      document.getElementById('msg').textContent='✅ Welcome, '+data.user.name+'!';
+      document.getElementById('sub').textContent='Returning to game...';
+      var userB64 = btoa(unescape(encodeURIComponent(JSON.stringify(data.user))));
+      setTimeout(function(){
+        window.location.href='ailurix://auth?token='+encodeURIComponent(data.token)+'&user='+encodeURIComponent(userB64)+'&isNew='+(data.isNew?'1':'0');
+      },1000);
+    } else {
+      document.getElementById('msg').textContent='❌ Login Failed';
+      document.getElementById('sub').textContent=data.error||'Unknown error';
+      setTimeout(function(){ window.location.href='ailurix://auth?error=failed'; },2000);
+    }
+  })
+  .catch(function(e){
+    document.getElementById('msg').textContent='❌ Server Error';
+    document.getElementById('sub').textContent=e.message;
+    setTimeout(function(){ window.location.href='ailurix://auth?error=server'; },2000);
+  });
+})();
+</script></body></html>`);
+});
+
+// ── AUTH: GOOGLE LOGIN (POST — token verify) ────────────────
 app.post('/auth/google', async (req, res) => {
   try {
     const { credential } = req.body;
