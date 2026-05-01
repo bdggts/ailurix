@@ -897,8 +897,18 @@ function doAttack(attacker,defender,type,gs){
         window.MPSendHP(target, defender.hp);
       }
 
-      // MP: Server decides winner via fight:result event (no local trigger)
-      // Local HP <=0 is just visual — server has authoritative HP tracking
+      // MP: If HP<=0, wait for server fight:result. Fallback after 3s if server is slow.
+      if(G.mpMode && !gs.over && defender.hp<=0){
+        if(!window._mpResultFallback){
+          var _won = (defender===gs.p2);
+          window._mpResultFallback = setTimeout(function(){
+            window._mpResultFallback = null;
+            if(typeof window.showMPResultScreen==='function' && G.gs && !G.gs._mpResultShown){
+              window.showMPResultScreen(_won);
+            }
+          }, 3000);
+        }
+      }
 
       if(gs.finishHim&&defender.hp<=0){
         gs.finishHim=false;

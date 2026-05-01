@@ -211,6 +211,8 @@ function setupListeners() {
 
   s.on('fight:result', function(d) {
     MP.active = false;
+    // Cancel local fallback timer
+    if(window._mpResultFallback){ clearTimeout(window._mpResultFallback); window._mpResultFallback=null; }
     if (typeof window.showMPResultScreen === 'function') window.showMPResultScreen(d.winner === MP.playerNum);
   });
 
