@@ -522,6 +522,11 @@ function setupVoiceListeners() {
         .catch(function(e) {});
     }
   });
+
+  // Opponent mic status notification
+  s.on('voice:mic_status', function(d) {
+    _showMicNotification(d.on);
+  });
 }
 
 function _handleOffer(d) {
@@ -540,6 +545,10 @@ function _handleOffer(d) {
 window.MPToggleMic = function() {
   if (!VC.started) {
     startVoiceChat();
+    // Notify opponent mic is ON
+    if (MP.socket && MP.socket.connected) {
+      MP.socket.emit('voice:mic_status', { on: true });
+    }
     return;
   }
   if (VC.localStream) {
@@ -548,8 +557,29 @@ window.MPToggleMic = function() {
       t.enabled = VC.micOn;
     });
     _updateMicBtn();
+    // Notify opponent of mic status
+    if (MP.socket && MP.socket.connected) {
+      MP.socket.emit('voice:mic_status', { on: VC.micOn });
+    }
   }
 };
+
+// Show mic notification toast
+function _showMicNotification(isOn) {
+  var old = document.getElementById('mic-notify-toast');
+  if (old) old.remove();
+  var toast = document.createElement('div');
+  toast.id = 'mic-notify-toast';
+  toast.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:9999999;' +
+    'background:rgba(0,0,0,0.9);border:2px solid '+(isOn?'#22c55e':'#ef4444')+';' +
+    'color:'+(isOn?'#22c55e':'#ef4444')+';padding:8px 20px;border-radius:8px;' +
+    'font-family:monospace;font-size:13px;letter-spacing:2px;text-transform:uppercase;' +
+    'text-shadow:0 0 8px '+(isOn?'#22c55e':'#ef4444')+';' +
+    'animation:mk-slide 0.4s ease-out;pointer-events:none;';
+  toast.textContent = isOn ? '🎤 OPPONENT MIC ON' : '🔇 OPPONENT MIC OFF';
+  document.body.appendChild(toast);
+  setTimeout(function(){ if(toast.parentNode) toast.remove(); }, 2500);
+}
 
 // Hook into setupListeners to also setup voice
 var _origSetup = setupListeners;

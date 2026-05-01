@@ -197,6 +197,11 @@ io.on('connection', (socket) => {
     if (!code) return;
     socket.to(code).emit('voice:ice', data);
   });
+  socket.on('voice:mic_status', (data) => {
+    const code = socket.roomCode;
+    if (!code) return;
+    socket.to(code).emit('voice:mic_status', data);
+  });
 
   // ── HP SYNC (server-authoritative) ───────────────────────
   socket.on('fight:hp', (data) => {
