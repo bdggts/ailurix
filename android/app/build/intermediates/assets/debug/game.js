@@ -2561,6 +2561,12 @@ window.showMPResultScreen = function(won) {
   again.ontouchend = again.onclick = function(e){
     e.preventDefault();e.stopPropagation();
     ov.remove();
+    // Cancel any pending fallback timer
+    if(window._mpResultFallback){ clearTimeout(window._mpResultFallback); window._mpResultFallback=null; }
+    // Cancel fight loop
+    if(G.raf){ cancelAnimationFrame(G.raf); G.raf=null; }
+    // Stop BGM
+    bgmStop();
     // Clear fight-ui !important styles
     var f = document.getElementById('fight-ui');
     if(f){ f.style.removeProperty('display'); f.style.removeProperty('position'); f.style.removeProperty('inset'); f.style.removeProperty('z-index'); f.style.display='none'; }
@@ -2569,6 +2575,8 @@ window.showMPResultScreen = function(won) {
     G.mpMode = false;
     G.gs = null;
     if(window.MP) { MP.active = false; MP.opponentChar = null; MP.myChar = null; }
+    // Clear poll timer
+    if(window.MP && window.MP._pollTimer){ clearInterval(window.MP._pollTimer); window.MP._pollTimer=null; }
     // Clear ALL screen !important styles (fight leaves them messed up)
     var allScr = document.querySelectorAll('.screen');
     for(var si=0;si<allScr.length;si++){ allScr[si].style.removeProperty('display'); allScr[si].style.removeProperty('opacity'); allScr[si].style.removeProperty('pointer-events'); allScr[si].style.removeProperty('z-index'); }
@@ -2576,6 +2584,7 @@ window.showMPResultScreen = function(won) {
     G.screen = 'select';
     showScreen('select');
     initSelect();
+    bgmPlay('select');
     // Send rematch to server in background
     if(window.MP && window.MP.socket && window.MP.roomCode) {
       window.MP.socket.emit('room:rematch');
