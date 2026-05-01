@@ -275,7 +275,8 @@ window.toggleMute = function(){
 
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-  if(name==='splash')$('splash').classList.add('active');
+  if(name==='login-screen'){var ls=$('login-screen');if(ls){ls.classList.add('active');ls.style.display='flex';}}
+  else if(name==='splash')$('splash').classList.add('active');
   else if(name==='select')$('select').classList.add('active');
   else if(name==='vs')$('vs-screen').classList.add('active');
   else if(name==='mp-lobby'){var ml=$('mp-lobby');if(ml)ml.classList.add('active');}
