@@ -2485,16 +2485,29 @@ window.showMPResultScreen = function(won) {
   ov.style.cssText = 'position:fixed;inset:0;z-index:9999999;display:flex;flex-direction:column;align-items:center;justify-content:center;' +
     'background:' + (won ? 'radial-gradient(circle at center,rgba(245,158,11,.2) 0%,#000 70%)' : 'radial-gradient(circle at center,rgba(220,38,38,.2) 0%,#000 70%)') + ';';
 
-  // Title
+  // Add MK-style animation
+  var styleEl = document.createElement('style');
+  styleEl.textContent = '@keyframes mk-pulse{0%{transform:scale(1);text-shadow:0 0 20px '+(won?'#f59e0b':'#ef4444')+'}50%{transform:scale(1.08);text-shadow:0 0 60px '+(won?'#f59e0b':'#ef4444')+',0 0 120px '+(won?'#f59e0b55':'#ef444455')+'}100%{transform:scale(1);text-shadow:0 0 20px '+(won?'#f59e0b':'#ef4444')+'}}@keyframes mk-slide{0%{transform:translateY(-40px);opacity:0}100%{transform:translateY(0);opacity:1}}';
+  ov.appendChild(styleEl);
+
+  // Title — MK style
   var title = document.createElement('div');
-  title.style.cssText = 'font-size:52px;font-weight:900;color:' + (won ? '#f59e0b' : '#ef4444') + ';text-shadow:0 0 40px ' + (won ? '#f59e0b' : '#ef4444') + ',0 4px 8px rgba(0,0,0,.8);font-family:Impact,sans-serif;letter-spacing:4px;margin-bottom:12px;text-align:center;';
-  title.textContent = won ? '🏆 VICTORY!' : '💀 DEFEATED!';
+  title.style.cssText = 'font-size:58px;font-weight:900;letter-spacing:8px;margin-bottom:8px;text-align:center;font-family:Impact,sans-serif;text-transform:uppercase;' +
+    'background:linear-gradient(180deg,'+(won?'#fcd34d,#f59e0b,#b45309':'#fca5a5,#ef4444,#991b1b')+');-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;' +
+    'animation:mk-pulse 2s ease-in-out infinite,mk-slide 0.6s ease-out;' +
+    'filter:drop-shadow(0 4px 12px '+(won?'rgba(245,158,11,.6)':'rgba(239,68,68,.6)')+');';
+  title.textContent = won ? 'VICTORY' : 'DEFEATED';
   ov.appendChild(title);
+
+  // Decorative line
+  var line = document.createElement('div');
+  line.style.cssText = 'width:200px;height:3px;margin:0 auto 12px;border-radius:2px;background:linear-gradient(90deg,transparent,'+(won?'#f59e0b':'#ef4444')+',transparent);animation:mk-slide 0.8s ease-out;';
+  ov.appendChild(line);
 
   // Sub text
   var sub = document.createElement('div');
-  sub.style.cssText = 'font-size:14px;color:#94a3b8;margin-bottom:36px;font-family:monospace;text-align:center;';
-  sub.textContent = 'MULTIPLAYER MATCH';
+  sub.style.cssText = 'font-size:16px;color:'+(won?'#fcd34d':'#fca5a5')+';margin-bottom:36px;font-family:Impact,sans-serif;text-align:center;letter-spacing:4px;text-transform:uppercase;animation:mk-slide 1s ease-out;';
+  sub.textContent = won ? '⚔ FLAWLESS COMBAT ⚔' : '☠ YOU HAVE FALLEN ☠';
   ov.appendChild(sub);
 
   // Buttons container
