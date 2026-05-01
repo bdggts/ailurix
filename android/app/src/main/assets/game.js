@@ -2485,29 +2485,30 @@ window.showMPResultScreen = function(won) {
   ov.style.cssText = 'position:fixed;inset:0;z-index:9999999;display:flex;flex-direction:column;align-items:center;justify-content:center;' +
     'background:' + (won ? 'radial-gradient(circle at center,rgba(245,158,11,.2) 0%,#000 70%)' : 'radial-gradient(circle at center,rgba(220,38,38,.2) 0%,#000 70%)') + ';';
 
-  // Add MK-style animation
+  // Add MK pixel-style animation
   var styleEl = document.createElement('style');
-  styleEl.textContent = '@keyframes mk-pulse{0%{transform:scale(1);text-shadow:0 0 20px '+(won?'#f59e0b':'#ef4444')+'}50%{transform:scale(1.08);text-shadow:0 0 60px '+(won?'#f59e0b':'#ef4444')+',0 0 120px '+(won?'#f59e0b55':'#ef444455')+'}100%{transform:scale(1);text-shadow:0 0 20px '+(won?'#f59e0b':'#ef4444')+'}}@keyframes mk-slide{0%{transform:translateY(-40px);opacity:0}100%{transform:translateY(0);opacity:1}}';
+  styleEl.textContent = '@keyframes mk-pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}@keyframes mk-slide{0%{transform:translateY(-30px);opacity:0}100%{transform:translateY(0);opacity:1}}';
   ov.appendChild(styleEl);
 
-  // Title — MK style
+  // Title — Pixel style
   var title = document.createElement('div');
-  title.style.cssText = 'font-size:58px;font-weight:900;letter-spacing:8px;margin-bottom:8px;text-align:center;font-family:Impact,sans-serif;text-transform:uppercase;' +
-    'background:linear-gradient(180deg,'+(won?'#fcd34d,#f59e0b,#b45309':'#fca5a5,#ef4444,#991b1b')+');-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;' +
-    'animation:mk-pulse 2s ease-in-out infinite,mk-slide 0.6s ease-out;' +
-    'filter:drop-shadow(0 4px 12px '+(won?'rgba(245,158,11,.6)':'rgba(239,68,68,.6)')+');';
+  title.style.cssText = 'font-size:48px;font-weight:900;letter-spacing:6px;margin-bottom:8px;text-align:center;font-family:monospace;text-transform:uppercase;' +
+    'color:'+(won?'#f59e0b':'#ef4444')+';' +
+    'text-shadow:3px 3px 0 '+(won?'#b45309':'#991b1b')+',0 0 20px '+(won?'#f59e0b':'#ef4444')+';' +
+    'animation:mk-pulse 2s ease-in-out infinite,mk-slide 0.5s ease-out;' +
+    '-webkit-text-stroke:1px '+(won?'#fcd34d':'#fca5a5')+';';
   title.textContent = won ? 'VICTORY' : 'DEFEATED';
   ov.appendChild(title);
 
-  // Decorative line
+  // Decorative pixel line
   var line = document.createElement('div');
-  line.style.cssText = 'width:200px;height:3px;margin:0 auto 12px;border-radius:2px;background:linear-gradient(90deg,transparent,'+(won?'#f59e0b':'#ef4444')+',transparent);animation:mk-slide 0.8s ease-out;';
+  line.style.cssText = 'width:180px;height:4px;margin:4px auto 12px;background:'+(won?'#f59e0b':'#ef4444')+';box-shadow:0 0 12px '+(won?'#f59e0b':'#ef4444')+';animation:mk-slide 0.7s ease-out;';
   ov.appendChild(line);
 
-  // Sub text
+  // Sub text — pixel style
   var sub = document.createElement('div');
-  sub.style.cssText = 'font-size:16px;color:'+(won?'#fcd34d':'#fca5a5')+';margin-bottom:36px;font-family:Impact,sans-serif;text-align:center;letter-spacing:4px;text-transform:uppercase;animation:mk-slide 1s ease-out;';
-  sub.textContent = won ? '⚔ FLAWLESS COMBAT ⚔' : '☠ YOU HAVE FALLEN ☠';
+  sub.style.cssText = 'font-size:12px;color:'+(won?'#fcd34d':'#fca5a5')+';margin-bottom:36px;font-family:monospace;text-align:center;letter-spacing:3px;text-transform:uppercase;animation:mk-slide 0.9s ease-out;';
+  sub.textContent = won ? 'FLAWLESS COMBAT' : 'YOU HAVE FALLEN';
   ov.appendChild(sub);
 
   // Buttons container
