@@ -128,40 +128,66 @@ body{background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:
 app.post('/auth/google', async (req, res) => {
   try {
     const { credential } = req.body;
-    if (!credential) return res.status(400).json({ error: 'No credential' });
+    if (!credential) return res.status(400).json({ error: 'No credential provided' });
 
     // Verify Google token
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: GOOGLE_CLIENT_ID
-    });
-    const payload = ticket.getPayload();
-    const { email, name, picture, sub: googleId } = payload;
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: GOOGLE_CLIENT_ID
+      });
+      payload = ticket.getPayload();
+    } catch (verifyErr) {
+      console.error('Token verify error:', verifyErr.message);
+      return res.status(401).json({ error: 'Token verification failed: ' + verifyErr.message });
+    }
 
-    // Find or create user
-    let user = await User.findOne({ email });
-    const isNew = !user;
-    
-    if (!user) {
-      user = new User({
+    const { email, name, picture, sub: googleId } = payload;
+    let user, isNew = false;
+
+    // Try MongoDB — but work even if DB is down
+    try {
+      user = await User.findOne({ email });
+      isNew = !user;
+      
+      if (!user) {
+        user = new User({
+          email,
+          name: name || 'Fighter',
+          picture: picture || '',
+          googleId,
+          loginMethod: 'google',
+          referralCode: genReferralCode()
+        });
+        await user.save();
+        console.log('🆕 New user:', email);
+      } else {
+        user.lastLogin = new Date();
+        user.picture = picture || user.picture;
+        await user.save();
+      }
+    } catch (dbErr) {
+      console.error('DB error (using fallback):', dbErr.message);
+      // Fallback: create user object without DB
+      user = {
+        _id: googleId,
         email,
         name: name || 'Fighter',
         picture: picture || '',
-        googleId,
-        loginMethod: 'google',
-        referralCode: genReferralCode()
-      });
-      await user.save();
-      console.log('🆕 New user:', email);
-    } else {
-      user.lastLogin = new Date();
-      user.picture = picture || user.picture;
-      await user.save();
+        walletAddress: '',
+        arxBalance: 0,
+        referralCode: 'ARX' + googleId.slice(-6).toUpperCase(),
+        totalFights: 0,
+        totalWins: 0,
+        loginMethod: 'google'
+      };
+      isNew = true;
     }
 
     // Generate JWT
     const token = jwt.sign(
-      { userId: user._id, email: user.email },
+      { userId: user._id || googleId, email: user.email || email },
       JWT_SECRET,
       { expiresIn: '30d' }
     );
@@ -171,21 +197,21 @@ app.post('/auth/google', async (req, res) => {
       isNew,
       token,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        picture: user.picture,
-        walletAddress: user.walletAddress,
-        arxBalance: user.arxBalance,
-        referralCode: user.referralCode,
-        totalFights: user.totalFights,
-        totalWins: user.totalWins,
-        loginMethod: user.loginMethod
+        id: user._id || googleId,
+        name: user.name || name,
+        email: user.email || email,
+        picture: user.picture || picture,
+        walletAddress: user.walletAddress || '',
+        arxBalance: user.arxBalance || 0,
+        referralCode: user.referralCode || '',
+        totalFights: user.totalFights || 0,
+        totalWins: user.totalWins || 0,
+        loginMethod: user.loginMethod || 'google'
       }
     });
   } catch (err) {
-    console.error('Auth error:', err.message);
-    res.status(401).json({ error: 'Authentication failed' });
+    console.error('Auth error:', err.message, err.stack);
+    res.status(401).json({ error: 'Auth failed: ' + err.message });
   }
 });
 
