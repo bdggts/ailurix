@@ -73,7 +73,7 @@ app.get('/auth/callback', (req, res) => {
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
 <style>*{margin:0;padding:0;box-sizing:border-box;}
 body{background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;}
-.msg{font-size:18px;color:#f59e0b;}.sub{font-size:12px;color:#666;margin-top:10px;}
+.msg{font-size:18px;color:#f59e0b;}.sub{font-size:12px;color:#666;margin-top:10px;max-width:90vw;word-break:break-all;}
 .err{color:#ef4444;font-size:14px;margin-top:10px;display:none;}
 </style></head><body>
 <div>
@@ -89,18 +89,25 @@ body{background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:
   var idToken = params['id_token'];
   if(!idToken){
     document.getElementById('msg').textContent='❌ Login Failed';
-    document.getElementById('sub').textContent='No token received';
-    document.getElementById('err').style.display='block';
-    document.getElementById('err').textContent='Please try again';
-    setTimeout(function(){ window.location.href='ailurix://auth?error=no_token'; },2000);
+    document.getElementById('sub').textContent='No token received from Google';
+    setTimeout(function(){ window.location.href='ailurix://auth?error=no_token'; },3000);
     return;
   }
-  fetch('/auth/google',{
+  document.getElementById('sub').textContent='Verifying with server...';
+  fetch(window.location.origin + '/auth/google',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({credential:idToken})
   })
-  .then(function(r){return r.json();})
+  .then(function(r){
+    var ct = r.headers.get('content-type') || '';
+    if(ct.indexOf('application/json') === -1){
+      return r.text().then(function(txt){
+        throw new Error('Server returned non-JSON (status '+r.status+'): '+txt.substring(0,200));
+      });
+    }
+    return r.json();
+  })
   .then(function(data){
     if(data.success){
       document.getElementById('msg').textContent='✅ Welcome, '+data.user.name+'!';
@@ -112,13 +119,13 @@ body{background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:
     } else {
       document.getElementById('msg').textContent='❌ Login Failed';
       document.getElementById('sub').textContent=data.error||'Unknown error';
-      setTimeout(function(){ window.location.href='ailurix://auth?error=failed'; },2000);
+      setTimeout(function(){ window.location.href='ailurix://auth?error=failed'; },4000);
     }
   })
   .catch(function(e){
     document.getElementById('msg').textContent='❌ Server Error';
     document.getElementById('sub').textContent=e.message;
-    setTimeout(function(){ window.location.href='ailurix://auth?error=server'; },2000);
+    setTimeout(function(){ window.location.href='ailurix://auth?error=server'; },5000);
   });
 })();
 </script></body></html>`);
